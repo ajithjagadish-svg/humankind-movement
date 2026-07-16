@@ -73,12 +73,54 @@
   <section class="bg-white">
     <div class="container grid-2">
       <div>
-        <h2>Direct</h2>
-        <ul class="list-quiet">
-          <li><strong>Contact form</strong><br><a class="link-arrow" href="#" data-placeholder="google-form">Fill out the contact form <span class="arrow">→</span></a><br><span class="note">Placeholder — link this to your Google Form once it's created. Details on the form are sent straight to your email.</span></li>
-          <li><strong>Google Business Profile</strong><br><a class="link-arrow" href="https://share.google/1DfDVbxb1PKiajEfN" target="_blank" rel="noopener">View reviews & profile <span class="arrow">→</span></a></li>
-        </ul>
-        <p class="note" style="margin-top:1.4em;">When you write in, it helps to include: what you're looking for (yourself, your organization, or a neurodivergent child), where you're based, and anything about your situation that would help the first conversation start in the right place.</p>
+        <h2>Send a message</h2>
+        <p class="note">Include what you're looking for (yourself, your organization, or a neurodivergent child), where you're based, and anything about your situation that would help the first conversation start in the right place.</p>
+
+        <form class="contact-form" id="contact-form" action="https://formspree.io/f/xvzezebd" method="POST">
+          <div class="field">
+            <label for="cf-name">Name <span class="req">*</span></label>
+            <input type="text" id="cf-name" name="name" autocomplete="name" data-fs-field required>
+            <span class="field-error" data-fs-error="name"></span>
+          </div>
+          <div class="field">
+            <label for="cf-email">Email <span class="req">*</span></label>
+            <input type="email" id="cf-email" name="email" autocomplete="email" data-fs-field required>
+            <span class="field-error" data-fs-error="email"></span>
+          </div>
+          <div class="field">
+            <label for="cf-phone">Phone <span class="req">*</span></label>
+            <input type="tel" id="cf-phone" name="phone" autocomplete="tel" data-fs-field required>
+            <span class="field-error" data-fs-error="phone"></span>
+          </div>
+          <div class="field">
+            <label for="cf-topic">I'm reaching out about <span class="req">*</span></label>
+            <select id="cf-topic" name="topic" data-fs-field required>
+              <option value="" disabled selected>Choose one</option>
+              <option value="1:1 coaching (myself)">1:1 coaching — for myself</option>
+              <option value="Prepartum / postpartum recovery">Prepartum & postpartum recovery</option>
+              <option value="Corporate / community program">Corporate or community wellness program</option>
+              <option value="Neurodivergent coaching (my child)">Neurodivergent coaching — for my child</option>
+              <option value="Speaking / workshops / papers">Speaking, workshops, or the Humankind Movement Papers</option>
+              <option value="Something else">Something else</option>
+            </select>
+            <span class="field-error" data-fs-error="topic"></span>
+          </div>
+          <div class="field">
+            <label for="cf-location">Where you're based</label>
+            <input type="text" id="cf-location" name="location" autocomplete="address-level2" data-fs-field>
+            <span class="field-error" data-fs-error="location"></span>
+          </div>
+          <div class="field">
+            <label for="cf-message">Message <span class="req">*</span></label>
+            <textarea id="cf-message" name="message" data-fs-field required></textarea>
+            <span class="field-error" data-fs-error="message"></span>
+          </div>
+          <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off">
+          <input type="hidden" name="_subject" value="New message — Humankind Movement contact form">
+          <button type="submit" class="btn" data-fs-submit-btn>Send message</button>
+          <p class="form-status err" data-fs-error role="alert"></p>
+          <p class="form-status ok" data-fs-success role="status">Thanks — your message is in. I'll get back to you soon.</p>
+        </form>
       </div>
       <div class="feature-card tint">
         <h3>What to reach out about</h3>
@@ -89,6 +131,7 @@
           <li>Neurodivergent coaching — movement coaching for a child</li>
           <li>Speaking, workshops, or the Humankind Movement Papers</li>
         </ul>
+        <p class="note" style="margin-top:1.4em;">Prefer another way? <a class="link-arrow" href="https://share.google/1DfDVbxb1PKiajEfN" target="_blank" rel="noopener">View reviews & Google Business profile <span class="arrow">→</span></a></p>
       </div>
     </div>
   </section>
@@ -129,5 +172,10 @@
 
 <script src="assets/js/main.js"></script>
 <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+<script>
+  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#contact-form', formId: 'xvzezebd', useDefaultStyles: false });
+</script>
+<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 </body>
 </html>
