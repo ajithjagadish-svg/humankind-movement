@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Dashboard (Private) — Humankind Movement</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/icon-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  :root {
+    --good: #0ca30c;
+    --warning: #fab219;
+    --critical: #d03b3b;
+    --seq-100: #fbe9e6;
+    --seq-400: #e0917f;
+    --seq-700: #C0392B;
+  }
+  body { background: var(--paper); }
+  .dash-wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 100px; }
+  .dash-banner {
+    background: var(--dark); color: #fff; padding: 10px 0; text-align: center;
+    font-size: 0.85rem; letter-spacing: 0.02em;
+  }
+  .dash-banner strong { color: var(--accent-soft); }
+  .dash-head { margin: 40px 0 30px; }
+  .dash-head h1 { font-size: 2rem; margin-bottom: 0.2em; }
+  .stat-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 30px 0 40px;
+  }
+  @media (max-width: 800px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat-tile {
+    background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+  }
+  .stat-tile .num { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat-tile .label { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+  .panel {
+    background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 28px; margin-bottom: 28px;
+  }
+  .panel h2 { font-size: 1.2rem; margin-bottom: 0.6em; }
+  .panel .sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.2em; }
+  .ga-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .ga-row input[type="text"] {
+    flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line);
+    font-family: var(--sans); font-size: 0.95rem;
+  }
+  .btn-sm {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff;
+    font-weight: 600; font-size: 0.85rem; padding: 9px 16px; border-radius: 100px; border: none; cursor: pointer;
+  }
+  .btn-sm:hover { background: var(--accent); }
+  .btn-sm.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-sm.ghost:hover { background: var(--paper-warm); }
+  code.snippet {
+    display: block; background: var(--dark); color: #e0dfd9; padding: 14px 16px; border-radius: 10px;
+    font-size: 0.78rem; overflow-x: auto; white-space: pre; margin-top: 10px;
+  }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .bar-row .cat-label { width: 200px; font-size: 0.85rem; flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--paper-warm); border-radius: 6px; height: 18px; position: relative; overflow: hidden; }
+  .bar-fill { background: var(--seq-700); height: 100%; border-radius: 6px 0 0 6px; }
+  .bar-count { width: 30px; text-align: right; font-size: 0.85rem; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  table.dash-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  table.dash-table th {
+    text-align: left; padding: 10px 8px; border-bottom: 2px solid var(--line); font-size: 0.72rem;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); cursor: pointer; user-select: none;
+    white-space: nowrap;
+  }
+  table.dash-table th:hover { color: var(--ink); }
+  table.dash-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  table.dash-table td.title-cell { max-width: 260px; }
+  table.dash-table td.title-cell a { font-weight: 600; border-bottom: 1px solid var(--accent); }
+  table.dash-table input[type="number"] {
+    width: 78px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+  table.dash-table input[type="text"].notes-input {
+    width: 100%; min-width: 140px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); font-size: 0.82rem;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; font-weight: 600;
+    padding: 4px 10px; border-radius: 100px; white-space: nowrap;
+  }
+  .badge.good { background: rgba(12,163,12,0.12); color: #0a7a0a; }
+  .badge.warning { background: rgba(250,178,25,0.18); color: #93650a; }
+  .badge.critical { background: rgba(208,59,59,0.12); color: var(--critical); }
+  .badge.muted { background: var(--paper-warm); color: var(--muted); }
+  .filter-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-row select {
+    padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); font-family: var(--sans); font-size: 0.88rem;
+  }
+  .insight-note {
+    background: var(--paper-warm); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; font-size: 0.9rem;
+  }
+  textarea#competitorNotes {
+    width: 100%; min-height: 120px; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+    font-family: var(--sans); font-size: 0.9rem; resize: vertical;
+  }
+  .export-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .table-scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<div class="dash-banner">Private page &middot; not linked from the public site &middot; <strong>noindex</strong> &middot; share this URL only with people you trust</div>
+
+<div class="dash-wrap">
+  <div class="dash-head">
+    <span class="kicker">Content Dashboard</span>
+    <h1>Blog performance &amp; refinement</h1>
+    <p class="lede" style="max-width:70ch;">Track how each of your 50 posts is doing, log real numbers once Google Analytics is connected, and compare against what you're seeing work elsewhere &mdash; all in one private page. Nothing here is public or search-indexed.</p>
+  </div>
+
+  <div class="stat-row" id="statRow"></div>
+
+  <div class="panel">
+    <h2>Connect Google Analytics</h2>
+    <p class="sub">A GA4 tracking snippet is already installed on every page of the site, using a placeholder Measurement ID. Real traffic data starts flowing the moment you create a free GA4 property and swap that placeholder for your real ID.</p>
+    <div class="ga-row">
+      <input type="text" id="gaIdInput" placeholder="Your Measurement ID, e.g. G-ABC1234XYZ">
+      <button class="btn-sm" onclick="saveGaId()">Save here</button>
+      <a class="btn-sm ghost" href="https://analytics.google.com/" target="_blank" rel="noopener">Open Google Analytics ↗</a>
+    </div>
+    <p class="sub" style="margin-bottom:4px;">Every page currently has this snippet with the placeholder <code>G-XXXXXXXXXX</code>. Once you have a real ID, find-and-replace that exact string across every .html file in the site:</p>
+    <code class="snippet">&lt;script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+&lt;/script&gt;</code>
+    <p class="sub" style="margin-top:10px;">Once GA4 is live, each post's actual pageviews and engagement time will show up in your Analytics reports under Reports → Engagement → Pages and screens. Log those numbers below to keep this dashboard in sync — there's no live API connection here, so it stays a manual step.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Posts by category</h2>
+    <p class="sub">50 posts across your four pillars and two populations.</p>
+    <div id="categoryBars"></div>
+  </div>
+
+  <div class="panel">
+    <h2>What's working elsewhere (research notes)</h2>
+    <p class="sub">From reviewing similar coaching, biomechanics, postpartum, and neurodivergent-coaching content before writing your posts. Use this to spot angles your posts could sharpen, not to imitate the format.</p>
+    <div class="insight-note"><strong>Most competitor content is generic listicle format</strong> — "10 exercises for X", "7 tips for Y" — written in a clinical or hype tone, rarely first-person. Your posts are intentionally essay-style, which is a real differentiator for search terms that already have thin, repetitive listicle results.</div>
+    <div class="insight-note"><strong>Neurodivergent/autism movement content skews clinical or parent-anxiety-driven.</strong> Very little of it is written from a coach's own first-person practice. Your "specific example" posts (the resistance band story, entry points) are a genuinely uncommon angle worth leaning into more.</div>
+    <div class="insight-note"><strong>Corporate wellness content is almost entirely program-marketing, not philosophy.</strong> There's room for a post connecting your "health before success" framing directly to corporate wellness, which nothing in the current research turned up elsewhere.</div>
+    <p class="sub" style="margin-top:1em;">Add your own notes below as you find competitor posts worth reacting to — these are saved when you export.</p>
+    <textarea id="competitorNotes" placeholder="e.g. [competitor]'s post on postpartum recovery ranks #1 for 'diastasis recti exercises' — theirs is a checklist, mine could add the finger-count nuance angle..."></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>All posts</h2>
+    <p class="sub">Log pageviews and engagement time from Google Analytics here as they become available. Status updates automatically against the category average once you've logged at least one post in that category.</p>
+    <div class="filter-row">
+      <select id="categoryFilter" onchange="renderTable()">
+        <option value="">All categories</option>
+      </select>
+      <select id="statusFilter" onchange="renderTable()">
+        <option value="">All statuses</option>
+        <option value="good">On pace</option>
+        <option value="warning">Below average</option>
+        <option value="critical">Needs a refresh</option>
+        <option value="none">No data yet</option>
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th onclick="setSort('title')">Title</th>
+            <th onclick="setSort('categoryLabel')">Category</th>
+            <th onclick="setSort('date')">Published</th>
+            <th onclick="setSort('pageviews')">Pageviews</th>
+            <th onclick="setSort('engagement')">Avg. engagement (s)</th>
+            <th>Notes</th>
+            <th onclick="setSort('status')">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="export-row">
+      <button class="btn-sm" onclick="exportData()">Export data (.json)</button>
+      <label class="btn-sm ghost" style="cursor:pointer;">Import data (.json)<input type="file" accept="application/json" style="display:none;" onchange="importData(event)"></label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Refine — what to look at next</h2>
+    <div id="refineList"></div>
+  </div>
+</div>
+
+<script>
+const POSTS = [{"slug": "health-before-success", "title": "Health Before Success: Why I Changed the Definition I Coach To", "meta": "A coach on why he stopped measuring success by the scale or the PR, and started measuring it by peace of mind instead.", "keyword": "health before success", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-07-16", "readMins": 2}, {"slug": "strength-is-awareness-not-load", "title": "Strength Is Awareness, Not Load", "meta": "A biomechanics coach argues that a heavier lift doesn't automatically mean a stronger person, and explains what he measures instead.", "keyword": "strength and awareness", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-07-13", "readMins": 2}, {"slug": "did-that-feel-like-you", "title": "Why I Ask \"Did That Feel Like You?\" Instead of \"How Was That Workout?\"", "meta": "A coach explains why he ends sessions with a question about identity, not performance, and what it changes in the coaching.", "keyword": "mind body awareness coaching", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-07-10", "readMins": 2}, {"slug": "is-your-fitness-routine-avoidance", "title": "Is Your Fitness Routine a Way of Avoiding Something Else?", "meta": "A wellness coach on how another workout, another streak, or another metric can quietly become a way of staying too busy to feel something.", "keyword": "fitness as avoidance", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-07-07", "readMins": 2}, {"slug": "not-coaching-from-the-finish-line", "title": "I'm Not Coaching From the Finish Line", "meta": "A coach on why he presents himself as a fellow traveler rather than an authority who has already arrived, and what that changes.", "keyword": "fellow traveler coaching", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-07-04", "readMins": 2}, {"slug": "awareness-is-most-of-the-work", "title": "Awareness Is Roughly 60% of the Work \u2014 Here's Why I Start There", "meta": "A coach explains why most health journeys start with a plan, but his starts with understanding the person first.", "keyword": "awareness in coaching", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-07-01", "readMins": 2}, {"slug": "a-program-versus-a-person", "title": "The Difference Between a Program and a Person", "meta": "A coach on why treating a client as a program to optimize misses the point of coaching entirely.", "keyword": "personalized coaching approach", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-06-28", "readMins": 2}, {"slug": "come-back-to-yourself-practically", "title": "What \"Come Back to Yourself\" Actually Means, Practically", "meta": "A coach unpacks a phrase he uses often, and admits he's not sure if it means returning to a self you know, or building one you don't yet.", "keyword": "come back to yourself", "category": "philosophy", "categoryLabel": "Philosophy", "date": "2026-06-25", "readMins": 2}, {"slug": "functional-training-is-a-question", "title": "Functional Training Isn't a Style, It's a Question", "meta": "A biomechanics coach explains why functional training is not a category of exercises but a question about whose life the movement needs to serve.", "keyword": "functional training explained", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-22", "readMins": 2}, {"slug": "heavier-lift-stronger-person", "title": "Why a Heavier Lift Doesn't Automatically Mean a Stronger You", "meta": "A biomechanics specialist on why the number on the bar can rise while a person's actual strength, control, and awareness quietly go backward.", "keyword": "strength vs load", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-19", "readMins": 2}, {"slug": "reading-your-movement-first", "title": "Reading Your Own Movement Before You Try to Change It", "meta": "Before correcting how you move, a biomechanics coach argues for the slower, less satisfying work of actually noticing how you move now.", "keyword": "movement awareness training", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-16", "readMins": 2}, {"slug": "posture-correction-is-not-standing-straighter", "title": "Posture Correction Isn't About Standing Up Straighter", "meta": "A biomechanics coach questions the idea that better posture means one fixed, upright shape everyone should hold all day.", "keyword": "posture correction myths", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-13", "readMins": 2}, {"slug": "what-i-look-for-before-programming", "title": "What I Actually Look For Before Programming an Exercise", "meta": "A biomechanics coach walks through the unglamorous questions he asks before deciding what to put in someone's training program.", "keyword": "personalized exercise programming", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-10", "readMins": 2}, {"slug": "mobility-vs-flexibility", "title": "Mobility vs Flexibility: A Distinction That Changes How You Train", "meta": "A biomechanics coach explains why being flexible and being mobile are not the same thing, and why confusing them can work against you.", "keyword": "mobility versus flexibility", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-07", "readMins": 2}, {"slug": "training-around-an-injury", "title": "Training Around an Injury Without Making It the Whole Story", "meta": "A coach on the balance between respecting an injury and letting it quietly take over a person's entire identity as a mover.", "keyword": "training with an injury", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-04", "readMins": 2}, {"slug": "case-for-slower-reps", "title": "The Case for Slower Reps, Fewer Times", "meta": "A biomechanics coach makes the case for training with fewer, slower repetitions instead of chasing volume and speed.", "keyword": "slow tempo training", "category": "movement", "categoryLabel": "Movement", "date": "2026-06-01", "readMins": 2}, {"slug": "sleep-is-not-a-reward", "title": "Sleep Isn't a Reward for a Good Workout", "meta": "Ajith Jagadish on why treating sleep as something earned after training gets the order backwards, and what that means for recovery.", "keyword": "sleep and recovery", "category": "sleep", "categoryLabel": "Sleep & Recovery", "date": "2026-05-29", "readMins": 2}, {"slug": "why-i-ask-about-sleep-first", "title": "Why I Ask About Sleep Before I Ask About Training", "meta": "Ajith Jagadish explains why sleep, not training history, is the first thing he asks new coaching clients about.", "keyword": "sleep coaching questions", "category": "sleep", "categoryLabel": "Sleep & Recovery", "date": "2026-05-26", "readMins": 2}, {"slug": "recovery-is-a-skill", "title": "Recovery Isn't Rest \u2014 It's a Skill", "meta": "Ajith Jagadish on why recovery is a trainable skill, not just time off, and why generic rest routines rarely work.", "keyword": "recovery as a skill", "category": "sleep", "categoryLabel": "Sleep & Recovery", "date": "2026-05-23", "readMins": 2}, {"slug": "nervous-system-cost-of-pushing-through", "title": "The Nervous System Cost of \"Pushing Through\"", "meta": "Ajith Jagadish on how pushing through fatigue often avoids what the body is signaling, and what it costs the nervous system.", "keyword": "pushing through fatigue", "category": "sleep", "categoryLabel": "Sleep & Recovery", "date": "2026-05-20", "readMins": 2}, {"slug": "what-poor-sleep-is-telling-you", "title": "What Poor Sleep Is Actually Telling You", "meta": "Ajith Jagadish on treating poor sleep as a signal worth listening to, rather than a problem to eliminate as fast as possible.", "keyword": "poor sleep meaning", "category": "sleep", "categoryLabel": "Sleep & Recovery", "date": "2026-05-17", "readMins": 2}, {"slug": "overtraining-rarely-looks-like-too-much-exercise", "title": "Overtraining Rarely Looks Like Too Much Exercise", "meta": "Ajith Jagadish on why overtraining usually shows up first as poor sleep and mood, not as reduced physical performance.", "keyword": "signs of overtraining", "category": "sleep", "categoryLabel": "Sleep & Recovery", "date": "2026-05-14", "readMins": 2}, {"slug": "food-awareness-not-food-rules", "title": "Food Awareness, Not Food Rules", "meta": "A coach's reflection on why paying attention to your body matters more than following rigid food rules.", "keyword": "food awareness coaching", "category": "food", "categoryLabel": "Food & Nourishment", "date": "2026-05-11", "readMins": 2}, {"slug": "why-no-meal-plan-on-day-one", "title": "Why I Don't Hand Out Meal Plans on Day One", "meta": "Why understanding a person's full life comes before any food or meal plan in this coach's approach to nourishment.", "keyword": "meal plan alternative", "category": "food", "categoryLabel": "Food & Nourishment", "date": "2026-05-08", "readMins": 2}, {"slug": "quiet-damage-of-clean-eating", "title": "The Quiet Damage of \"Clean Eating\" Language", "meta": "A reflection on how clean eating language quietly turns food into a moral verdict, and what it costs.", "keyword": "clean eating language", "category": "food", "categoryLabel": "Food & Nourishment", "date": "2026-05-05", "readMins": 2}, {"slug": "eating-for-the-nervous-system-you-have", "title": "Eating for the Nervous System You Actually Have", "meta": "Why the nervous system you bring to a meal shapes how you eat more than any food rule ever could.", "keyword": "nervous system and eating", "category": "food", "categoryLabel": "Food & Nourishment", "date": "2026-05-02", "readMins": 2}, {"slug": "stop-measuring-food-by-guilt", "title": "What Changes When You Stop Measuring Food by Guilt", "meta": "What shifts when food is measured by hunger and enjoyment instead of guilt, from a wellness coach's perspective.", "keyword": "food guilt", "category": "food", "categoryLabel": "Food & Nourishment", "date": "2026-04-29", "readMins": 2}, {"slug": "hunger-habit-or-feeling", "title": "Hunger, Habit, or Feeling \u2014 Learning to Tell the Difference", "meta": "Learning to tell physical hunger, habit, and emotion apart before deciding whether to eat.", "keyword": "hunger cues awareness", "category": "food", "categoryLabel": "Food & Nourishment", "date": "2026-04-26", "readMins": 2}, {"slug": "time-alone-is-a-pillar", "title": "Why Time Alone Is a Pillar, Not a Luxury", "meta": "Ajith Jagadish on why time alone with yourself deserves the same structure as movement, sleep, and food, not the leftover slot in your week.", "keyword": "time alone with self", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-23", "readMins": 2}, {"slug": "breathwork-is-information", "title": "Breathwork Isn't Relaxation, It's Information", "meta": "Ajith Jagadish reframes breathwork as a way of reading your nervous system rather than a shortcut to feeling calm.", "keyword": "breathwork nervous system", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-20", "readMins": 2}, {"slug": "what-your-breath-is-doing", "title": "What Your Breath Is Doing While You're Not Watching It", "meta": "A look at the breathing patterns that run quietly under daily life and what noticing them can reveal, from coach Ajith Jagadish.", "keyword": "breathing patterns awareness", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-17", "readMins": 2}, {"slug": "stillness-is-not-doing-nothing", "title": "Stillness Is Not the Same as Doing Nothing", "meta": "Ajith Jagadish on why stillness is active work, not the absence of activity, and why it can feel harder than movement.", "keyword": "stillness practice", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-14", "readMins": 2}, {"slug": "building-a-relationship-with-yourself", "title": "Building a Relationship With Yourself, One Session at a Time", "meta": "Ajith Jagadish on whether coaching returns you to a self you already know or helps you build a relationship with one you don't yet.", "keyword": "relationship with yourself", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-11", "readMins": 2}, {"slug": "nervous-system-deadline-vs-tiger", "title": "The Nervous System Doesn't Know the Difference Between a Deadline and a Tiger", "meta": "Ajith Jagadish on why the body treats modern pressure like ancient danger, and why the response is not something to be ashamed of.", "keyword": "nervous system stress response", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-08", "readMins": 2}, {"slug": "reflection-is-not-optional-homework", "title": "Reflection Isn't Optional Homework", "meta": "Ajith Jagadish on why reflection between sessions is part of the coaching itself, not an add-on for people who have extra time.", "keyword": "self reflection practice", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-05", "readMins": 2}, {"slug": "what-ive-learned-from-my-own-avoidance", "title": "What I've Learned From My Own Avoidance", "meta": "Ajith Jagadish reflects honestly on his own patterns of self-avoidance as a coach still working through the same questions he asks clients.", "keyword": "self-avoidance patterns", "category": "nervous-system", "categoryLabel": "Time Alone & Nervous System", "date": "2026-04-02", "readMins": 2}, {"slug": "postpartum-recovery-is-not-bouncing-back", "title": "Postpartum Recovery Isn't About Bouncing Back", "meta": "A coach's reflection on why postpartum recovery isn't a race back to a former body, but a rebuilding of capacity on your own timeline.", "keyword": "postpartum recovery mindset", "category": "postpartum", "categoryLabel": "Postpartum Recovery", "date": "2026-03-30", "readMins": 2}, {"slug": "diastasis-recti-what-the-gap-doesnt-tell-you", "title": "Diastasis Recti: What the Gap Doesn't Tell You", "meta": "Why the width of a diastasis recti gap matters less than function, and what one client's three-month recovery actually taught me.", "keyword": "diastasis recti recovery", "category": "postpartum", "categoryLabel": "Postpartum Recovery", "date": "2026-03-27", "readMins": 2}, {"slug": "rebuilding-the-core-after-birth", "title": "Rebuilding the Core After Birth, Without the Crunches", "meta": "Rebuilding core strength after birth isn't about crunches or ab challenges \u2014 it starts with breath, pressure, and awareness.", "keyword": "core recovery after birth", "category": "postpartum", "categoryLabel": "Postpartum Recovery", "date": "2026-03-24", "readMins": 2}, {"slug": "return-to-exercise-timeline", "title": "The Return-to-Exercise Timeline Nobody Tells You About", "meta": "Why there is no universal week-by-week return-to-exercise timeline after birth, and what actually determines readiness.", "keyword": "return to exercise postpartum", "category": "postpartum", "categoryLabel": "Postpartum Recovery", "date": "2026-03-21", "readMins": 2}, {"slug": "what-i-check-before-programming-postpartum", "title": "What I Actually Check Before Programming a Postpartum Client", "meta": "Before writing a single exercise, here is what a postpartum coach actually assesses about a new client's recovery and life.", "keyword": "postpartum coaching assessment", "category": "postpartum", "categoryLabel": "Postpartum Recovery", "date": "2026-03-18", "readMins": 2}, {"slug": "pelvic-floor-work-beyond-kegels", "title": "Pelvic Floor Work Beyond Kegels", "meta": "Pelvic floor recovery after birth involves far more than Kegels \u2014 breath, coordination, and pressure management matter just as much.", "keyword": "pelvic floor recovery postpartum", "category": "postpartum", "categoryLabel": "Postpartum Recovery", "date": "2026-03-15", "readMins": 2}, {"slug": "why-instructions-dont-always-work", "title": "Why Instructions Don't Always Work \u2014 And What I Try Instead", "meta": "Ajith Jagadish on why verbal instructions sometimes fail with neurodivergent children, and what he tries when they do.", "keyword": "neurodivergent coaching instructions", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-03-12", "readMins": 2}, {"slug": "progress-that-doesnt-look-like-a-milestone", "title": "Progress That Doesn't Look Like a Neurotypical Milestone", "meta": "Ajith Jagadish on measuring progress in neurodivergent coaching on its own terms, not against typical developmental milestones.", "keyword": "autism progress movement coaching", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-03-09", "readMins": 2}, {"slug": "what-a-resistance-band-taught-me", "title": "What a Resistance Band Taught Me About Entry Points", "meta": "A specific coaching moment that changed how Ajith Jagadish thinks about entry points in neurodivergent movement coaching.", "keyword": "neurodivergent coaching entry points", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-03-06", "readMins": 2}, {"slug": "working-with-parents-and-educators", "title": "Working With Parents and Educators, Not Around Them", "meta": "Ajith Jagadish on why coaching neurodivergent children only works in coordination with parents and educators, not in isolation.", "keyword": "coaching neurodivergent children parents", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-03-03", "readMins": 2}, {"slug": "group-sessions-individual-plans", "title": "Group Sessions Where Every Child Still Gets an Individual Plan", "meta": "Ajith Jagadish explains how group coaching sessions for neurodivergent children still deliver an individual pathway for each child.", "keyword": "group coaching neurodivergent children", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-02-28", "readMins": 2}, {"slug": "sensory-needs-before-the-exercise", "title": "Sensory Needs Come Before the Exercise", "meta": "Ajith Jagadish on why sensory and regulation needs are addressed before any specific movement task in his coaching of neurodivergent children.", "keyword": "sensory regulation movement coaching", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-02-25", "readMins": 2}, {"slug": "what-i-watch-for-before-an-instruction", "title": "What I Watch For Before I Ever Give an Instruction", "meta": "Ajith Jagadish describes the specific things he observes in a neurodivergent child before deciding how, or whether, to give an instruction.", "keyword": "observing before coaching autism", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-02-22", "readMins": 2}, {"slug": "teaching-this-approach-to-another-coach", "title": "Teaching This Approach to Another Coach: What Actually Transfers", "meta": "Ajith Jagadish reflects on teaching his approach to neurodivergent movement coaching to another coach, and what did and didn't transfer.", "keyword": "training coaches neurodivergent movement", "category": "neurodivergent", "categoryLabel": "Neurodivergent Coaching", "date": "2026-02-19", "readMins": 2}];
+const CATEGORY_ORDER = ["philosophy", "movement", "sleep", "food", "nervous-system", "postpartum", "neurodivergent"];
+
+let entries = {}; // slug -> {pageviews, engagement, notes}
+POSTS.forEach(p => entries[p.slug] = {pageviews: null, engagement: null, notes: ""});
+
+let sortKey = "date";
+let sortDir = "desc";
+
+function saveGaId() {
+  const val = document.getElementById('gaIdInput').value.trim();
+  if (val) {
+    alert('Saved for this session. Remember: this only updates the dashboard display — you still need to find-and-replace G-XXXXXXXXXX with "' + val + '" across the actual site files (or ask me to do it) for tracking to go live.');
+    renderStats();
+  }
+}
+
+function categoryAverage(cat) {
+  const vals = POSTS.filter(p => p.category === cat && entries[p.slug].pageviews !== null)
+                     .map(p => entries[p.slug].pageviews);
+  if (!vals.length) return null;
+  return vals.reduce((a,b) => a+b, 0) / vals.length;
+}
+
+function getStatus(p) {
+  const pv = entries[p.slug].pageviews;
+  if (pv === null || pv === undefined || pv === "") return {key: "none", label: "No data yet", cls: "muted"};
+  const avg = categoryAverage(p.category);
+  if (avg === null || avg === 0) return {key: "good", label: "On pace", cls: "good"};
+  const ratio = pv / avg;
+  if (ratio >= 1) return {key: "good", label: "On pace", cls: "good"};
+  if (ratio >= 0.5) return {key: "warning", label: "Below average", cls: "warning"};
+  return {key: "critical", label: "Needs a refresh", cls: "critical"};
+}
+
+function renderStats() {
+  const total = POSTS.length;
+  const categories = new Set(POSTS.map(p => p.category)).size;
+  const withData = POSTS.filter(p => entries[p.slug].pageviews !== null).length;
+  const totalViews = POSTS.reduce((sum,p) => sum + (entries[p.slug].pageviews || 0), 0);
+  const engagementVals = POSTS.map(p => entries[p.slug].engagement).filter(v => v !== null && v !== undefined && v !== "");
+  const avgEngagement = engagementVals.length ? Math.round(engagementVals.reduce((a,b)=>a+Number(b),0) / engagementVals.length) : null;
+
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-tile"><div class="num">${total}</div><div class="label">Total posts</div></div>
+    <div class="stat-tile"><div class="num">${categories}</div><div class="label">Categories</div></div>
+    <div class="stat-tile"><div class="num">${withData}/${total}</div><div class="label">Posts with logged data</div></div>
+    <div class="stat-tile"><div class="num">${avgEngagement !== null ? avgEngagement + 's' : '—'}</div><div class="label">Avg. logged engagement</div></div>
+  `;
+}
+
+function renderCategoryBars() {
+  const labels = {};
+  POSTS.forEach(p => labels[p.category] = p.categoryLabel);
+  const counts = {};
+  POSTS.forEach(p => counts[p.category] = (counts[p.category]||0) + 1);
+  const max = Math.max(...Object.values(counts));
+  let html = "";
+  CATEGORY_ORDER.forEach(cat => {
+    const count = counts[cat] || 0;
+    const pct = Math.round((count / max) * 100);
+    html += `<div class="bar-row">
+      <div class="cat-label">${labels[cat] || cat}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-count">${count}</div>
+    </div>`;
+  });
+  document.getElementById('categoryBars').innerHTML = html;
+
+  const catFilter = document.getElementById('categoryFilter');
+  CATEGORY_ORDER.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = labels[cat];
+    catFilter.appendChild(opt);
+  });
+}
+
+function setSort(key) {
+  if (sortKey === key) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+  else { sortKey = key; sortDir = key === 'title' ? 'asc' : 'desc'; }
+  renderTable();
+}
+
+function renderTable() {
+  const catFilter = document.getElementById('categoryFilter').value;
+  const statusFilter = document.getElementById('statusFilter').value;
+
+  let rows = POSTS.map(p => ({...p, entry: entries[p.slug], status: getStatus(p)}));
+
+  if (catFilter) rows = rows.filter(r => r.category === catFilter);
+  if (statusFilter) rows = rows.filter(r => r.status.key === statusFilter);
+
+  rows.sort((a,b) => {
+    let av, bv;
+    if (sortKey === 'pageviews') { av = a.entry.pageviews ?? -1; bv = b.entry.pageviews ?? -1; }
+    else if (sortKey === 'engagement') { av = a.entry.engagement ?? -1; bv = b.entry.engagement ?? -1; }
+    else if (sortKey === 'status') { av = a.status.label; bv = b.status.label; }
+    else { av = a[sortKey]; bv = b[sortKey]; }
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="title-cell"><a href="blog/${r.slug}.html" target="_blank">${r.title}</a></td>
+      <td>${r.categoryLabel}</td>
+      <td>${r.date}</td>
+      <td><input type="number" min="0" data-slug="${r.slug}" data-field="pageviews" value="${r.entry.pageviews ?? ''}" onchange="updateEntry(event)"></td>
+      <td><input type="number" min="0" data-slug="${r.slug}" data-field="engagement" value="${r.entry.engagement ?? ''}" onchange="updateEntry(event)"></td>
+      <td><input type="text" class="notes-input" data-slug="${r.slug}" data-field="notes" value="${(r.entry.notes||'').replace(/"/g,'&quot;')}" onchange="updateEntry(event)" placeholder="e.g. shared on LinkedIn 7/20"></td>
+      <td><span class="badge ${r.status.cls}">${r.status.label}</span></td>
+    </tr>
+  `).join('');
+}
+
+function updateEntry(e) {
+  const slug = e.target.dataset.slug;
+  const field = e.target.dataset.field;
+  let val = e.target.value;
+  if (field !== 'notes') val = val === '' ? null : Number(val);
+  entries[slug][field] = val;
+  renderStats();
+  renderTable();
+  renderRefine();
+}
+
+function renderRefine() {
+  const noData = POSTS.filter(p => entries[p.slug].pageviews === null);
+  const critical = POSTS.filter(p => getStatus(p).key === 'critical');
+  let html = "";
+  if (noData.length) {
+    html += `<div class="insight-note"><strong>${noData.length} posts have no logged data yet.</strong> Once GA4 is connected, check Reports → Engagement → Pages and screens and log their numbers here so they show up in the averages.</div>`;
+  }
+  if (critical.length) {
+    html += `<div class="insight-note"><strong>${critical.length} posts are logged well below their category average</strong> — ${critical.map(p=>p.title).join(', ')}. Worth a rewrite of the opening paragraph or title, or repromoting on LinkedIn once you connect that link on the About page.</div>`;
+  }
+  if (!noData.length && !critical.length) {
+    html = `<div class="insight-note">Nothing flagged right now — log more data as it comes in from Google Analytics to get sharper suggestions here.</div>`;
+  }
+  document.getElementById('refineList').innerHTML = html;
+}
+
+function exportData() {
+  const payload = {
+    gaId: document.getElementById('gaIdInput').value.trim(),
+    competitorNotes: document.getElementById('competitorNotes').value,
+    entries: entries,
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'humankind-movement-dashboard-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.entries) entries = payload.entries;
+      if (payload.gaId) document.getElementById('gaIdInput').value = payload.gaId;
+      if (payload.competitorNotes) document.getElementById('competitorNotes').value = payload.competitorNotes;
+      renderStats();
+      renderCategoryBars();
+      renderTable();
+      renderRefine();
+      alert('Data imported.');
+    } catch (err) {
+      alert('Could not read that file — make sure it is a JSON export from this dashboard.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+renderStats();
+renderCategoryBars();
+renderTable();
+renderRefine();
+</script>
+
+</body>
+</html>
