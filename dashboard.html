@@ -133,21 +133,21 @@
 
   <div class="panel">
     <h2>Connect Google Analytics</h2>
-    <p class="sub">A GA4 tracking snippet is already installed on every page of the site, using a placeholder Measurement ID. Real traffic data starts flowing the moment you create a free GA4 property and swap that placeholder for your real ID.</p>
+    <p class="sub">GA4 is live sitewide with Measurement ID <code>G-NC4HXRFPBP</code> — every page (including this one) carries the tracking snippet with your real ID, not a placeholder.</p>
     <div class="ga-row">
       <input type="text" id="gaIdInput" placeholder="Your Measurement ID, e.g. G-ABC1234XYZ">
       <button class="btn-sm" onclick="saveGaId()">Save here</button>
       <a class="btn-sm ghost" href="https://analytics.google.com/" target="_blank" rel="noopener">Open Google Analytics ↗</a>
     </div>
-    <p class="sub" style="margin-bottom:4px;">Every page currently has this snippet with the placeholder <code>G-XXXXXXXXXX</code>. Once you have a real ID, find-and-replace that exact string across every .html file in the site:</p>
-    <code class="snippet">&lt;script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"&gt;&lt;/script&gt;
+    <p class="sub" style="margin-bottom:4px;">Every page carries this exact snippet:</p>
+    <code class="snippet">&lt;script async src="https://www.googletagmanager.com/gtag/js?id=G-NC4HXRFPBP"&gt;&lt;/script&gt;
 &lt;script&gt;
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
+  gtag('config', 'G-NC4HXRFPBP');
 &lt;/script&gt;</code>
-    <p class="sub" style="margin-top:10px;">Once GA4 is live, each post's actual pageviews and engagement time will show up in your Analytics reports under Reports → Engagement → Pages and screens. Log those numbers below to keep this dashboard in sync — there's no live API connection here, so it stays a manual step.</p>
+    <p class="sub" style="margin-top:10px;">Each post's actual pageviews and engagement time now show up in your Analytics reports under Reports → Engagement → Pages and screens. Log those numbers below to keep this dashboard in sync — there's no live API connection here, so it stays a manual step.</p>
   </div>
 
   <div class="panel">
@@ -222,7 +222,7 @@ let sortDir = "desc";
 function saveGaId() {
   const val = document.getElementById('gaIdInput').value.trim();
   if (val) {
-    alert('Saved for this session. Remember: this only updates the dashboard display — you still need to find-and-replace G-XXXXXXXXXX with "' + val + '" across the actual site files (or ask me to do it) for tracking to go live.');
+    alert('Saved for this session — this only updates the dashboard display. Your live tracking ID across the actual site files is G-NC4HXRFPBP; if you ever rotate to a new GA4 property, ask me to find-and-replace it sitewide.');
     renderStats();
   }
 }
