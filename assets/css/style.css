@@ -234,6 +234,8 @@ nav.primary a[aria-current="page"] {
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
 }
 .lang-switch a { color: var(--muted); padding: 2px 3px; }
 .lang-switch a[aria-current="true"] { color: var(--accent); }
