@@ -308,13 +308,8 @@ section.tight { padding: 48px 0; }
   grid-template-columns: repeat(4, 1fr);
   gap: 22px;
 }
-.grid-5 {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
-}
 @media (max-width: 900px) {
-  .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
 }
 
 .card {
@@ -339,6 +334,33 @@ section.tight { padding: 48px 0; }
 }
 .icon-badge.ink { background: rgba(255,255,255,0.08); color: #ffffff; }
 .icon-badge svg { width: 24px; height: 24px; }
+
+/* ---------- method cycle — spacious step-by-step sequence ---------- */
+
+.method-cycle {
+  max-width: 860px;
+  margin: 2.6em auto 0;
+  text-align: left;
+}
+.method-step {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  padding: 36px 0;
+  border-top: 1px solid var(--line);
+}
+.method-step:first-child { border-top: none; padding-top: 0; }
+.method-step .icon-badge { margin-bottom: 0; flex-shrink: 0; }
+.method-step h3 { margin-bottom: 0.15em; }
+.method-step .q {
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 0.5em;
+}
+.method-step p:last-child { margin-bottom: 0; max-width: 62ch; }
+@media (max-width: 640px) {
+  .method-step { flex-direction: column; gap: 14px; }
+}
 
 /* pillar strokes — the four literal segments of the mark, shown on a
    light tile so the ink/terracotta strokes stay legible on any section
