@@ -9,4 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
       a.addEventListener("click", function () { nav.classList.remove("open"); });
     });
   }
+
+  document.querySelectorAll(".lang-switch a[data-lang]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      localStorage.setItem("hk_lang_pref", a.dataset.lang);
+    });
+  });
 });
