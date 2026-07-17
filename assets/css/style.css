@@ -308,8 +308,13 @@ section.tight { padding: 48px 0; }
   grid-template-columns: repeat(4, 1fr);
   gap: 22px;
 }
+.grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
 @media (max-width: 900px) {
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
 }
 
 .card {

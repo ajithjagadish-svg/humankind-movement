@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NC4HXRFPBP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-NC4HXRFPBP');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Intake Form — Humankind Movement</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/icon-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .intake-frame-wrap { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 8px; margin-top: 1.8em; }
+  .intake-frame-wrap iframe { width: 100%; min-height: 1400px; border: none; border-radius: 14px; display: block; }
+  .intake-fallback { text-align: center; margin-top: 1.4em; }
+</style>
+<!-- Microsoft Clarity -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xnfwyxhk2k");
+</script>
+</head>
+<body>
+
+<div class="dash-banner" style="background:var(--dark); color:#fff; padding:10px 0; text-align:center; font-size:0.85rem; letter-spacing:0.02em;">Private page &middot; not linked from the public site &middot; <strong style="color:var(--accent-soft);">noindex</strong> &middot; share this URL only with clients</div>
+
+<header class="site">
+  <div class="container nav-row">
+    <a class="brand" href="index.html">
+      <img src="assets/img/icon-mark.png" alt="Humankind Movement mark">
+      <span class="brand-word">HUMANKIND<small>MOVEMENT</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <nav class="primary">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="philosophy.html">Philosophy</a></li>
+        <li><a href="the-method.html">The Method</a></li>
+        <li><a href="who-we-serve.html">Who We Serve</a></li>
+        <li><a href="experiences.html">Experiences</a></li>
+        <li><a href="blog.html">Journal</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero bg-tint">
+    <div class="container-narrow">
+      <span class="kicker">Before we begin</span>
+      <h1>Client Intake Form</h1>
+      <p class="lede">This form helps me understand you before we begin. The more clearly you share your context, the better I can plan sessions that respect your health, lifestyle, goals, history, and current capacity. This isn't about judging where you are — it's about understanding where we're starting from.</p>
+      <p class="note" style="max-width:60ch; margin-top:1.2em;">Please share information as honestly as you can. Your responses are used only to plan and support your coaching. This form is not for medical emergencies — if you're experiencing urgent symptoms or need immediate medical support, please contact a medical professional or emergency service in your location.</p>
+    </div>
+  </section>
+
+  <section class="bg-white">
+    <div class="container-narrow">
+      <!--
+        Once the Google Form is built and published with the rewritten copy,
+        replace YOUR_GOOGLE_FORM_EMBED_URL below with the form's embed URL
+        (Google Forms → Send → Embed <> → copy the src from the iframe tag)
+        and YOUR_GOOGLE_FORM_URL with the plain shareable link for the
+        fallback button.
+      -->
+      <div class="intake-frame-wrap">
+        <iframe src="YOUR_GOOGLE_FORM_EMBED_URL" title="Humankind Movement client intake form">Loading the intake form…</iframe>
+      </div>
+      <p class="intake-fallback"><a class="btn btn-ghost" href="YOUR_GOOGLE_FORM_URL" target="_blank" rel="noopener">Open Intake Form in a new tab</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <img src="assets/img/logo.png" alt="Humankind Movement — Ajith Jagadish" class="footer-logo-full">
+        <p class="note">Health before success. Awareness before action.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="philosophy.html">Philosophy</a></li>
+          <li><a href="the-method.html">The Method</a></li>
+          <li><a href="who-we-serve.html">Who We Serve</a></li>
+          <li><a href="experiences.html">Experiences</a></li>
+          <li><a href="blog.html">Journal</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="contact.html">Send a message →</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Humankind Movement</span>
+      <span>Built alongside, not above.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>
