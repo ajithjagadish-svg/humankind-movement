@@ -18,9 +18,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
-  .intake-frame-wrap { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 8px; margin-top: 1.8em; }
-  .intake-frame-wrap iframe { width: 100%; min-height: 1400px; border: none; border-radius: 14px; display: block; }
-  .intake-fallback { text-align: center; margin-top: 1.4em; }
+  .intake-cta { text-align: center; max-width: 520px; margin: 1.8em auto 0; }
+  .intake-cta .icon-badge { margin: 0 auto 18px; }
+  .intake-cta p { margin-left: auto; margin-right: auto; }
 </style>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
@@ -70,10 +70,14 @@
 
   <section class="bg-white">
     <div class="container-narrow">
-      <div class="intake-frame-wrap">
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeKMMnUFkLF9QFt2d0Ucq59aeM6scH86TxrbTySEw8Aq1DZrw/viewform?embedded=true" title="Humankind Movement client intake form">Loading the intake form…</iframe>
+      <div class="feature-card intake-cta">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 3v2h6V3"/><path d="M9 11h6"/><path d="M9 15h6"/><path d="M9 19h3"/></svg>
+        </div>
+        <h3>Ready when you are</h3>
+        <p class="note">The form takes about 15–20 minutes and opens in a new tab, so this page stays right here while you fill it in.</p>
+        <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSeKMMnUFkLF9QFt2d0Ucq59aeM6scH86TxrbTySEw8Aq1DZrw/viewform" target="_blank" rel="noopener">Open Intake Form <span class="arrow">→</span></a>
       </div>
-      <p class="intake-fallback"><a class="btn btn-ghost" href="https://docs.google.com/forms/d/e/1FAIpQLSeKMMnUFkLF9QFt2d0Ucq59aeM6scH86TxrbTySEw8Aq1DZrw/viewform" target="_blank" rel="noopener">Open Intake Form in a new tab</a></p>
     </div>
   </section>
 
