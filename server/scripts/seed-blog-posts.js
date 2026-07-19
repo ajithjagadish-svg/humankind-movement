@@ -76,15 +76,12 @@ async function main() {
       publishedAt: new Date(post.date),
     };
 
-    const result = await BlogPost.findOneAndUpdate(
-      { slug: post.slug },
-      { $set: doc },
-      { upsert: true, new: true, rawResult: true }
-    );
-    if (result.lastErrorObject && result.lastErrorObject.upserted) {
-      created++;
-    } else {
+    const existed = await BlogPost.exists({ slug: post.slug });
+    await BlogPost.findOneAndUpdate({ slug: post.slug }, { $set: doc }, { upsert: true });
+    if (existed) {
       updated++;
+    } else {
+      created++;
     }
   }
 
