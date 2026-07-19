@@ -1,0 +1,59 @@
+# DigitalOcean App Platform spec for humankindmovement.in
+#
+# IMPORTANT before applying this: your existing static site is already
+# configured as an App Platform component (either via this kind of spec file
+# or through the DO dashboard UI directly). Before using this file, open
+# your app in the DO dashboard -> Settings -> App Spec, copy its CURRENT
+# "static_sites" block, and paste it in below in place of the placeholder
+# one, so you don't accidentally change how the existing static site is
+# built/served. The only new thing this file adds is the "api" service.
+#
+# To apply: DO dashboard -> your app -> Settings -> App Spec -> paste this
+# in (merged with your real static_sites block) -> Save. Or, with doctl
+# installed and authenticated: `doctl apps update <APP_ID> --spec .do/app.yaml`
+
+name: humankindmovement
+region: nyc
+domains:
+  - domain: humankindmovement.in
+    type: PRIMARY
+
+static_sites:
+  - name: web
+    # Placeholder — replace with your actual existing static site config
+    # (source_dir, build_command, output_dir, index_document, etc.)
+    source_dir: /
+    output_dir: /
+    index_document: index.html
+    routes:
+      - path: /
+
+services:
+  - name: api
+    source_dir: /server
+    build_command: npm install
+    run_command: node server.js
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: NODE_ENV
+        scope: RUN_TIME
+        value: production
+      - key: MONGODB_URI
+        scope: RUN_TIME
+        type: SECRET
+      - key: SESSION_SECRET
+        scope: RUN_TIME
+        type: SECRET
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 20
+      period_seconds: 10
+      failure_threshold: 3
+    routes:
+      # Phase 0: only /admin and /healthz are real. /blog, /api, /intake
+      # get added to this list as later phases ship, so the static site
+      # keeps serving those paths until the Node routes actually exist.
+      - path: /admin
+      - path: /healthz
