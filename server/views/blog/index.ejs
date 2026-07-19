@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<%- include('../partials/head', {
+  title: 'The Humankind Movement Blog | Humankind Movement',
+  description: 'Essays on movement, sleep, food, and time alone with self, the same four pillars the coaching is built on, worked through in writing.',
+  canonicalPath: '/blog'
+}) %>
+</head>
+<body>
+
+<%- include('../partials/header') %>
+
+<main>
+
+  <section class="hero bg-tint">
+    <div class="container-narrow">
+      <span class="kicker">Writing</span>
+      <h1>The Humankind Movement Blog</h1>
+      <p class="lede">Essays on <span class="hl">movement, sleep, food, and time alone with self</span>, the same four pillars the coaching is built on, worked through in writing. No listicles, no quick fixes, just the thinking behind the work.</p>
+    </div>
+  </section>
+
+  <% categories.forEach(function(cat) { %>
+    <section class="<%= cat.bg %>">
+      <div class="container">
+        <span class="kicker"><%= cat.label %></span>
+        <h2 style="font-size:1.8rem;"><%= cat.label %></h2>
+        <div class="grid-3" style="margin-top:1.6em; text-align:left;">
+          <% cat.posts.forEach(function(post) { %>
+            <div class="feature-card">
+              <span class="note"><%= post.publishedAt.toISOString().slice(0,10) %> · <%= post.readMins %> min read</span>
+              <h3 style="margin-top:0.5em;"><a href="/blog/<%= post.slug %>"><%= post.title %></a></h3>
+              <p><%= post.meta %></p>
+              <p><a class="link-arrow" href="/blog/<%= post.slug %>">Read the post <span class="arrow">→</span></a></p>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </section>
+  <% }) %>
+
+</main>
+
+<%- include('../partials/footer') %>
+</body>
+</html>

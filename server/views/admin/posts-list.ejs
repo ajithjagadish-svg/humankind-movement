@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Posts | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'posts' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Blog posts (<%= posts.length %>)</h1>
+      <a class="btn" href="/admin/posts/new">New post</a>
+    </div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Published</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% posts.forEach(function(post) { %>
+            <tr>
+              <td><a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a></td>
+              <td><%= post.categoryLabel %></td>
+              <td><span class="badge <%= post.status %>"><%= post.status %></span></td>
+              <td><%= post.publishedAt ? post.publishedAt.toISOString().slice(0,10) : '—' %></td>
+              <td>
+                <% if (post.status === 'published') { %>
+                  <a href="/blog/<%= post.slug %>" target="_blank">View</a>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

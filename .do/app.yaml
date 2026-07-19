@@ -52,8 +52,8 @@ services:
       period_seconds: 10
       failure_threshold: 3
     routes:
-      # Phase 0: only /admin and /healthz are real. /blog, /api, /intake
-      # get added to this list as later phases ship, so the static site
-      # keeps serving those paths until the Node routes actually exist.
+      # /api and /intake get added to this list once Phase 3 ships, so the
+      # static site keeps serving those paths until the Node routes exist.
       - path: /admin
       - path: /healthz
+      - path: /blog

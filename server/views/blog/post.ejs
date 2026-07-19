@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<%- include('../partials/head', {
+  title: post.title + ' | Humankind Movement Blog',
+  description: post.meta,
+  keyword: post.keyword,
+  canonicalPath: '/blog/' + post.slug,
+  ogType: 'article',
+  articlePublishedTime: post.publishedAt.toISOString(),
+  articleSection: post.categoryLabel,
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.meta,
+    author: { '@type': 'Person', name: 'Ajith Jagadish' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Humankind Movement',
+      logo: { '@type': 'ImageObject', url: 'https://humankindmovement.in/assets/img/logo.png' }
+    },
+    datePublished: post.publishedAt.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    mainEntityOfPage: 'https://humankindmovement.in/blog/' + post.slug
+  }
+}) %>
+</head>
+<body>
+
+<%- include('../partials/header') %>
+
+<main>
+
+  <section class="hero bg-tint">
+    <div class="container-narrow">
+      <span class="kicker"><%= post.categoryLabel %></span>
+      <h1><%= post.title %></h1>
+      <p class="note center">By Ajith Jagadish · <%= post.readMins %> min read</p>
+    </div>
+  </section>
+
+  <section class="bg-white">
+    <div class="container-narrow">
+      <article><%- post.bodyHtml %></article>
+      <p style="margin-top:2.2em;"><a class="link-arrow" href="/blog">← Back to the Journal <span class="arrow"></span></a></p>
+    </div>
+  </section>
+
+  <% if (relatedPosts.length) { %>
+    <section class="bg-warm">
+      <div class="container">
+        <span class="kicker">More on <%= post.categoryLabel %></span>
+        <h2 style="font-size:1.6rem;">Related posts</h2>
+        <div class="grid-3" style="margin-top:1.6em; text-align:left;">
+          <% relatedPosts.forEach(function(rp) { %>
+            <div class="testimonial">
+              <span class="note"><%= rp.categoryLabel %></span>
+              <h3 style="margin-top:0.5em;"><a href="/blog/<%= rp.slug %>"><%= rp.title %></a></h3>
+            </div>
+          <% }) %>
+        </div>
+        <p style="margin-top:1.4em;"><a class="link-arrow" href="/blog">See all posts <span class="arrow">→</span></a></p>
+      </div>
+    </section>
+  <% } %>
+
+  <section class="cta-band bg-tint">
+    <div class="container">
+      <h2>Ready to start?</h2>
+      <p class="lede center" style="margin:0 auto 1.4em;">The thinking is here. The coaching is where it becomes practice.</p>
+      <div class="cta-row" style="justify-content:center;">
+        <a class="btn" href="https://calendar.app.google/v9QsGeHYAQZf2Qzv5" target="_blank" rel="noopener">Book a Discovery Call</a>
+        <a class="btn btn-ghost" href="/contact.html">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<%- include('../partials/footer') %>
+</body>
+</html>
