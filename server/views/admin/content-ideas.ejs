@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Content Ideas | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .idea-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .idea-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.6em; }
+  .idea-links { font-size: 0.82rem; }
+  .idea-links a { display: block; margin-top: 2px; }
+  .idea-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .idea-actions form { margin: 0; }
+  details summary { cursor: pointer; font-size: 0.9rem; color: var(--accent); margin-bottom: 1.4em; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'content-ideas' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Content ideas (<%= ideas.length %>)</h1>
+    </div>
+
+    <details class="card" style="margin-bottom:20px;">
+      <summary>+ Add a new content idea</summary>
+      <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <form method="POST" action="/admin/content-ideas/new">
+        <label for="topic">Topic</label>
+        <input type="text" id="topic" name="topic" required>
+
+        <label for="rationale">Why this topic (rationale, ideally citing what you found)</label>
+        <textarea id="rationale" name="rationale" required style="min-height:100px; font-family:inherit;"></textarea>
+
+        <label for="targetService">Which service does this support?</label>
+        <select id="targetService" name="targetService">
+          <option value="corporate-wellness">Corporate wellness</option>
+          <option value="general-coaching">General coaching</option>
+          <option value="postpartum">Postpartum</option>
+          <option value="neurodivergent">Neurodivergent coaching</option>
+          <option value="other">Other</option>
+        </select>
+
+        <label for="sourceLinks">Source links (one per line - only real URLs, this is what makes the idea verifiable)</label>
+        <textarea id="sourceLinks" name="sourceLinks" style="min-height:80px; font-family:inherit;"></textarea>
+
+        <div class="actions">
+          <button type="submit" class="btn">Add idea</button>
+        </div>
+      </form>
+    </details>
+
+    <% ideas.forEach(function(idea) { %>
+      <div class="idea-card">
+        <div class="row" style="margin-bottom:0;">
+          <h3 style="margin:0;"><%= idea.topic %></h3>
+          <span class="badge <%= idea.status === 'published' ? 'published' : 'draft' %>"><%= idea.status %></span>
+        </div>
+        <p class="idea-meta">For: <%= idea.targetService %></p>
+        <p><%= idea.rationale %></p>
+        <% if (idea.sourceLinks && idea.sourceLinks.length) { %>
+          <div class="idea-links">
+            Sources:
+            <% idea.sourceLinks.forEach(function(link) { %>
+              <a href="<%= link %>" target="_blank" rel="noopener"><%= link %></a>
+            <% }) %>
+          </div>
+        <% } %>
+        <div class="idea-actions">
+          <% if (idea.status === 'idea') { %>
+            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft">Draft this post</a>
+            <form method="POST" action="/admin/content-ideas/<%= idea._id %>/status">
+              <input type="hidden" name="status" value="drafting">
+              <button type="submit" class="btn btn-ghost">Mark as drafting</button>
+            </form>
+          <% } else if (idea.status === 'drafting') { %>
+            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft">Continue drafting</a>
+            <form method="POST" action="/admin/content-ideas/<%= idea._id %>/status">
+              <input type="hidden" name="status" value="published">
+              <button type="submit" class="btn btn-ghost">Mark as published</button>
+            </form>
+          <% } %>
+          <form method="POST" action="/admin/content-ideas/<%= idea._id %>/delete" onsubmit="return confirm('Delete this idea?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+</body>
+</html>

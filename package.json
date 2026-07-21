@@ -8,7 +8,8 @@
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
     "create-admin": "node server/scripts/create-admin.js",
-    "seed-blog-posts": "node server/scripts/seed-blog-posts.js"
+    "seed-blog-posts": "node server/scripts/seed-blog-posts.js",
+    "seed-content-ideas": "node server/scripts/seed-content-ideas.js"
   },
   "engines": {
     "node": ">=18"
@@ -20,6 +21,7 @@
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "googleapis": "^144.0.0",
     "mongoose": "^8.9.5"
   },
   "devDependencies": {

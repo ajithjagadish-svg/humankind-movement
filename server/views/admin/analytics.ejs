@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Analytics | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .setup-steps { font-size: 0.9rem; line-height: 1.6; }
+  .setup-steps code { background: var(--paper); padding: 1px 6px; border-radius: 4px; }
+  .status-pill { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 0.78rem; font-weight: 600; margin-right: 8px; }
+  .status-pill.on { background: #e6f4ea; color: #1e7b34; }
+  .status-pill.off { background: #f1efe9; color: #6b6862; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'analytics' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Analytics</h1>
+      <form method="POST" action="/admin/analytics/refresh">
+        <button type="submit" class="btn">Refresh now</button>
+      </form>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <span class="status-pill <%= configured.ga4 ? 'on' : 'off' %>">GA4 <%= configured.ga4 ? 'connected' : 'not connected' %></span>
+      <span class="status-pill <%= configured.searchConsole ? 'on' : 'off' %>">Search Console <%= configured.searchConsole ? 'connected' : 'not connected' %></span>
+      <% if (refreshedAt) { %>
+        <p class="note" style="margin-top:0.6em;">Last refreshed <%= refreshedAt.toLocaleString() %><% if (refreshError) { %> - refresh failed: <%= refreshError %><% } %></p>
+      <% } %>
+
+      <% if (!configured.ga4 || !configured.searchConsole) { %>
+        <details style="margin-top:1em;">
+          <summary style="cursor:pointer; color:var(--accent); font-size:0.9rem;">
+            <% if (!configured.ga4 && !configured.searchConsole) { %>Set up GA4 and Search Console<% } else if (!configured.ga4) { %>Set up GA4<% } else { %>Set up Search Console<% } %>
+          </summary>
+          <div class="setup-steps" style="margin-top:1em;">
+            <p><strong>Both use the same Google Cloud service account</strong>, so you only create one:</p>
+            <ol>
+              <li>Google Cloud Console → create (or reuse) a project → APIs &amp; Services → Credentials → Create Credentials → Service Account.</li>
+              <li>Open the new service account → Keys → Add Key → JSON. This downloads a file.</li>
+              <li>Base64-encode that file's contents and set it as the <code>GOOGLE_SERVICE_ACCOUNT_KEY</code> environment variable in DigitalOcean (App Platform → your app → Settings → the service component → Environment variables → Encrypt it).</li>
+            </ol>
+            <% if (!configured.ga4) { %>
+              <p style="margin-top:1em;"><strong>For GA4:</strong> in Google Analytics → Admin → Property Access Management, add the service account's email (from the JSON file, field <code>client_email</code>) as a <strong>Viewer</strong>. Then set <code>GA4_PROPERTY_ID</code> (the numeric property ID, not the G- Measurement ID) as an env var.</p>
+            <% } %>
+            <% if (!configured.searchConsole) { %>
+              <p style="margin-top:1em;"><strong>For Search Console:</strong> in Search Console → Settings → Users and permissions, add the same service account email as a user. Then set <code>SEARCH_CONSOLE_SITE_URL</code> to exactly how your property is listed there (e.g. <code>sc-domain:humankindmovement.in</code> or <code>https://humankindmovement.in/</code>).</p>
+            <% } %>
+          </div>
+        </details>
+      <% } %>
+    </div>
+
+    <% if (configured.ga4 || configured.searchConsole) { %>
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <% if (configured.ga4) { %><th>Pageviews</th><th>Avg. engagement</th><% } %>
+              <% if (configured.searchConsole) { %><th>Search clicks</th><th>Impressions</th><th>CTR</th><th>Avg. position</th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% posts.forEach(function(post) { %>
+              <tr>
+                <td><a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a></td>
+                <% if (configured.ga4) { %>
+                  <td><%= post.analytics.pageviews %></td>
+                  <td><%= post.analytics.engagement %>s</td>
+                <% } %>
+                <% if (configured.searchConsole) { %>
+                  <td><%= post.analytics.searchClicks %></td>
+                  <td><%= post.analytics.searchImpressions %></td>
+                  <td><%= (post.analytics.searchCtr * 100).toFixed(1) %>%</td>
+                  <td><%= post.analytics.searchAvgPosition.toFixed(1) %></td>
+                <% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </main>
+</body>
+</html>

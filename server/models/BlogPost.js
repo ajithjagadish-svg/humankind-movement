@@ -14,8 +14,15 @@ const BlogPostSchema = new mongoose.Schema(
     status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
     publishedAt: { type: Date },
     analytics: {
+      // GA4 - traffic and engagement
       pageviews: { type: Number, default: 0 },
       engagement: { type: Number, default: 0 },
+      // Search Console - actual search performance ("SEO viewpoint")
+      searchClicks: { type: Number, default: 0 },
+      searchImpressions: { type: Number, default: 0 },
+      searchCtr: { type: Number, default: 0 }, // 0-1
+      searchAvgPosition: { type: Number, default: 0 },
+      updatedAt: { type: Date },
     },
     notes: { type: String, default: '' },
   },

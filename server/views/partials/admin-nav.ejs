@@ -3,6 +3,8 @@
   <nav>
     <a href="/admin/dashboard" class="<%= active === 'dashboard' ? 'active' : '' %>">Dashboard</a>
     <a href="/admin/posts" class="<%= active === 'posts' ? 'active' : '' %>">Posts</a>
+    <a href="/admin/content-ideas" class="<%= active === 'content-ideas' ? 'active' : '' %>">Content Ideas</a>
+    <a href="/admin/analytics" class="<%= active === 'analytics' ? 'active' : '' %>">Analytics</a>
     <form method="POST" action="/admin/logout" style="margin:0;">
       <button type="submit">Sign out</button>
     </form>

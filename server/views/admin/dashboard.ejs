@@ -6,12 +6,55 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Dashboard | Humankind Movement Admin</title>
 <%- include('../partials/admin-styles') %>
+<style>
+  .digest-list { list-style: none; padding: 0; margin: 0; }
+  .digest-list li { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .digest-list li:last-child { border-bottom: none; }
+  .digest-count { font-weight: 700; }
+  .setup-note { background: #fff8e6; border: 1px solid #f0dca0; border-radius: 8px; padding: 12px 16px; font-size: 0.88rem; margin-top: 1em; }
+</style>
 </head>
 <body>
   <%- include('../partials/admin-nav', { active: 'dashboard' }) %>
   <main>
+    <h1 style="font-size:1.2rem; margin:0 0 1em;">What needs your attention</h1>
+
     <div class="card">
-      Form submissions and analytics land here in the next phases.
+      <ul class="digest-list">
+        <li>
+          <span><span class="digest-count"><%= draftCount %></span> draft post<%= draftCount === 1 ? '' : 's' %> not yet published</span>
+          <a href="/admin/posts">View posts →</a>
+        </li>
+        <li>
+          <span><span class="digest-count"><%= ideaCount %></span> content idea<%= ideaCount === 1 ? '' : 's' %> ready to write</span>
+          <a href="/admin/content-ideas">View ideas →</a>
+        </li>
+        <li>
+          <span><span class="digest-count"><%= publishedCount %></span> post<%= publishedCount === 1 ? '' : 's' %> published</span>
+          <a href="/admin/posts">View posts →</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <% if (!analyticsReady) { %>
+        <strong>Analytics not connected yet</strong>
+        <p class="note" style="margin-top:0.6em;">Connect GA4 and/or Search Console to see which published posts are underperforming in search.</p>
+        <a class="btn btn-ghost" href="/admin/analytics" style="margin-top:0.6em; display:inline-block;">Set up analytics</a>
+      <% } else if (underperforming.length === 0) { %>
+        <strong>No posts flagged</strong>
+        <p class="note" style="margin-top:0.6em;">Nothing has enough search impressions with a low click-through rate to flag yet.</p>
+      <% } else { %>
+        <strong><%= underperforming.length %> post<%= underperforming.length === 1 ? '' : 's' %> getting impressions but few clicks</strong>
+        <p class="note" style="margin-top:0.4em;">Worth a title or opening-line rewrite - these show up in search but aren't getting clicked.</p>
+        <ul class="digest-list" style="margin-top:0.8em;">
+          <% underperforming.forEach(function(post) { %>
+            <li>
+              <span><a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a> - <%= post.analytics.searchImpressions %> impressions, <%= (post.analytics.searchCtr * 100).toFixed(1) %>% CTR</span>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
     </div>
   </main>
 </body>
