@@ -22,6 +22,33 @@
   .intake-form h2 { font-size: 1.1rem; margin: 2em 0 0.2em; }
   .intake-form h2:first-of-type { margin-top: 0; }
   .intake-form .section-note { margin: 0 0 1em; }
+  .option-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .option-group .option-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+  .option-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .option-row input { margin-top: 3px; width: auto; }
+  .policy-box {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 0.9rem;
+    background: var(--paper-warm);
+    margin-bottom: 14px;
+  }
+  .policy-box ul { margin: 0.6em 0; padding-left: 1.2em; }
 </style>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
@@ -73,164 +100,141 @@
     <div class="container">
       <form class="contact-form intake-form" id="intake-form" action="/api/intake" method="POST" data-ajax-form>
 
-        <h2>General details</h2>
+        <h2>Basic Details</h2>
         <div class="field">
-          <label for="ik-fullName">Full name <span class="req">*</span></label>
+          <label for="ik-fullName">Full Name <span class="req">*</span></label>
           <input type="text" id="ik-fullName" name="fullName" autocomplete="name" required>
-        </div>
-        <div class="field">
-          <label for="ik-age">Age</label>
-          <input type="text" id="ik-age" name="age">
-        </div>
-        <div class="field">
-          <label for="ik-genderIdentity">Gender identity</label>
-          <input type="text" id="ik-genderIdentity" name="genderIdentity">
-        </div>
-        <div class="field">
-          <label for="ik-occupation">Occupation</label>
-          <input type="text" id="ik-occupation" name="occupation">
-        </div>
-        <div class="field">
-          <label for="ik-location">Where you're based</label>
-          <input type="text" id="ik-location" name="location" autocomplete="address-level2">
         </div>
         <div class="field">
           <label for="ik-email">Email <span class="req">*</span></label>
           <input type="email" id="ik-email" name="email" autocomplete="email" required>
         </div>
         <div class="field">
-          <label for="ik-phone">Phone <span class="req">*</span></label>
-          <input type="tel" id="ik-phone" name="phone" autocomplete="tel" required>
+          <label for="ik-mobileNumber">Mobile Number <span class="req">*</span></label>
+          <input type="tel" id="ik-mobileNumber" name="mobileNumber" autocomplete="tel" required>
+        </div>
+        <div class="field">
+          <label for="ik-dateOfBirth">Date of Birth <span class="req">*</span></label>
+          <input type="date" id="ik-dateOfBirth" name="dateOfBirth" required>
+        </div>
+        <div class="field">
+          <label for="ik-height">Height <span class="req">*</span></label>
+          <input type="text" id="ik-height" name="height" placeholder="e.g. 5&quot;9" required>
+        </div>
+        <div class="field">
+          <label for="ik-bodyWeight">Body Weight (kilograms) <span class="req">*</span></label>
+          <input type="text" id="ik-bodyWeight" name="bodyWeight" required>
         </div>
 
-        <h2>Emergency contact</h2>
+        <h2>Safety and Emergency Information</h2>
         <div class="field">
-          <label for="ik-emergencyContactName">Name</label>
-          <input type="text" id="ik-emergencyContactName" name="emergencyContactName">
+          <label for="ik-emergencyContact">Emergency Contact <span class="req">*</span></label>
+          <p class="note" style="margin:0 0 0.4em;">Include name, relationship, and mobile number. For example: Alex John / Father / +91987654321</p>
+          <input type="text" id="ik-emergencyContact" name="emergencyContact" required>
         </div>
         <div class="field">
-          <label for="ik-emergencyContactRelationship">Relationship to you</label>
-          <input type="text" id="ik-emergencyContactRelationship" name="emergencyContactRelationship">
+          <label for="ik-pregnancyOrPostpartumContext">Pregnancy or Postpartum Context</label>
+          <p class="note" style="margin:0 0 0.4em;">If this does not apply to you, write NA. If it does, share anything relevant: date of delivery, type of birth, recovery status, current symptoms, medical advice received, or pre/post-pregnancy challenges.</p>
+          <textarea id="ik-pregnancyOrPostpartumContext" name="pregnancyOrPostpartumContext"></textarea>
         </div>
         <div class="field">
-          <label for="ik-emergencyContactPhone">Phone</label>
-          <input type="tel" id="ik-emergencyContactPhone" name="emergencyContactPhone">
-        </div>
-
-        <h2>Health history</h2>
-        <div class="field">
-          <label for="ik-medicalConditions">Medical conditions (past or present)</label>
-          <textarea id="ik-medicalConditions" name="medicalConditions"></textarea>
+          <label for="ik-healthHistory">Health History, Injuries, or Medical Conditions <span class="req">*</span></label>
+          <p class="note" style="margin:0 0 0.4em;">Describe any past or current health condition, injury, surgery, diagnosis, or treatment that may be relevant, including when it happened, the diagnosis, the course of action, your current condition, and any restrictions or advice.</p>
+          <textarea id="ik-healthHistory" name="healthHistory" required></textarea>
         </div>
         <div class="field">
-          <label for="ik-surgeriesOrInjuries">Surgeries or significant injuries</label>
-          <textarea id="ik-surgeriesOrInjuries" name="surgeriesOrInjuries"></textarea>
-        </div>
-        <div class="field">
-          <label for="ik-medications">Medications you're currently taking</label>
-          <textarea id="ik-medications" name="medications"></textarea>
-        </div>
-        <div class="field">
-          <label for="ik-allergies">Allergies</label>
-          <textarea id="ik-allergies" name="allergies"></textarea>
+          <label for="ik-currentPainOrDiscomfort">Current Aches, Pains, or Discomfort <span class="req">*</span></label>
+          <p class="note" style="margin:0 0 0.4em;">Describe any current aches, pains, stiffness, discomfort, or movement limitations: where you feel it, when it appears, what makes it better or worse, and how long it has been present. You may refer to <a href="https://cdn.britannica.com/68/140268-050-35135B56/view-human-muscular-system.jpg" target="_blank" rel="noopener">this muscle diagram</a> if it helps you describe the area.</p>
+          <textarea id="ik-currentPainOrDiscomfort" name="currentPainOrDiscomfort" required></textarea>
         </div>
 
-        <h2>Current pain or limitations</h2>
+        <h2>Daily Rhythm and Lifestyle</h2>
         <div class="field">
-          <label for="ik-currentPainOrDiscomfort">Any pain or discomfort you're currently experiencing</label>
-          <textarea id="ik-currentPainOrDiscomfort" name="currentPainOrDiscomfort"></textarea>
+          <label for="ik-sleepHours">How many hours of sleep do you usually get in a day? <span class="req">*</span></label>
+          <input type="text" id="ik-sleepHours" name="sleepHours" required>
         </div>
         <div class="field">
-          <label for="ik-painAreas">Areas of the body affected</label>
-          <input type="text" id="ik-painAreas" name="painAreas">
-        </div>
-
-        <h2>Activity background</h2>
-        <div class="field">
-          <label for="ik-exerciseHistory">Your exercise and movement history</label>
-          <textarea id="ik-exerciseHistory" name="exerciseHistory"></textarea>
-        </div>
-        <div class="field">
-          <label for="ik-currentActivityLevel">Current activity level</label>
-          <select id="ik-currentActivityLevel" name="currentActivityLevel">
-            <option value="" selected>Prefer not to choose one</option>
-            <option value="Sedentary">Sedentary</option>
-            <option value="Lightly active">Lightly active</option>
-            <option value="Moderately active">Moderately active</option>
-            <option value="Very active">Very active</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="ik-priorInjuriesAffectingMovement">Prior injuries that still affect how you move</label>
-          <textarea id="ik-priorInjuriesAffectingMovement" name="priorInjuriesAffectingMovement"></textarea>
+          <label for="ik-typicalDay">Walk me through a typical day. <span class="req">*</span></label>
+          <p class="note" style="margin:0 0 0.4em;">From waking up to going to bed, describe your day with approximate timings: work, meals, movement, travel, rest, screen time, and sleep.</p>
+          <textarea id="ik-typicalDay" name="typicalDay" required></textarea>
         </div>
 
-        <h2>Sleep</h2>
-        <div class="field">
-          <label for="ik-averageSleepHours">Average hours of sleep per night</label>
-          <input type="text" id="ik-averageSleepHours" name="averageSleepHours">
+        <h2>Movement and Activity</h2>
+        <div class="option-group">
+          <span class="option-label">How active is your current lifestyle? <span class="req">*</span></span>
+          <label class="option-row"><input type="radio" name="activityLevel" value="Not currently active" required> Not currently active</label>
+          <label class="option-row"><input type="radio" name="activityLevel" value="Light daily movement"> Light daily movement</label>
+          <label class="option-row"><input type="radio" name="activityLevel" value="Some weekly activity"> Some weekly activity</label>
+          <label class="option-row"><input type="radio" name="activityLevel" value="Regular exercise, sport, or movement practice"> Regular exercise, sport, or movement practice</label>
+          <label class="option-row"><input type="radio" name="activityLevel" value="Highly active or training consistently"> Highly active or training consistently</label>
         </div>
         <div class="field">
-          <label for="ik-sleepQuality">How would you describe your sleep quality</label>
-          <select id="ik-sleepQuality" name="sleepQuality">
-            <option value="" selected>Prefer not to choose one</option>
-            <option value="Poor">Poor</option>
-            <option value="Fair">Fair</option>
-            <option value="Good">Good</option>
-            <option value="Excellent">Excellent</option>
-          </select>
+          <label for="ik-movementPractices">Which sport or movement practices do you currently do or used to do?</label>
+          <textarea id="ik-movementPractices" name="movementPractices"></textarea>
         </div>
         <div class="field">
-          <label for="ik-sleepIssues">Any sleep issues worth knowing about</label>
-          <textarea id="ik-sleepIssues" name="sleepIssues"></textarea>
-        </div>
-
-        <h2>Nutrition</h2>
-        <div class="field">
-          <label for="ik-dietType">How would you describe your diet</label>
-          <input type="text" id="ik-dietType" name="dietType">
-        </div>
-        <div class="field">
-          <label for="ik-eatingPatterns">Your typical eating patterns</label>
-          <textarea id="ik-eatingPatterns" name="eatingPatterns"></textarea>
-        </div>
-        <div class="field">
-          <label for="ik-nutritionConcerns">Any nutrition concerns or restrictions</label>
-          <textarea id="ik-nutritionConcerns" name="nutritionConcerns"></textarea>
+          <label for="ik-fitnessEquipment">Fitness Equipment and Facilities <span class="req">*</span></label>
+          <p class="note" style="margin:0 0 0.4em;">List any fitness equipment, gym access, sports facility, or open space you have access to. If you do not have any, please write NA. Example: Dumbbells – 5 kg x 2 / Resistance band loop – low, medium, high x 1 each / Yoga mat / Foam roller / Kettlebell – 12 kg x 1</p>
+          <textarea id="ik-fitnessEquipment" name="fitnessEquipment" required></textarea>
         </div>
 
-        <h2>Lifestyle and stress</h2>
-        <div class="field">
-          <label for="ik-occupationStressLevel">Stress level in your day-to-day life</label>
-          <select id="ik-occupationStressLevel" name="occupationStressLevel">
-            <option value="" selected>Prefer not to choose one</option>
-            <option value="Low">Low</option>
-            <option value="Moderate">Moderate</option>
-            <option value="High">High</option>
-          </select>
+        <h2>Food and Lifestyle Preferences</h2>
+        <div class="option-group">
+          <span class="option-label">What is your dietary preference? <span class="req">*</span></span>
+          <label class="option-row"><input type="radio" name="dietaryPreference" value="Eat meat" required> Eat meat</label>
+          <label class="option-row"><input type="radio" name="dietaryPreference" value="Vegetarian"> Vegetarian</label>
+          <label class="option-row"><input type="radio" name="dietaryPreference" value="Vegetarian, eat eggs"> Vegetarian, eat eggs</label>
+          <label class="option-row"><input type="radio" name="dietaryPreference" value="Vegan"> Vegan</label>
+          <label class="option-row">
+            <input type="radio" name="dietaryPreference" value="Other" id="ik-dietaryPreferenceOtherRadio">
+            <span style="display:flex; align-items:center; gap:8px; flex:1;">Other: <input type="text" name="dietaryPreferenceOther" aria-label="Other dietary preference" style="flex:1; padding:6px 8px;"></span>
+          </label>
         </div>
-        <div class="field">
-          <label for="ik-dailyScreenTime">Roughly how much daily screen time</label>
-          <input type="text" id="ik-dailyScreenTime" name="dailyScreenTime">
-        </div>
-        <div class="field">
-          <label for="ik-lifestyleNotes">Anything else about your lifestyle worth knowing</label>
-          <textarea id="ik-lifestyleNotes" name="lifestyleNotes"></textarea>
+        <div class="option-group">
+          <span class="option-label">Which of the following are part of your lifestyle? <span class="req">*</span></span>
+          <p class="note" style="margin:-6px 0 2px;">This is not asked for judgement. It helps understand your routine, recovery, appetite, sleep, and energy patterns.</p>
+          <label class="option-row"><input type="checkbox" name="lifestyleHabits" value="Tea or coffee"> Tea or coffee</label>
+          <label class="option-row"><input type="checkbox" name="lifestyleHabits" value="Aerated drinks"> Aerated drinks</label>
+          <label class="option-row"><input type="checkbox" name="lifestyleHabits" value="Alcoholic beverages"> Alcoholic beverages</label>
+          <label class="option-row"><input type="checkbox" name="lifestyleHabits" value="Smoking or tobacco"> Smoking or tobacco</label>
+          <label class="option-row"><input type="checkbox" name="lifestyleHabits" value="None of the above"> None of the above</label>
+          <label class="option-row">
+            <input type="checkbox" name="lifestyleHabits" value="Other">
+            <span style="display:flex; align-items:center; gap:8px; flex:1;">Other: <input type="text" name="lifestyleHabitsOther" aria-label="Other lifestyle habit" style="flex:1; padding:6px 8px;"></span>
+          </label>
         </div>
 
-        <h2>Goals</h2>
-        <div class="field">
-          <label for="ik-primaryGoals">What are you hoping to work towards <span class="req">*</span></label>
-          <textarea id="ik-primaryGoals" name="primaryGoals" required></textarea>
+        <h2>Session Preference</h2>
+        <div class="option-group">
+          <span class="option-label">Preferred Starting Point <span class="req">*</span></span>
+          <label class="option-row"><input type="radio" name="sessionPreference" value="Online group sessions – INR 1750 per session" required> Online group sessions – INR 1750 per session</label>
+          <label class="option-row"><input type="radio" name="sessionPreference" value="Online personal training sessions / assessment – INR 2250 per session"> Online personal training sessions / assessment – INR 2250 per session</label>
+          <label class="option-row"><input type="radio" name="sessionPreference" value="In-person consultation – INR 2750 per session"> In-person consultation – INR 2750 per session</label>
+          <label class="option-row"><input type="radio" name="sessionPreference" value="In-person assessment – INR 3250"> In-person assessment – INR 3250</label>
+          <label class="option-row"><input type="radio" name="sessionPreference" value="Postpartum Recovery Bulk Package (8-session blocks, prepaid) – discounted rate"> Postpartum Recovery Bulk Package (8-session blocks, prepaid) – discounted rate</label>
+          <label class="option-row"><input type="radio" name="sessionPreference" value="Not sure yet, I'd like guidance"> Not sure yet, I'd like guidance</label>
         </div>
+
+        <h2>Anything Else</h2>
         <div class="field">
-          <label for="ik-timeline">Any timeline in mind</label>
-          <input type="text" id="ik-timeline" name="timeline">
+          <label for="ik-anythingElse">Is there anything else you would like me to know before we begin?</label>
+          <p class="note" style="margin:0 0 0.4em;">You can use this space to share anything about your health, schedule, preferences, concerns, past coaching experiences, communication style, or what helps you feel supported.</p>
+          <textarea id="ik-anythingElse" name="anythingElse"></textarea>
         </div>
-        <div class="field">
-          <label for="ik-additionalNotes">Anything else you'd like me to know</label>
-          <textarea id="ik-additionalNotes" name="additionalNotes"></textarea>
+
+        <h2>Session Commitment and Rescheduling</h2>
+        <div class="policy-box">
+          <p>Each session requires planning, preparation, and dedicated time. To keep the process respectful and sustainable for both of us, please note:</p>
+          <ul>
+            <li>Please notify at least 24 hours before the session if you need to reschedule.</li>
+            <li>If notice is not given at least 24 hours in advance, the session will be considered cancelled.</li>
+          </ul>
+          <p style="margin-bottom:0;">The purpose of this policy is not to be strict for the sake of it. It is to create mutual commitment, clarity, and respect for the time and preparation involved.</p>
         </div>
+        <label class="option-row" style="margin-bottom:18px;">
+          <input type="checkbox" name="agreesToReschedulingPolicy" value="true" required>
+          Yes, I understand and agree.
+        </label>
 
         <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off">
         <button type="submit" class="btn">Submit intake form</button>

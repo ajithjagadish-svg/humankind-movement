@@ -25,70 +25,55 @@
     <div class="card">
       <p class="note">Submitted <%= submission.createdAt.toLocaleString() %></p>
 
-      <h2 class="section-title">General details</h2>
+      <h2 class="section-title">Basic details</h2>
       <dl>
-        <dt>Age</dt><dd><%= submission.age || '—' %></dd>
-        <dt>Gender identity</dt><dd><%= submission.genderIdentity || '—' %></dd>
-        <dt>Occupation</dt><dd><%= submission.occupation || '—' %></dd>
-        <dt>Location</dt><dd><%= submission.location || '—' %></dd>
         <dt>Email</dt><dd><a href="mailto:<%= submission.email %>"><%= submission.email %></a></dd>
-        <dt>Phone</dt><dd><%= submission.phone %></dd>
+        <dt>Mobile number</dt><dd><%= submission.mobileNumber %></dd>
+        <dt>Date of birth</dt><dd><%= submission.dateOfBirth %></dd>
+        <dt>Height</dt><dd><%= submission.height %></dd>
+        <dt>Body weight (kg)</dt><dd><%= submission.bodyWeight %></dd>
       </dl>
 
-      <h2 class="section-title">Emergency contact</h2>
+      <h2 class="section-title">Safety and emergency information</h2>
       <dl>
-        <dt>Name</dt><dd><%= submission.emergencyContactName || '—' %></dd>
-        <dt>Relationship</dt><dd><%= submission.emergencyContactRelationship || '—' %></dd>
-        <dt>Phone</dt><dd><%= submission.emergencyContactPhone || '—' %></dd>
+        <dt>Emergency contact</dt><dd><%= submission.emergencyContact %></dd>
+        <dt>Pregnancy or postpartum context</dt><dd><%= submission.pregnancyOrPostpartumContext || '—' %></dd>
+        <dt>Health history, injuries, or medical conditions</dt><dd><%= submission.healthHistory %></dd>
+        <dt>Current aches, pains, or discomfort</dt><dd><%= submission.currentPainOrDiscomfort %></dd>
       </dl>
 
-      <h2 class="section-title">Health history</h2>
+      <h2 class="section-title">Daily rhythm and lifestyle</h2>
       <dl>
-        <dt>Medical conditions</dt><dd><%= submission.medicalConditions || '—' %></dd>
-        <dt>Surgeries or injuries</dt><dd><%= submission.surgeriesOrInjuries || '—' %></dd>
-        <dt>Medications</dt><dd><%= submission.medications || '—' %></dd>
-        <dt>Allergies</dt><dd><%= submission.allergies || '—' %></dd>
+        <dt>Sleep hours</dt><dd><%= submission.sleepHours %></dd>
+        <dt>Typical day</dt><dd><%= submission.typicalDay %></dd>
       </dl>
 
-      <h2 class="section-title">Current pain / limitations</h2>
+      <h2 class="section-title">Movement and activity</h2>
       <dl>
-        <dt>Current pain or discomfort</dt><dd><%= submission.currentPainOrDiscomfort || '—' %></dd>
-        <dt>Areas affected</dt><dd><%= submission.painAreas || '—' %></dd>
+        <dt>Activity level</dt><dd><%= submission.activityLevel %></dd>
+        <dt>Sport / movement practices</dt><dd><%= submission.movementPractices || '—' %></dd>
+        <dt>Fitness equipment and facilities</dt><dd><%= submission.fitnessEquipment %></dd>
       </dl>
 
-      <h2 class="section-title">Activity background</h2>
+      <h2 class="section-title">Food and lifestyle preferences</h2>
       <dl>
-        <dt>Exercise history</dt><dd><%= submission.exerciseHistory || '—' %></dd>
-        <dt>Current activity level</dt><dd><%= submission.currentActivityLevel || '—' %></dd>
-        <dt>Prior injuries affecting movement</dt><dd><%= submission.priorInjuriesAffectingMovement || '—' %></dd>
+        <dt>Dietary preference</dt><dd><%= submission.dietaryPreference %><% if (submission.dietaryPreference === 'Other' && submission.dietaryPreferenceOther) { %> (<%= submission.dietaryPreferenceOther %>)<% } %></dd>
+        <dt>Lifestyle habits</dt><dd><%= (submission.lifestyleHabits && submission.lifestyleHabits.length) ? submission.lifestyleHabits.join(', ') : '—' %><% if (submission.lifestyleHabitsOther) { %> (<%= submission.lifestyleHabitsOther %>)<% } %></dd>
       </dl>
 
-      <h2 class="section-title">Sleep</h2>
+      <h2 class="section-title">Session preference</h2>
       <dl>
-        <dt>Average sleep hours</dt><dd><%= submission.averageSleepHours || '—' %></dd>
-        <dt>Sleep quality</dt><dd><%= submission.sleepQuality || '—' %></dd>
-        <dt>Sleep issues</dt><dd><%= submission.sleepIssues || '—' %></dd>
+        <dt>Preferred starting point</dt><dd><%= submission.sessionPreference %></dd>
       </dl>
 
-      <h2 class="section-title">Nutrition</h2>
+      <h2 class="section-title">Anything else</h2>
       <dl>
-        <dt>Diet type</dt><dd><%= submission.dietType || '—' %></dd>
-        <dt>Eating patterns</dt><dd><%= submission.eatingPatterns || '—' %></dd>
-        <dt>Nutrition concerns</dt><dd><%= submission.nutritionConcerns || '—' %></dd>
+        <dt>Notes</dt><dd><%= submission.anythingElse || '—' %></dd>
       </dl>
 
-      <h2 class="section-title">Lifestyle and stress</h2>
+      <h2 class="section-title">Session commitment</h2>
       <dl>
-        <dt>Occupation stress level</dt><dd><%= submission.occupationStressLevel || '—' %></dd>
-        <dt>Daily screen time</dt><dd><%= submission.dailyScreenTime || '—' %></dd>
-        <dt>Other notes</dt><dd><%= submission.lifestyleNotes || '—' %></dd>
-      </dl>
-
-      <h2 class="section-title">Goals</h2>
-      <dl>
-        <dt>Primary goals</dt><dd><%= submission.primaryGoals %></dd>
-        <dt>Timeline</dt><dd><%= submission.timeline || '—' %></dd>
-        <dt>Additional notes</dt><dd><%= submission.additionalNotes || '—' %></dd>
+        <dt>Agreed to rescheduling policy</dt><dd><%= submission.agreesToReschedulingPolicy ? 'Yes' : 'No' %></dd>
       </dl>
 
       <div class="actions">

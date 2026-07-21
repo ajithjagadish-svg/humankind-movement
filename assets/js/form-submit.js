@@ -24,8 +24,16 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
+      // Fields with multiple inputs sharing a name (checkbox groups) collect
+      // into an array; everything else stays a plain string.
       var data = {};
-      new FormData(form).forEach(function (value, key) { data[key] = value; });
+      new FormData(form).forEach(function (value, key) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          data[key] = [].concat(data[key], value);
+        } else {
+          data[key] = value;
+        }
+      });
 
       if (submitBtn) submitBtn.disabled = true;
 

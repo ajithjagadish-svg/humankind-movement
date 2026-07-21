@@ -1,60 +1,48 @@
 const mongoose = require('mongoose');
 
-// Mirrors the 9 sections of the external Google Form it replaces: general
-// details, emergency contact, health history, current pain, activity
-// background, sleep, nutrition, lifestyle/stress, goals. Free text almost
-// everywhere on purpose - this is read by a human planning a coaching
-// relationship, not machine-processed.
+// Mirrors the real "Humankind Movement - Client Information" Google Form
+// this replaces, field for field (pulled from the live form itself, not
+// guessed) - plus one addition not in the original form: a bulk-session
+// option for postpartum clients under Session Preference.
 const IntakeSubmissionSchema = new mongoose.Schema(
   {
-    // General details
+    // Basic Details
     fullName: { type: String, required: true, trim: true },
-    age: { type: String, default: '' },
-    genderIdentity: { type: String, default: '' },
-    occupation: { type: String, default: '' },
-    location: { type: String, default: '' },
     email: { type: String, required: true, trim: true },
-    phone: { type: String, required: true, trim: true },
+    mobileNumber: { type: String, required: true, trim: true },
+    dateOfBirth: { type: String, required: true },
+    height: { type: String, required: true },
+    bodyWeight: { type: String, required: true },
 
-    // Emergency contact
-    emergencyContactName: { type: String, default: '' },
-    emergencyContactRelationship: { type: String, default: '' },
-    emergencyContactPhone: { type: String, default: '' },
+    // Safety and Emergency Information
+    emergencyContact: { type: String, required: true },
+    pregnancyOrPostpartumContext: { type: String, default: '' },
+    healthHistory: { type: String, required: true },
+    currentPainOrDiscomfort: { type: String, required: true },
 
-    // Health history
-    medicalConditions: { type: String, default: '' },
-    surgeriesOrInjuries: { type: String, default: '' },
-    medications: { type: String, default: '' },
-    allergies: { type: String, default: '' },
+    // Daily Rhythm and Lifestyle
+    sleepHours: { type: String, required: true },
+    typicalDay: { type: String, required: true },
 
-    // Current pain / limitations
-    currentPainOrDiscomfort: { type: String, default: '' },
-    painAreas: { type: String, default: '' },
+    // Movement and Activity
+    activityLevel: { type: String, required: true },
+    movementPractices: { type: String, default: '' },
+    fitnessEquipment: { type: String, required: true },
 
-    // Activity background
-    exerciseHistory: { type: String, default: '' },
-    currentActivityLevel: { type: String, default: '' },
-    priorInjuriesAffectingMovement: { type: String, default: '' },
+    // Food and Lifestyle Preferences
+    dietaryPreference: { type: String, required: true },
+    dietaryPreferenceOther: { type: String, default: '' },
+    lifestyleHabits: { type: [String], default: [] },
+    lifestyleHabitsOther: { type: String, default: '' },
 
-    // Sleep
-    averageSleepHours: { type: String, default: '' },
-    sleepQuality: { type: String, default: '' },
-    sleepIssues: { type: String, default: '' },
+    // Session Preference
+    sessionPreference: { type: String, required: true },
 
-    // Nutrition
-    dietType: { type: String, default: '' },
-    eatingPatterns: { type: String, default: '' },
-    nutritionConcerns: { type: String, default: '' },
+    // Anything Else
+    anythingElse: { type: String, default: '' },
 
-    // Lifestyle and stress
-    occupationStressLevel: { type: String, default: '' },
-    dailyScreenTime: { type: String, default: '' },
-    lifestyleNotes: { type: String, default: '' },
-
-    // Goals
-    primaryGoals: { type: String, required: true },
-    timeline: { type: String, default: '' },
-    additionalNotes: { type: String, default: '' },
+    // Session Commitment and Rescheduling
+    agreesToReschedulingPolicy: { type: Boolean, required: true },
 
     status: { type: String, enum: ['new', 'reviewed'], default: 'new', index: true },
   },

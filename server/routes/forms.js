@@ -44,16 +44,39 @@ router.post('/contact', async (req, res) => {
   res.json({ ok: true });
 });
 
+const REQUIRED_INTAKE_FIELDS = [
+  'fullName',
+  'email',
+  'mobileNumber',
+  'dateOfBirth',
+  'height',
+  'bodyWeight',
+  'emergencyContact',
+  'healthHistory',
+  'currentPainOrDiscomfort',
+  'sleepHours',
+  'typicalDay',
+  'activityLevel',
+  'fitnessEquipment',
+  'dietaryPreference',
+  'sessionPreference',
+];
+
 router.post('/intake', async (req, res) => {
-  const { fullName, email, phone, primaryGoals, _gotcha } = req.body;
+  const body = req.body;
 
-  if (_gotcha) return res.json({ ok: true });
+  if (body._gotcha) return res.json({ ok: true });
 
-  if (!fullName || !email || !phone || !primaryGoals) {
-    return res.status(400).json({ error: 'Please fill in your name, email, phone, and goals.' });
+  const missing = REQUIRED_INTAKE_FIELDS.some((field) => !body[field]);
+  if (missing || !body.agreesToReschedulingPolicy) {
+    return res.status(400).json({ error: 'Please fill in all required fields and agree to the rescheduling policy.' });
   }
 
-  await IntakeSubmission.create(req.body);
+  await IntakeSubmission.create({
+    ...body,
+    lifestyleHabits: [].concat(body.lifestyleHabits || []),
+    agreesToReschedulingPolicy: Boolean(body.agreesToReschedulingPolicy),
+  });
 
   res.json({ ok: true });
 });
