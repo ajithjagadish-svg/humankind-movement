@@ -20,7 +20,7 @@ const PAGES = [
   'contact.html',
   'coaching.html',
   'neurodivergent-coaching.html',
-  'client-intake.html',
+  'intake.html',
 ];
 
 router.get(['/', '/index.html'], (req, res) => {
@@ -37,6 +37,12 @@ PAGES.forEach((file) => {
 // redirect it to the real /blog route rather than rewriting 21 HTML files.
 router.get('/blog.html', (req, res) => {
   res.redirect(301, '/blog');
+});
+
+// The old private client-intake page (Google Form redirect) is replaced by
+// intake.html's own Mongo-backed form - redirect any bookmarked/shared links.
+router.get('/client-intake.html', (req, res) => {
+  res.redirect(301, '/intake.html');
 });
 
 router.get('/robots.txt', (req, res) => {

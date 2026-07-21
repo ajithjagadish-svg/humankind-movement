@@ -6,6 +6,7 @@ const MongoStore = require('connect-mongo');
 const adminRoutes = require('./routes/admin');
 const blogRoutes = require('./routes/blog');
 const marketingRoutes = require('./routes/marketing');
+const formsRoutes = require('./routes/forms');
 
 function createApp(mongoUri) {
   const app = express();
@@ -42,6 +43,7 @@ function createApp(mongoUri) {
 
   app.use('/admin', adminRoutes);
   app.use('/blog', blogRoutes);
+  app.use('/api', formsRoutes);
   app.use('/', marketingRoutes);
 
   return app;

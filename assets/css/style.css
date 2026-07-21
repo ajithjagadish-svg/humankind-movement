@@ -458,13 +458,6 @@ section.tight { padding: 48px 0; }
 }
 .contact-form textarea { resize: vertical; min-height: 120px; }
 .contact-form .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-.contact-form [data-fs-field][aria-invalid="true"] { border-color: var(--accent); }
-.contact-form .field-error {
-  display: none;
-  color: var(--accent);
-  font-size: 0.85rem;
-}
-.contact-form .field-error[data-fs-active] { display: block; }
 .contact-form button[type="submit"] {
   border: none;
   cursor: pointer;
@@ -477,7 +470,7 @@ section.tight { padding: 48px 0; }
   font-weight: 600;
   display: none;
 }
-.form-status[data-fs-active] { display: block; }
+.form-status[data-active] { display: block; }
 .form-status.ok { color: #1e7e34; }
 .form-status.err { color: var(--accent); }
 

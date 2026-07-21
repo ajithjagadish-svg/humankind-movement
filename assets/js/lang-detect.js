@@ -15,5 +15,5 @@
       localStorage.setItem(PREF_KEY, target);
       window.location.href = "/" + target + "/" + page;
     })
-    .catch(function () { /* geolocation unavailable — stay on English */ });
+    .catch(function () { /* geolocation unavailable, stay on English */ });
 })();

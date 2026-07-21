@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NC4HXRFPBP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-NC4HXRFPBP');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Intake Form | Humankind Movement</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .intake-form { max-width: 62ch; margin: 0 auto; }
+  .intake-form h2 { font-size: 1.1rem; margin: 2em 0 0.2em; }
+  .intake-form h2:first-of-type { margin-top: 0; }
+  .intake-form .section-note { margin: 0 0 1em; }
+</style>
+<!-- Microsoft Clarity -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xnfwyxhk2k");
+</script>
+</head>
+<body>
+
+<div class="dash-banner" style="background:var(--dark); color:#fff; padding:10px 0; text-align:center; font-size:0.85rem; letter-spacing:0.02em;">This page is private, just for you. Your information is shared only with me, to plan your coaching.</div>
+
+<header class="site">
+  <div class="container nav-row">
+    <a class="brand" href="index.html">
+      <img src="assets/img/icon-mark.png" alt="Humankind Movement mark">
+      <span class="brand-word">HUMANKIND<small>MOVEMENT</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <nav class="primary">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="philosophy.html">Philosophy</a></li>
+        <li><a href="the-method.html">The Method</a></li>
+        <li><a href="who-we-serve.html">Who We Serve</a></li>
+        <li><a href="experiences.html">Experiences</a></li>
+        <li><a href="blog.html">Journal</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero bg-tint">
+    <div class="container-narrow">
+      <span class="kicker">Before we begin</span>
+      <h1>Client Intake Form</h1>
+      <p class="lede">This form helps me understand you before we begin. The more clearly you share your context, the better I can plan sessions that respect your health, lifestyle, goals, history, and current capacity. This isn't about judging where you are. It's about understanding where we're starting from.</p>
+      <p class="note" style="max-width:60ch; margin:1.2em auto 0;">Please share information as honestly as you can. Your responses are used only to plan and support your coaching. This form is not for medical emergencies. If you're experiencing urgent symptoms or need immediate medical support, please contact a medical professional or emergency service in your location. Takes about 10 to 15 minutes.</p>
+    </div>
+  </section>
+
+  <section class="bg-white">
+    <div class="container">
+      <form class="contact-form intake-form" id="intake-form" action="/api/intake" method="POST" data-ajax-form>
+
+        <h2>General details</h2>
+        <div class="field">
+          <label for="ik-fullName">Full name <span class="req">*</span></label>
+          <input type="text" id="ik-fullName" name="fullName" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="ik-age">Age</label>
+          <input type="text" id="ik-age" name="age">
+        </div>
+        <div class="field">
+          <label for="ik-genderIdentity">Gender identity</label>
+          <input type="text" id="ik-genderIdentity" name="genderIdentity">
+        </div>
+        <div class="field">
+          <label for="ik-occupation">Occupation</label>
+          <input type="text" id="ik-occupation" name="occupation">
+        </div>
+        <div class="field">
+          <label for="ik-location">Where you're based</label>
+          <input type="text" id="ik-location" name="location" autocomplete="address-level2">
+        </div>
+        <div class="field">
+          <label for="ik-email">Email <span class="req">*</span></label>
+          <input type="email" id="ik-email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="ik-phone">Phone <span class="req">*</span></label>
+          <input type="tel" id="ik-phone" name="phone" autocomplete="tel" required>
+        </div>
+
+        <h2>Emergency contact</h2>
+        <div class="field">
+          <label for="ik-emergencyContactName">Name</label>
+          <input type="text" id="ik-emergencyContactName" name="emergencyContactName">
+        </div>
+        <div class="field">
+          <label for="ik-emergencyContactRelationship">Relationship to you</label>
+          <input type="text" id="ik-emergencyContactRelationship" name="emergencyContactRelationship">
+        </div>
+        <div class="field">
+          <label for="ik-emergencyContactPhone">Phone</label>
+          <input type="tel" id="ik-emergencyContactPhone" name="emergencyContactPhone">
+        </div>
+
+        <h2>Health history</h2>
+        <div class="field">
+          <label for="ik-medicalConditions">Medical conditions (past or present)</label>
+          <textarea id="ik-medicalConditions" name="medicalConditions"></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-surgeriesOrInjuries">Surgeries or significant injuries</label>
+          <textarea id="ik-surgeriesOrInjuries" name="surgeriesOrInjuries"></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-medications">Medications you're currently taking</label>
+          <textarea id="ik-medications" name="medications"></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-allergies">Allergies</label>
+          <textarea id="ik-allergies" name="allergies"></textarea>
+        </div>
+
+        <h2>Current pain or limitations</h2>
+        <div class="field">
+          <label for="ik-currentPainOrDiscomfort">Any pain or discomfort you're currently experiencing</label>
+          <textarea id="ik-currentPainOrDiscomfort" name="currentPainOrDiscomfort"></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-painAreas">Areas of the body affected</label>
+          <input type="text" id="ik-painAreas" name="painAreas">
+        </div>
+
+        <h2>Activity background</h2>
+        <div class="field">
+          <label for="ik-exerciseHistory">Your exercise and movement history</label>
+          <textarea id="ik-exerciseHistory" name="exerciseHistory"></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-currentActivityLevel">Current activity level</label>
+          <select id="ik-currentActivityLevel" name="currentActivityLevel">
+            <option value="" selected>Prefer not to choose one</option>
+            <option value="Sedentary">Sedentary</option>
+            <option value="Lightly active">Lightly active</option>
+            <option value="Moderately active">Moderately active</option>
+            <option value="Very active">Very active</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ik-priorInjuriesAffectingMovement">Prior injuries that still affect how you move</label>
+          <textarea id="ik-priorInjuriesAffectingMovement" name="priorInjuriesAffectingMovement"></textarea>
+        </div>
+
+        <h2>Sleep</h2>
+        <div class="field">
+          <label for="ik-averageSleepHours">Average hours of sleep per night</label>
+          <input type="text" id="ik-averageSleepHours" name="averageSleepHours">
+        </div>
+        <div class="field">
+          <label for="ik-sleepQuality">How would you describe your sleep quality</label>
+          <select id="ik-sleepQuality" name="sleepQuality">
+            <option value="" selected>Prefer not to choose one</option>
+            <option value="Poor">Poor</option>
+            <option value="Fair">Fair</option>
+            <option value="Good">Good</option>
+            <option value="Excellent">Excellent</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ik-sleepIssues">Any sleep issues worth knowing about</label>
+          <textarea id="ik-sleepIssues" name="sleepIssues"></textarea>
+        </div>
+
+        <h2>Nutrition</h2>
+        <div class="field">
+          <label for="ik-dietType">How would you describe your diet</label>
+          <input type="text" id="ik-dietType" name="dietType">
+        </div>
+        <div class="field">
+          <label for="ik-eatingPatterns">Your typical eating patterns</label>
+          <textarea id="ik-eatingPatterns" name="eatingPatterns"></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-nutritionConcerns">Any nutrition concerns or restrictions</label>
+          <textarea id="ik-nutritionConcerns" name="nutritionConcerns"></textarea>
+        </div>
+
+        <h2>Lifestyle and stress</h2>
+        <div class="field">
+          <label for="ik-occupationStressLevel">Stress level in your day-to-day life</label>
+          <select id="ik-occupationStressLevel" name="occupationStressLevel">
+            <option value="" selected>Prefer not to choose one</option>
+            <option value="Low">Low</option>
+            <option value="Moderate">Moderate</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ik-dailyScreenTime">Roughly how much daily screen time</label>
+          <input type="text" id="ik-dailyScreenTime" name="dailyScreenTime">
+        </div>
+        <div class="field">
+          <label for="ik-lifestyleNotes">Anything else about your lifestyle worth knowing</label>
+          <textarea id="ik-lifestyleNotes" name="lifestyleNotes"></textarea>
+        </div>
+
+        <h2>Goals</h2>
+        <div class="field">
+          <label for="ik-primaryGoals">What are you hoping to work towards <span class="req">*</span></label>
+          <textarea id="ik-primaryGoals" name="primaryGoals" required></textarea>
+        </div>
+        <div class="field">
+          <label for="ik-timeline">Any timeline in mind</label>
+          <input type="text" id="ik-timeline" name="timeline">
+        </div>
+        <div class="field">
+          <label for="ik-additionalNotes">Anything else you'd like me to know</label>
+          <textarea id="ik-additionalNotes" name="additionalNotes"></textarea>
+        </div>
+
+        <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off">
+        <button type="submit" class="btn">Submit intake form</button>
+        <p class="form-status err" role="alert"></p>
+        <p class="form-status ok" role="status">Thanks. Your intake form is in. I'll review it before we begin.</p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <img src="assets/img/logo.png" alt="Humankind Movement | Ajith Jagadish" class="footer-logo-full">
+        <p class="note">Health before success. Awareness before action.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="philosophy.html">Philosophy</a></li>
+          <li><a href="the-method.html">The Method</a></li>
+          <li><a href="who-we-serve.html">Who We Serve</a></li>
+          <li><a href="experiences.html">Experiences</a></li>
+          <li><a href="blog.html">Journal</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="contact.html">Send a message →</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Humankind Movement</span>
+      <span>Built alongside, not above.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/form-submit.js"></script>
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

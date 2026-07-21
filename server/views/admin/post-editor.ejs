@@ -46,7 +46,7 @@
           <option value="published" <%= post && post.status === 'published' ? 'selected' : '' %>>Published</option>
         </select>
 
-        <label for="bodyHtml">Post body (HTML — one &lt;p&gt; per paragraph)</label>
+        <label for="bodyHtml">Post body (HTML, one &lt;p&gt; per paragraph)</label>
         <textarea id="bodyHtml" name="bodyHtml" required><%= post ? post.bodyHtml || '' : '' %></textarea>
 
         <label for="notes">Internal notes (not shown publicly)</label>

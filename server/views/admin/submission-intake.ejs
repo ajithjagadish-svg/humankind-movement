@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Intake form | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  h2.section-title { font-size: 0.95rem; margin: 1.6em 0 0.6em; }
+  h2.section-title:first-child { margin-top: 0; }
+  dl { margin: 0; }
+  dt { font-size: 0.8rem; color: #6b6862; margin-top: 0.9em; }
+  dd { margin: 0.2em 0 0; font-size: 0.95rem; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'submissions' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;"><%= submission.fullName %></h1>
+      <a href="/admin/submissions">← Back to submissions</a>
+    </div>
+
+    <div class="card">
+      <p class="note">Submitted <%= submission.createdAt.toLocaleString() %></p>
+
+      <h2 class="section-title">General details</h2>
+      <dl>
+        <dt>Age</dt><dd><%= submission.age || '—' %></dd>
+        <dt>Gender identity</dt><dd><%= submission.genderIdentity || '—' %></dd>
+        <dt>Occupation</dt><dd><%= submission.occupation || '—' %></dd>
+        <dt>Location</dt><dd><%= submission.location || '—' %></dd>
+        <dt>Email</dt><dd><a href="mailto:<%= submission.email %>"><%= submission.email %></a></dd>
+        <dt>Phone</dt><dd><%= submission.phone %></dd>
+      </dl>
+
+      <h2 class="section-title">Emergency contact</h2>
+      <dl>
+        <dt>Name</dt><dd><%= submission.emergencyContactName || '—' %></dd>
+        <dt>Relationship</dt><dd><%= submission.emergencyContactRelationship || '—' %></dd>
+        <dt>Phone</dt><dd><%= submission.emergencyContactPhone || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Health history</h2>
+      <dl>
+        <dt>Medical conditions</dt><dd><%= submission.medicalConditions || '—' %></dd>
+        <dt>Surgeries or injuries</dt><dd><%= submission.surgeriesOrInjuries || '—' %></dd>
+        <dt>Medications</dt><dd><%= submission.medications || '—' %></dd>
+        <dt>Allergies</dt><dd><%= submission.allergies || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Current pain / limitations</h2>
+      <dl>
+        <dt>Current pain or discomfort</dt><dd><%= submission.currentPainOrDiscomfort || '—' %></dd>
+        <dt>Areas affected</dt><dd><%= submission.painAreas || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Activity background</h2>
+      <dl>
+        <dt>Exercise history</dt><dd><%= submission.exerciseHistory || '—' %></dd>
+        <dt>Current activity level</dt><dd><%= submission.currentActivityLevel || '—' %></dd>
+        <dt>Prior injuries affecting movement</dt><dd><%= submission.priorInjuriesAffectingMovement || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Sleep</h2>
+      <dl>
+        <dt>Average sleep hours</dt><dd><%= submission.averageSleepHours || '—' %></dd>
+        <dt>Sleep quality</dt><dd><%= submission.sleepQuality || '—' %></dd>
+        <dt>Sleep issues</dt><dd><%= submission.sleepIssues || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Nutrition</h2>
+      <dl>
+        <dt>Diet type</dt><dd><%= submission.dietType || '—' %></dd>
+        <dt>Eating patterns</dt><dd><%= submission.eatingPatterns || '—' %></dd>
+        <dt>Nutrition concerns</dt><dd><%= submission.nutritionConcerns || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Lifestyle and stress</h2>
+      <dl>
+        <dt>Occupation stress level</dt><dd><%= submission.occupationStressLevel || '—' %></dd>
+        <dt>Daily screen time</dt><dd><%= submission.dailyScreenTime || '—' %></dd>
+        <dt>Other notes</dt><dd><%= submission.lifestyleNotes || '—' %></dd>
+      </dl>
+
+      <h2 class="section-title">Goals</h2>
+      <dl>
+        <dt>Primary goals</dt><dd><%= submission.primaryGoals %></dd>
+        <dt>Timeline</dt><dd><%= submission.timeline || '—' %></dd>
+        <dt>Additional notes</dt><dd><%= submission.additionalNotes || '—' %></dd>
+      </dl>
+
+      <div class="actions">
+        <form method="POST" action="/admin/submissions/intake/<%= submission._id %>/delete" onsubmit="return confirm('Delete this intake form?');">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

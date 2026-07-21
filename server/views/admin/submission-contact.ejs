@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Contact message | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  dl { margin: 0; }
+  dt { font-size: 0.8rem; color: #6b6862; margin-top: 1.1em; }
+  dt:first-child { margin-top: 0; }
+  dd { margin: 0.2em 0 0; font-size: 0.95rem; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'submissions' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;"><%= submission.name %></h1>
+      <a href="/admin/submissions">← Back to submissions</a>
+    </div>
+
+    <div class="card">
+      <dl>
+        <dt>Submitted</dt>
+        <dd><%= submission.createdAt.toLocaleString() %></dd>
+        <dt>Email</dt>
+        <dd><a href="mailto:<%= submission.email %>"><%= submission.email %></a></dd>
+        <dt>Phone</dt>
+        <dd><%= submission.phone %></dd>
+        <dt>Topic</dt>
+        <dd><%= submission.topic %></dd>
+        <% if (submission.location) { %>
+          <dt>Location</dt>
+          <dd><%= submission.location %></dd>
+        <% } %>
+        <dt>Message</dt>
+        <dd><%= submission.message %></dd>
+      </dl>
+
+      <div class="actions">
+        <form method="POST" action="/admin/submissions/contact/<%= submission._id %>/status">
+          <input type="hidden" name="status" value="read">
+          <button type="submit" class="btn btn-ghost">Mark as read</button>
+        </form>
+        <form method="POST" action="/admin/submissions/contact/<%= submission._id %>/status">
+          <input type="hidden" name="status" value="archived">
+          <button type="submit" class="btn btn-ghost">Archive</button>
+        </form>
+        <form method="POST" action="/admin/submissions/contact/<%= submission._id %>/delete" onsubmit="return confirm('Delete this message?');">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

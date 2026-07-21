@@ -2,6 +2,8 @@ const express = require('express');
 const AdminUser = require('../models/AdminUser');
 const BlogPost = require('../models/BlogPost');
 const ContentIdea = require('../models/ContentIdea');
+const ContactSubmission = require('../models/ContactSubmission');
+const IntakeSubmission = require('../models/IntakeSubmission');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats } = require('../services/ga4');
@@ -51,10 +53,12 @@ router.post('/logout', (req, res) => {
 router.get('/', requireAuth, (req, res) => res.redirect('/admin/dashboard'));
 
 router.get('/dashboard', requireAuth, async (req, res) => {
-  const [draftCount, ideaCount, publishedCount] = await Promise.all([
+  const [draftCount, ideaCount, publishedCount, newContactCount, newIntakeCount] = await Promise.all([
     BlogPost.countDocuments({ status: 'draft' }),
     ContentIdea.countDocuments({ status: 'idea' }),
     BlogPost.countDocuments({ status: 'published' }),
+    ContactSubmission.countDocuments({ status: 'new' }),
+    IntakeSubmission.countDocuments({ status: 'new' }),
   ]);
 
   const analyticsReady = ga4Configured() || searchConsoleConfigured();
@@ -76,6 +80,8 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     draftCount,
     ideaCount,
     publishedCount,
+    newContactCount,
+    newIntakeCount,
     analyticsReady,
     underperforming,
   });
@@ -265,6 +271,49 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
 
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
   res.render('admin/analytics', { posts, configured, refreshError, refreshedAt: new Date() });
+});
+
+// --- Submissions (contact + intake forms) ---
+
+router.get('/submissions', requireAuth, async (req, res) => {
+  const [contacts, intakes] = await Promise.all([
+    ContactSubmission.find().sort({ createdAt: -1 }).lean(),
+    IntakeSubmission.find().sort({ createdAt: -1 }).lean(),
+  ]);
+  res.render('admin/submissions', { contacts, intakes });
+});
+
+router.get('/submissions/contact/:id', requireAuth, async (req, res, next) => {
+  const submission = await ContactSubmission.findById(req.params.id).lean();
+  if (!submission) return next();
+  res.render('admin/submission-contact', { submission });
+});
+
+router.post('/submissions/contact/:id/status', requireAuth, async (req, res) => {
+  if (['new', 'read', 'archived'].includes(req.body.status)) {
+    await ContactSubmission.findByIdAndUpdate(req.params.id, { status: req.body.status });
+  }
+  res.redirect('/admin/submissions');
+});
+
+router.post('/submissions/contact/:id/delete', requireAuth, async (req, res) => {
+  await ContactSubmission.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/submissions');
+});
+
+router.get('/submissions/intake/:id', requireAuth, async (req, res, next) => {
+  const submission = await IntakeSubmission.findById(req.params.id).lean();
+  if (!submission) return next();
+  if (submission.status === 'new') {
+    await IntakeSubmission.findByIdAndUpdate(req.params.id, { status: 'reviewed' });
+    submission.status = 'reviewed';
+  }
+  res.render('admin/submission-intake', { submission });
+});
+
+router.post('/submissions/intake/:id/delete', requireAuth, async (req, res) => {
+  await IntakeSubmission.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/submissions');
 });
 
 module.exports = router;

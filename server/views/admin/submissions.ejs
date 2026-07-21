@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Submissions | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .badge.new { background: #fdecea; color: #b3261e; }
+  .badge.read, .badge.reviewed { background: #f1efe9; color: #6b6862; }
+  .badge.archived { background: #f1efe9; color: #6b6862; }
+  section + section { margin-top: 32px; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'submissions' }) %>
+  <main>
+    <section>
+      <div class="row">
+        <h1 style="font-size:1.2rem; margin:0;">Contact messages (<%= contacts.length %>)</h1>
+      </div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Topic</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (contacts.length === 0) { %>
+              <tr><td colspan="5" class="note">No contact messages yet.</td></tr>
+            <% } %>
+            <% contacts.forEach(function(c) { %>
+              <tr>
+                <td><a href="/admin/submissions/contact/<%= c._id %>"><%= c.name %></a></td>
+                <td><%= c.topic %></td>
+                <td><%= c.createdAt.toISOString().slice(0,10) %></td>
+                <td><span class="badge <%= c.status %>"><%= c.status %></span></td>
+                <td><a href="/admin/submissions/contact/<%= c._id %>">View</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="row">
+        <h1 style="font-size:1.2rem; margin:0;">Intake forms (<%= intakes.length %>)</h1>
+      </div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (intakes.length === 0) { %>
+              <tr><td colspan="4" class="note">No intake forms yet.</td></tr>
+            <% } %>
+            <% intakes.forEach(function(i) { %>
+              <tr>
+                <td><a href="/admin/submissions/intake/<%= i._id %>"><%= i.fullName %></a></td>
+                <td><%= i.createdAt.toISOString().slice(0,10) %></td>
+                <td><span class="badge <%= i.status %>"><%= i.status %></span></td>
+                <td><a href="/admin/submissions/intake/<%= i._id %>">View</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
