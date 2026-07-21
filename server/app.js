@@ -13,6 +13,12 @@ function createApp(mongoUri) {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
 
+  // DigitalOcean/Cloudflare terminate HTTPS at the edge and forward to this
+  // app over a plain connection - without this, Express thinks every
+  // request is insecure, so the "secure" session cookie below never gets
+  // sent and logins silently fail to persist.
+  app.set('trust proxy', 1);
+
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
