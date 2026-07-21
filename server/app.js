@@ -5,6 +5,7 @@ const MongoStore = require('connect-mongo');
 
 const adminRoutes = require('./routes/admin');
 const blogRoutes = require('./routes/blog');
+const marketingRoutes = require('./routes/marketing');
 
 function createApp(mongoUri) {
   const app = express();
@@ -14,13 +15,6 @@ function createApp(mongoUri) {
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
-
-  // On DigitalOcean, /assets/* is routed straight to the static site
-  // component and never reaches this service. Serving it here too is
-  // harmless (unreachable in production) and lets `npm run dev` render
-  // pages correctly against the same assets/ folder without needing the
-  // static component running alongside it.
-  app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 
   app.use(
     session({
@@ -42,6 +36,7 @@ function createApp(mongoUri) {
 
   app.use('/admin', adminRoutes);
   app.use('/blog', blogRoutes);
+  app.use('/', marketingRoutes);
 
   return app;
 }

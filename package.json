@@ -1,14 +1,14 @@
 {
-  "name": "humankindmovement-server",
+  "name": "humankindmovement",
   "version": "1.0.0",
   "private": true,
-  "description": "Admin dashboard + blog/forms backend for humankindmovement.in",
-  "main": "server.js",
+  "description": "Humankind Movement website: static marketing pages + Express admin/blog/forms backend, served by one app",
+  "main": "server/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "create-admin": "node scripts/create-admin.js",
-    "seed-blog-posts": "node scripts/seed-blog-posts.js"
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "create-admin": "node server/scripts/create-admin.js",
+    "seed-blog-posts": "node server/scripts/seed-blog-posts.js"
   },
   "engines": {
     "node": ">=18"
