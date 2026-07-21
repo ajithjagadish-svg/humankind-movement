@@ -4,6 +4,7 @@
 // credentials), which must never be reachable over HTTP.
 const express = require('express');
 const path = require('path');
+const BlogPost = require('../models/BlogPost');
 
 const router = express.Router();
 const REPO_ROOT = path.join(__dirname, '..', '..');
@@ -49,8 +50,58 @@ router.get('/robots.txt', (req, res) => {
   res.sendFile(path.join(REPO_ROOT, 'robots.txt'));
 });
 
-router.get('/sitemap.xml', (req, res) => {
-  res.sendFile(path.join(REPO_ROOT, 'sitemap.xml'));
+// Static core pages - update lastmod by hand when a page's content changes.
+// Published blog posts are appended dynamically below, so they never go
+// stale as new posts are published (the old approach was a static file that
+// had to be hand-edited per post and had drifted to list 50 dead URLs).
+const SITEMAP_STATIC_PAGES = [
+  { loc: '/', lastmod: '2026-07-16', changefreq: 'weekly', priority: '1.0' },
+  { loc: '/philosophy.html', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/about.html', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/the-method.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/who-we-serve.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/experiences.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/blog', lastmod: '2026-07-16', changefreq: 'weekly', priority: '0.9' },
+  { loc: '/contact.html', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/es/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/philosophy.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/philosophy.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/the-method.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/the-method.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/who-we-serve.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/who-we-serve.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/experiences.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/experiences.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/about.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/about.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/contact.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/contact.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+];
+
+function sitemapUrlTag({ loc, lastmod, changefreq, priority }) {
+  return `  <url>\n    <loc>https://humankindmovement.in${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+}
+
+router.get('/sitemap.xml', async (req, res) => {
+  const posts = await BlogPost.find({ status: 'published' }).select('slug updatedAt').lean();
+
+  const postTags = posts.map((post) =>
+    sitemapUrlTag({
+      loc: `/blog/${post.slug}`,
+      lastmod: post.updatedAt.toISOString().slice(0, 10),
+      changefreq: 'monthly',
+      priority: '0.6',
+    })
+  );
+
+  const xml =
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), ...postTags].join('\n') +
+    '\n</urlset>\n';
+
+  res.type('application/xml').send(xml);
 });
 
 router.use('/assets', express.static(path.join(REPO_ROOT, 'assets')));

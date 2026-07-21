@@ -151,6 +151,7 @@ async function createOrUpdatePost(body, existing) {
     title: body.title.trim(),
     meta: (body.meta || '').trim(),
     keyword: (body.keyword || '').trim(),
+    heroImage: (body.heroImage || '').trim(),
     category: category.key,
     categoryLabel: category.label,
     bodyHtml: body.bodyHtml,

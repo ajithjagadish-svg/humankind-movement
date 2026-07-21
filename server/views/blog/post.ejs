@@ -7,6 +7,7 @@
   keyword: post.keyword,
   canonicalPath: '/blog/' + post.slug,
   ogType: 'article',
+  ogImage: post.heroImage || undefined,
   articlePublishedTime: post.publishedAt.toISOString(),
   articleSection: post.categoryLabel,
   jsonLd: {
@@ -39,6 +40,16 @@
       <p class="note center">By Ajith Jagadish · <%= post.readMins %> min read</p>
     </div>
   </section>
+
+  <% if (post.heroImage) { %>
+    <section class="bg-white">
+      <div class="container-narrow">
+        <div class="media ratio-wide">
+          <img src="<%= post.heroImage %>" alt="<%= post.title %>">
+        </div>
+      </div>
+    </section>
+  <% } %>
 
   <section class="bg-white">
     <div class="container-narrow">

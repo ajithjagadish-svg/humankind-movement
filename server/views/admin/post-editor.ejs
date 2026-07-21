@@ -37,6 +37,9 @@
         <label for="keyword">SEO focus keyword (optional)</label>
         <input type="text" id="keyword" name="keyword" value="<%= post ? post.keyword || '' : '' %>">
 
+        <label for="heroImage">Hero image URL (optional - shown at the top of the post and used as the social share image)</label>
+        <input type="text" id="heroImage" name="heroImage" placeholder="/assets/img/example.jpg" value="<%= post ? post.heroImage || '' : '' %>">
+
         <label for="readMins">Read time (minutes)</label>
         <input type="number" id="readMins" name="readMins" min="1" value="<%= post ? post.readMins || 2 : 2 %>">
 
