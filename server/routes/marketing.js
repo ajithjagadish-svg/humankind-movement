@@ -6,44 +6,83 @@ const express = require('express');
 const path = require('path');
 const BlogPost = require('../models/BlogPost');
 
-const router = express.Router();
+// Strict routing matters here: LANGS.forEach below registers both "/es"
+// (redirect to "/es/") and "/es/" (serve index) - without strict mode
+// Express treats trailing slash as optional, so "/es" would also match
+// "/es/" and the redirect route (registered first) would loop forever.
+const router = express.Router({ strict: true });
 const REPO_ROOT = path.join(__dirname, '..', '..');
 
 // dashboard.html and blog.html/blog/*.html are deliberately excluded here -
 // they're superseded by /admin and /blog and are no longer served, though
 // the files themselves haven't been deleted from the repo yet.
-const PAGES = [
-  'about.html',
-  'philosophy.html',
-  'the-method.html',
-  'who-we-serve.html',
-  'experiences.html',
-  'contact.html',
-  'coaching.html',
-  'neurodivergent-coaching.html',
-  'intake.html',
-];
+//
+// Every page below is served at a clean URL (no .html) with the old
+// "/slug.html" path 301-redirected to it - keeps bookmarks/indexed links
+// working without carrying the extension forward. The Journal (/blog,
+// /blog/:slug) is deliberately excluded from this scheme - it's already
+// Mongo-backed with its own clean routes.
+const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact', 'intake'];
+const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact'];
+const LANGS = ['es', 'fr'];
 
-router.get(['/', '/index.html'], (req, res) => {
+router.get('/', (req, res) => {
   res.sendFile(path.join(REPO_ROOT, 'index.html'));
 });
+router.get('/index.html', (req, res) => {
+  res.redirect(301, '/');
+});
 
-PAGES.forEach((file) => {
-  router.get('/' + file, (req, res) => {
-    res.sendFile(path.join(REPO_ROOT, file));
+CORE_PAGES.forEach((slug) => {
+  router.get('/' + slug, (req, res) => {
+    res.sendFile(path.join(REPO_ROOT, slug + '.html'));
+  });
+  router.get('/' + slug + '.html', (req, res) => {
+    res.redirect(301, '/' + slug);
+  });
+});
+
+LANGS.forEach((lang) => {
+  router.get('/' + lang, (req, res) => {
+    res.redirect(301, '/' + lang + '/');
+  });
+  router.get('/' + lang + '/', (req, res) => {
+    res.sendFile(path.join(REPO_ROOT, lang, 'index.html'));
+  });
+  router.get('/' + lang + '/index.html', (req, res) => {
+    res.redirect(301, '/' + lang + '/');
+  });
+
+  TRANSLATED_PAGES.forEach((slug) => {
+    router.get(`/${lang}/${slug}`, (req, res) => {
+      res.sendFile(path.join(REPO_ROOT, lang, slug + '.html'));
+    });
+    router.get(`/${lang}/${slug}.html`, (req, res) => {
+      res.redirect(301, `/${lang}/${slug}`);
+    });
   });
 });
 
 // Every marketing page's nav still links to the old "blog.html" filename -
-// redirect it to the real /blog route rather than rewriting 21 HTML files.
+// redirect it to the real /blog route rather than rewriting every page.
 router.get('/blog.html', (req, res) => {
   res.redirect(301, '/blog');
 });
 
+// Legacy inbound-link redirect stubs (old external links/bookmarks may still
+// point here). Now plain server-side 301s instead of client-side meta-refresh
+// pages, pointing at the clean /experiences URL.
+router.get('/coaching.html', (req, res) => {
+  res.redirect(301, '/experiences');
+});
+router.get('/neurodivergent-coaching.html', (req, res) => {
+  res.redirect(301, '/experiences#neurodivergent-movement-coaching');
+});
+
 // The old private client-intake page (Google Form redirect) is replaced by
-// intake.html's own Mongo-backed form - redirect any bookmarked/shared links.
+// intake's own Mongo-backed form - redirect any bookmarked/shared links.
 router.get('/client-intake.html', (req, res) => {
-  res.redirect(301, '/intake.html');
+  res.redirect(301, '/intake');
 });
 
 router.get('/robots.txt', (req, res) => {
@@ -56,27 +95,27 @@ router.get('/robots.txt', (req, res) => {
 // had to be hand-edited per post and had drifted to list 50 dead URLs).
 const SITEMAP_STATIC_PAGES = [
   { loc: '/', lastmod: '2026-07-16', changefreq: 'weekly', priority: '1.0' },
-  { loc: '/philosophy.html', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/about.html', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/the-method.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/who-we-serve.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/experiences.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/philosophy', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/about', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/the-method', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/who-we-serve', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
   { loc: '/blog', lastmod: '2026-07-16', changefreq: 'weekly', priority: '0.9' },
-  { loc: '/contact.html', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/contact', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.8' },
   { loc: '/es/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/philosophy.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/philosophy.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/the-method.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/the-method.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/who-we-serve.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/who-we-serve.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/experiences.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/experiences.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/about.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/about.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/contact.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/contact.html', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/philosophy', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/philosophy', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/the-method', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/the-method', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/who-we-serve', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/who-we-serve', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/about', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/about', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/contact', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/contact', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
 ];
 
 function sitemapUrlTag({ loc, lastmod, changefreq, priority }) {
@@ -105,7 +144,5 @@ router.get('/sitemap.xml', async (req, res) => {
 });
 
 router.use('/assets', express.static(path.join(REPO_ROOT, 'assets')));
-router.use('/es', express.static(path.join(REPO_ROOT, 'es')));
-router.use('/fr', express.static(path.join(REPO_ROOT, 'fr')));
 
 module.exports = router;
