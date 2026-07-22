@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(function () {
           form.reset();
           if (statusOk) statusOk.setAttribute("data-active", "");
+          if (form.dataset.gaEvent && typeof gtag === "function") gtag("event", form.dataset.gaEvent);
         })
         .catch(function (err) {
           if (statusErr) {
