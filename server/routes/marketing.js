@@ -22,7 +22,7 @@ const REPO_ROOT = path.join(__dirname, '..', '..');
 // working without carrying the extension forward. The Journal (/blog,
 // /blog/:slug) is deliberately excluded from this scheme - it's already
 // Mongo-backed with its own clean routes.
-const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact', 'intake'];
+const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact', 'intake', 'postpartum-recovery-guide'];
 const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact'];
 const LANGS = ['es', 'fr'];
 
@@ -102,6 +102,7 @@ const SITEMAP_STATIC_PAGES = [
   { loc: '/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
   { loc: '/blog', lastmod: '2026-07-16', changefreq: 'weekly', priority: '0.9' },
   { loc: '/contact', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/postpartum-recovery-guide', lastmod: '2026-07-23', changefreq: 'monthly', priority: '0.8' },
   { loc: '/es/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
   { loc: '/es/philosophy', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },

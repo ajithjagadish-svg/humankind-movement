@@ -4,6 +4,7 @@ const BlogPost = require('../models/BlogPost');
 const ContentIdea = require('../models/ContentIdea');
 const ContactSubmission = require('../models/ContactSubmission');
 const IntakeSubmission = require('../models/IntakeSubmission');
+const EbookLead = require('../models/EbookLead');
 const Carousel = require('../models/Carousel');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
@@ -279,11 +280,24 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
 // --- Submissions (contact + intake forms) ---
 
 router.get('/submissions', requireAuth, async (req, res) => {
-  const [contacts, intakes] = await Promise.all([
+  const [contacts, intakes, ebookLeads] = await Promise.all([
     ContactSubmission.find().sort({ createdAt: -1 }).lean(),
     IntakeSubmission.find().sort({ createdAt: -1 }).lean(),
+    EbookLead.find().sort({ createdAt: -1 }).lean(),
   ]);
-  res.render('admin/submissions', { contacts, intakes });
+  res.render('admin/submissions', { contacts, intakes, ebookLeads });
+});
+
+router.post('/submissions/ebook-leads/:id/status', requireAuth, async (req, res) => {
+  if (['new', 'contacted'].includes(req.body.status)) {
+    await EbookLead.findByIdAndUpdate(req.params.id, { status: req.body.status });
+  }
+  res.redirect('/admin/submissions');
+});
+
+router.post('/submissions/ebook-leads/:id/delete', requireAuth, async (req, res) => {
+  await EbookLead.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/submissions');
 });
 
 router.get('/submissions/contact/:id', requireAuth, async (req, res, next) => {

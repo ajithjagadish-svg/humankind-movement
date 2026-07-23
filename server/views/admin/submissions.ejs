@@ -79,6 +79,52 @@
         </table>
       </div>
     </section>
+
+    <section>
+      <div class="row">
+        <h1 style="font-size:1.2rem; margin:0;">Free guide signups (<%= ebookLeads.length %>)</h1>
+      </div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Mobile</th>
+              <th>Guide</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (ebookLeads.length === 0) { %>
+              <tr><td colspan="7" class="note">No signups yet.</td></tr>
+            <% } %>
+            <% ebookLeads.forEach(function(l) { %>
+              <tr>
+                <td><%= l.name || '—' %></td>
+                <td><%= l.email %></td>
+                <td><%= l.mobileNumber %></td>
+                <td><%= l.resource %></td>
+                <td><%= l.createdAt.toISOString().slice(0,10) %></td>
+                <td><span class="badge <%= l.status %>"><%= l.status %></span></td>
+                <td>
+                  <form method="POST" action="/admin/submissions/ebook-leads/<%= l._id %>/status" style="display:inline;">
+                    <input type="hidden" name="status" value="<%= l.status === 'new' ? 'contacted' : 'new' %>">
+                    <button type="submit" class="btn-ghost" style="border:none; background:none; padding:0; font-size:0.85rem; text-decoration:underline; cursor:pointer;">Mark <%= l.status === 'new' ? 'contacted' : 'new' %></button>
+                  </form>
+                  &middot;
+                  <form method="POST" action="/admin/submissions/ebook-leads/<%= l._id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this signup?');">
+                    <button type="submit" class="btn-ghost" style="border:none; background:none; padding:0; font-size:0.85rem; text-decoration:underline; cursor:pointer; color:#b3261e;">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </body>
 </html>
