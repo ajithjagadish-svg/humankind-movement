@@ -62,6 +62,11 @@
       </form>
 
       <% if (post && post._id) { %>
+        <form method="POST" action="/admin/carousels/generate" style="margin-top:2em; display:inline-block;">
+          <input type="hidden" name="sourceType" value="blogPost">
+          <input type="hidden" name="sourceId" value="<%= post._id %>">
+          <button type="submit" class="btn btn-ghost">Generate carousel from this post</button>
+        </form>
         <form method="POST" action="/admin/posts/<%= post._id %>/delete" style="margin-top:2em;" onsubmit="return confirm('Delete this post? This cannot be undone.');">
           <button type="submit" class="btn btn-danger">Delete post</button>
         </form>

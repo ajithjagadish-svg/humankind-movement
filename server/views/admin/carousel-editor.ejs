@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Edit carousel | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  main { max-width: 1000px; }
+  .slide-row { border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: flex; gap: 24px; flex-wrap: wrap; }
+  .slide-fields { flex: 1 1 340px; min-width: 300px; }
+  .slide-fields label { margin-top: 0.8em; }
+  .slide-fields textarea { min-height: 70px; font-family: inherit; font-size: 0.9rem; }
+  .slide-preview-wrap { flex: 0 0 auto; }
+  .slide-preview { width: 270px; height: 338px; overflow: hidden; border-radius: 8px; box-shadow: 0 8px 20px -10px rgba(20,16,13,0.35); }
+  .slide-row-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .slide-row-head strong { font-size: 0.9rem; }
+  .slide-row-actions { display: flex; gap: 8px; }
+  .slide-row-actions button { font-size: 0.78rem; padding: 5px 12px; }
+  .top-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .top-actions form { margin: 0; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'carousels' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;"><%= carousel.title %></h1>
+      <a href="/admin/carousels">← Back to carousels</a>
+    </div>
+
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+    <div class="top-actions">
+      <form id="save-form" method="POST" action="/admin/carousels/<%= carousel._id %>/save">
+        <input type="hidden" name="slidesJson" id="slidesJson">
+        <button type="submit" class="btn">Save changes</button>
+      </form>
+      <form method="POST" action="/admin/carousels/<%= carousel._id %>/regenerate" onsubmit="return confirm('Regenerate will replace all current slide text with a fresh Claude response. Continue?');">
+        <button type="submit" class="btn btn-ghost">Regenerate all with Claude</button>
+      </form>
+      <button type="button" class="btn btn-ghost" id="download-all-btn">Download all as PNG</button>
+      <button type="button" class="btn btn-ghost" id="add-slide-btn">+ Add slide</button>
+      <form method="POST" action="/admin/carousels/<%= carousel._id %>/delete" onsubmit="return confirm('Delete this carousel? This cannot be undone.');">
+        <button type="submit" class="btn btn-danger">Delete carousel</button>
+      </form>
+    </div>
+
+    <div id="slides-container">
+      <% carousel.slides.forEach(function(slide, i) { %>
+        <div class="slide-row" data-index="<%= i %>">
+          <div class="slide-fields">
+            <div class="slide-row-head">
+              <strong>Slide <%= i + 1 %></strong>
+              <div class="slide-row-actions">
+                <button type="button" class="btn btn-ghost slide-download-btn">Download PNG</button>
+                <button type="button" class="btn btn-danger slide-remove-btn">Remove</button>
+              </div>
+            </div>
+            <label>Eyebrow label</label>
+            <input type="text" class="f-eyebrow" value="<%= slide.eyebrow %>">
+            <label>Headline</label>
+            <input type="text" class="f-headline" value="<%= slide.headline %>">
+            <label>Supporting sentence (leave blank if using bullets)</label>
+            <textarea class="f-sub"><%= slide.sub %></textarea>
+            <label>Bullets (one per line, leave blank if using a supporting sentence)</label>
+            <textarea class="f-bullets"><%= (slide.bullets || []).join('\n') %></textarea>
+            <label>Variant</label>
+            <select class="f-variant">
+              <option value="default" <%= slide.variant === 'default' ? 'selected' : '' %>>Default</option>
+              <option value="dark" <%= slide.variant === 'dark' ? 'selected' : '' %>>Dark (opening hook)</option>
+              <option value="cta" <%= slide.variant === 'cta' ? 'selected' : '' %>>CTA (closing)</option>
+            </select>
+            <label>CTA button label (only shown if set)</label>
+            <input type="text" class="f-ctabtn" value="<%= slide.ctaBtn %>">
+          </div>
+          <div class="slide-preview-wrap">
+            <div class="slide-preview">
+              <div class="slide" style="transform:scale(0.5); transform-origin:top left;"></div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </main>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+(function () {
+  var MARK_SVG = '<svg class="mark" viewBox="328 294 152 153" xmlns="http://www.w3.org/2000/svg"><rect class="mv" x="398.699219" y="294.300781" width="11.699219" height="59.414063"/><rect class="mv" x="398.699219" y="387" width="11.699219" height="59.414063"/><rect class="mh" x="328.5" y="364.5" width="59.414063" height="11.699219"/><rect class="mh" x="420.300781" y="364.5" width="59.414063" height="11.699219"/></svg>';
+
+  var SLIDE_CSS = '<style>' +
+    ':root{--paper:#f5ebe1;--ink:#1a1a1a;--muted:#58524a;--accent:#c0392b;--accent-tint:#efd9c9;--dark:#14100d;--dark-ink:#f5ebe1;--dark-accent:#e8b4a0;--line:rgba(26,26,26,0.14);--line-dark:rgba(245,235,225,0.18);--sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Helvetica,Arial,sans-serif;}' +
+    '*{box-sizing:border-box;}' +
+    '.slide{width:540px;height:675px;background:var(--paper);color:var(--ink);position:relative;display:flex;flex-direction:column;padding:44px 46px 36px;overflow:hidden;font-family:var(--sans);}' +
+    '.slide.dark{background:var(--dark);color:var(--dark-ink);}' +
+    '.slide.cta{background:var(--accent-tint);}' +
+    '.row-top{display:flex;align-items:baseline;justify-content:space-between;}' +
+    '.eyebrow{font-size:13px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);}' +
+    '.slide.dark .eyebrow{color:var(--dark-accent);}' +
+    '.counter{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);letter-spacing:0.04em;}' +
+    '.slide.dark .counter{color:rgba(245,235,225,0.6);}' +
+    '.body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;padding-top:8px;}' +
+    'h1{margin:0;font-size:42px;line-height:1.14;font-weight:800;letter-spacing:-0.01em;}' +
+    '.sub{margin:0;font-size:19px;line-height:1.5;font-weight:500;color:var(--muted);max-width:42ch;}' +
+    '.slide.dark .sub{color:rgba(245,235,225,0.78);}' +
+    '.slide.cta .sub{color:#4a3226;}' +
+    'ul.points{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px;}' +
+    'ul.points li{font-size:19px;font-weight:500;line-height:1.4;padding-left:22px;position:relative;color:var(--ink);}' +
+    'ul.points li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:50%;background:var(--accent);}' +
+    '.footer{display:flex;align-items:center;justify-content:space-between;padding-top:20px;margin-top:20px;border-top:1px solid var(--line);}' +
+    '.slide.dark .footer{border-top-color:var(--line-dark);}' +
+    '.brand{display:flex;align-items:center;gap:10px;}' +
+    '.mark{width:24px;height:24px;flex-shrink:0;display:block;}' +
+    '.mark .mv{fill:var(--ink);}' +
+    '.mark .mh{fill:var(--accent);}' +
+    '.slide.dark .mark .mv{fill:var(--dark-ink);}' +
+    '.slide.dark .mark .mh{fill:var(--dark-accent);}' +
+    '.wordmark{font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;}' +
+    '.handle{font-size:12.5px;font-weight:500;color:var(--muted);}' +
+    '.slide.dark .handle{color:rgba(245,235,225,0.6);}' +
+    '.slide.cta .handle{color:#4a3226;}' +
+    '.cta-btn{display:inline-block;align-self:flex-start;margin-top:4px;background:var(--ink);color:var(--paper);font-size:15px;font-weight:700;padding:12px 22px;border-radius:100px;}' +
+    '</style>';
+
+  // Injected once so the on-page previews render with the real carousel
+  // styling without duplicating this CSS block in a separate EJS <style>.
+  document.head.insertAdjacentHTML('beforeend', SLIDE_CSS);
+
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function slideInnerHtml(data, counter, total) {
+    var subHtml = data.sub ? '<p class="sub">' + escapeHtml(data.sub) + '</p>' : '';
+    var bulletsHtml = '';
+    if (data.bullets && data.bullets.length) {
+      bulletsHtml = '<ul class="points">' + data.bullets.map(function (b) { return '<li>' + escapeHtml(b) + '</li>'; }).join('') + '</ul>';
+    }
+    var ctaHtml = data.ctaBtn ? '<span class="cta-btn">' + escapeHtml(data.ctaBtn) + '</span>' : '';
+    return '<div class="row-top"><span class="eyebrow">' + escapeHtml(data.eyebrow) + '</span><span class="counter">' + counter + ' / ' + total + '</span></div>' +
+      '<div class="body"><h1>' + escapeHtml(data.headline) + '</h1>' + subHtml + bulletsHtml + ctaHtml + '</div>' +
+      '<div class="footer"><div class="brand">' + MARK_SVG + '<span class="wordmark">Humankind Movement</span></div><span class="handle">@humankind_movement</span></div>';
+  }
+
+  function collectSlideData(rowEl) {
+    return {
+      eyebrow: rowEl.querySelector('.f-eyebrow').value,
+      headline: rowEl.querySelector('.f-headline').value,
+      sub: rowEl.querySelector('.f-sub').value,
+      bullets: rowEl.querySelector('.f-bullets').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean),
+      variant: rowEl.querySelector('.f-variant').value,
+      ctaBtn: rowEl.querySelector('.f-ctabtn').value,
+    };
+  }
+
+  function rows() {
+    return Array.prototype.slice.call(document.querySelectorAll('.slide-row'));
+  }
+
+  function renderPreview(rowEl) {
+    var data = collectSlideData(rowEl);
+    var all = rows();
+    var idx = all.indexOf(rowEl);
+    var previewEl = rowEl.querySelector('.slide-preview .slide');
+    previewEl.className = 'slide' + (data.variant !== 'default' ? ' ' + data.variant : '');
+    previewEl.innerHTML = slideInnerHtml(data, idx + 1, all.length);
+  }
+
+  function renderAllPreviews() {
+    rows().forEach(function (rowEl, i) {
+      rowEl.setAttribute('data-index', i);
+      rowEl.querySelector('.slide-fields strong').textContent = 'Slide ' + (i + 1);
+      renderPreview(rowEl);
+    });
+  }
+
+  // Renders via html2canvas rather than the more obvious SVG+foreignObject+
+  // canvas approach: Chrome taints any canvas drawn from an SVG image that
+  // contains a foreignObject (even same-origin, even from a blob URL), which
+  // permanently blocks canvas.toDataURL(). html2canvas walks the DOM/CSSOM
+  // directly instead of rasterizing through an <image>, so it isn't affected.
+  function exportSlidePng(rowEl) {
+    var data = collectSlideData(rowEl);
+    var all = rows();
+    var idx = all.indexOf(rowEl);
+    var el = document.createElement('div');
+    el.className = 'slide' + (data.variant !== 'default' ? ' ' + data.variant : '');
+    el.style.position = 'fixed';
+    el.style.left = '-9999px';
+    el.style.top = '0';
+    el.innerHTML = slideInnerHtml(data, idx + 1, all.length);
+    document.body.appendChild(el);
+
+    return html2canvas(el, { scale: 2, width: 540, height: 675 })
+      .then(function (canvas) {
+        var a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'slide-' + (idx + 1) + '.png';
+        a.click();
+      })
+      .finally(function () {
+        document.body.removeChild(el);
+      });
+  }
+
+  var container = document.getElementById('slides-container');
+
+  container.addEventListener('input', function (e) {
+    var rowEl = e.target.closest('.slide-row');
+    if (rowEl) renderPreview(rowEl);
+  });
+
+  container.addEventListener('change', function (e) {
+    var rowEl = e.target.closest('.slide-row');
+    if (rowEl) renderPreview(rowEl);
+  });
+
+  container.addEventListener('click', function (e) {
+    var rowEl = e.target.closest('.slide-row');
+    if (!rowEl) return;
+    if (e.target.classList.contains('slide-remove-btn')) {
+      if (rows().length <= 1) { alert('A carousel needs at least one slide.'); return; }
+      rowEl.remove();
+      renderAllPreviews();
+    } else if (e.target.classList.contains('slide-download-btn')) {
+      exportSlidePng(rowEl);
+    }
+  });
+
+  document.getElementById('add-slide-btn').addEventListener('click', function () {
+    var rowEl = document.createElement('div');
+    rowEl.className = 'slide-row';
+    rowEl.innerHTML =
+      '<div class="slide-fields">' +
+      '<div class="slide-row-head"><strong>Slide</strong><div class="slide-row-actions">' +
+      '<button type="button" class="btn btn-ghost slide-download-btn">Download PNG</button>' +
+      '<button type="button" class="btn btn-danger slide-remove-btn">Remove</button>' +
+      '</div></div>' +
+      '<label>Eyebrow label</label><input type="text" class="f-eyebrow">' +
+      '<label>Headline</label><input type="text" class="f-headline">' +
+      '<label>Supporting sentence (leave blank if using bullets)</label><textarea class="f-sub"></textarea>' +
+      '<label>Bullets (one per line, leave blank if using a supporting sentence)</label><textarea class="f-bullets"></textarea>' +
+      '<label>Variant</label><select class="f-variant"><option value="default">Default</option><option value="dark">Dark (opening hook)</option><option value="cta">CTA (closing)</option></select>' +
+      '<label>CTA button label (only shown if set)</label><input type="text" class="f-ctabtn">' +
+      '</div>' +
+      '<div class="slide-preview-wrap"><div class="slide-preview"><div class="slide" style="transform:scale(0.5); transform-origin:top left;"></div></div></div>';
+    container.appendChild(rowEl);
+    renderAllPreviews();
+  });
+
+  document.getElementById('download-all-btn').addEventListener('click', function () {
+    var all = rows();
+    var i = 0;
+    function next() {
+      if (i >= all.length) return;
+      exportSlidePng(all[i]).then(function () {
+        i++;
+        setTimeout(next, 350);
+      });
+    }
+    next();
+  });
+
+  document.getElementById('save-form').addEventListener('submit', function () {
+    var slides = rows().map(collectSlideData);
+    document.getElementById('slidesJson').value = JSON.stringify(slides);
+  });
+
+  renderAllPreviews();
+})();
+</script>
+</body>
+</html>

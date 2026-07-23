@@ -4,10 +4,12 @@ const BlogPost = require('../models/BlogPost');
 const ContentIdea = require('../models/ContentIdea');
 const ContactSubmission = require('../models/ContactSubmission');
 const IntakeSubmission = require('../models/IntakeSubmission');
+const Carousel = require('../models/Carousel');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats } = require('../services/ga4');
 const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../services/searchConsole');
+const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
 
 const router = express.Router();
 
@@ -114,7 +116,7 @@ router.post('/posts/new', requireAuth, async (req, res) => {
 router.get('/posts/:id/edit', requireAuth, async (req, res, next) => {
   const post = await BlogPost.findById(req.params.id).lean();
   if (!post) return next();
-  res.render('admin/post-editor', { post, categories: CATEGORIES, error: null });
+  res.render('admin/post-editor', { post, categories: CATEGORIES, error: req.query.carouselError || null });
 });
 
 router.post('/posts/:id/edit', requireAuth, async (req, res, next) => {
@@ -180,7 +182,7 @@ const IDEA_STATUSES = ['idea', 'drafting', 'published'];
 
 router.get('/content-ideas', requireAuth, async (req, res) => {
   const ideas = await ContentIdea.find().sort({ createdAt: -1 }).lean();
-  res.render('admin/content-ideas', { ideas, categories: CATEGORIES, error: null });
+  res.render('admin/content-ideas', { ideas, categories: CATEGORIES, error: req.query.carouselError || null });
 });
 
 router.post('/content-ideas/new', requireAuth, async (req, res) => {
@@ -315,6 +317,83 @@ router.get('/submissions/intake/:id', requireAuth, async (req, res, next) => {
 router.post('/submissions/intake/:id/delete', requireAuth, async (req, res) => {
   await IntakeSubmission.findByIdAndDelete(req.params.id);
   res.redirect('/admin/submissions');
+});
+
+// --- Carousels (LinkedIn/Instagram carousel copy, generated via Claude) ---
+
+async function resolveCarouselSource(sourceType, sourceId) {
+  if (sourceType === 'blogPost') {
+    const post = await BlogPost.findById(sourceId).lean();
+    if (!post) throw new Error('Blog post not found.');
+    return { title: post.title, context: `${post.meta || ''}\n\n${post.bodyHtml}` };
+  }
+  if (sourceType === 'contentIdea') {
+    const idea = await ContentIdea.findById(sourceId).lean();
+    if (!idea) throw new Error('Content idea not found.');
+    return { title: idea.topic, context: idea.rationale };
+  }
+  throw new Error('Unknown source type.');
+}
+
+function redirectToSource(res, sourceType, sourceId, errorMessage) {
+  const query = `?carouselError=${encodeURIComponent(errorMessage)}`;
+  if (sourceType === 'blogPost') return res.redirect(`/admin/posts/${sourceId}/edit${query}`);
+  return res.redirect(`/admin/content-ideas${query}`);
+}
+
+router.get('/carousels', requireAuth, async (req, res) => {
+  const carousels = await Carousel.find().sort({ updatedAt: -1 }).lean();
+  res.render('admin/carousels-list', { carousels });
+});
+
+router.post('/carousels/generate', requireAuth, async (req, res) => {
+  const { sourceType, sourceId } = req.body;
+  try {
+    if (!anthropicConfigured()) throw new Error('ANTHROPIC_API_KEY is not configured yet - add it as a secret env var to enable this.');
+    const { title, context } = await resolveCarouselSource(sourceType, sourceId);
+    const slides = await generateCarouselSlides({ title, context });
+    const carousel = await Carousel.create({ title, sourceType, sourceId, slides });
+    res.redirect(`/admin/carousels/${carousel._id}/edit`);
+  } catch (err) {
+    redirectToSource(res, sourceType, sourceId, err.message);
+  }
+});
+
+router.get('/carousels/:id/edit', requireAuth, async (req, res, next) => {
+  const carousel = await Carousel.findById(req.params.id).lean();
+  if (!carousel) return next();
+  res.render('admin/carousel-editor', { carousel, error: req.query.error || null });
+});
+
+router.post('/carousels/:id/regenerate', requireAuth, async (req, res, next) => {
+  const carousel = await Carousel.findById(req.params.id);
+  if (!carousel) return next();
+  try {
+    if (!anthropicConfigured()) throw new Error('ANTHROPIC_API_KEY is not configured yet - add it as a secret env var to enable this.');
+    const { title, context } = await resolveCarouselSource(carousel.sourceType, carousel.sourceId);
+    carousel.slides = await generateCarouselSlides({ title, context });
+    await carousel.save();
+  } catch (err) {
+    return res.redirect(`/admin/carousels/${carousel._id}/edit?error=${encodeURIComponent(err.message)}`);
+  }
+  res.redirect(`/admin/carousels/${carousel._id}/edit`);
+});
+
+router.post('/carousels/:id/save', requireAuth, async (req, res, next) => {
+  const carousel = await Carousel.findById(req.params.id);
+  if (!carousel) return next();
+  try {
+    carousel.slides = JSON.parse(req.body.slidesJson);
+    await carousel.save();
+  } catch (err) {
+    return res.redirect(`/admin/carousels/${carousel._id}/edit?error=${encodeURIComponent('Could not save changes.')}`);
+  }
+  res.redirect(`/admin/carousels/${carousel._id}/edit`);
+});
+
+router.post('/carousels/:id/delete', requireAuth, async (req, res) => {
+  await Carousel.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/carousels');
 });
 
 module.exports = router;

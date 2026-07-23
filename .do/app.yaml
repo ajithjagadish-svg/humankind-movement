@@ -32,6 +32,9 @@ services:
       - key: SESSION_SECRET
         scope: RUN_TIME
         type: SECRET
+      - key: ANTHROPIC_API_KEY
+        scope: RUN_TIME
+        type: SECRET
     health_check:
       http_path: /healthz
       initial_delay_seconds: 20

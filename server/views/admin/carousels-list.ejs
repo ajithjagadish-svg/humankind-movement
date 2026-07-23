@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Carousels | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .carousel-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .carousel-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'carousels' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Carousels (<%= carousels.length %>)</h1>
+    </div>
+
+    <% if (!carousels.length) { %>
+      <p>No carousels generated yet. Use "Generate carousel" from a blog post or a content idea.</p>
+    <% } %>
+
+    <% carousels.forEach(function(c) { %>
+      <div class="carousel-card">
+        <div class="row" style="margin-bottom:0;">
+          <h3 style="margin:0;"><%= c.title %></h3>
+          <span class="badge <%= c.status === 'posted' ? 'published' : 'draft' %>"><%= c.status %></span>
+        </div>
+        <p class="carousel-meta"><%= c.slides.length %> slides &middot; from <%= c.sourceType === 'blogPost' ? 'blog post' : 'content idea' %> &middot; updated <%= new Date(c.updatedAt).toLocaleDateString() %></p>
+        <a class="btn" href="/admin/carousels/<%= c._id %>/edit">Open</a>
+      </div>
+    <% }) %>
+  </main>
+</body>
+</html>

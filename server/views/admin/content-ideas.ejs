@@ -81,6 +81,11 @@
               <button type="submit" class="btn btn-ghost">Mark as published</button>
             </form>
           <% } %>
+          <form method="POST" action="/admin/carousels/generate">
+            <input type="hidden" name="sourceType" value="contentIdea">
+            <input type="hidden" name="sourceId" value="<%= idea._id %>">
+            <button type="submit" class="btn btn-ghost">Generate carousel</button>
+          </form>
           <form method="POST" action="/admin/content-ideas/<%= idea._id %>/delete" onsubmit="return confirm('Delete this idea?');">
             <button type="submit" class="btn btn-danger">Delete</button>
           </form>
