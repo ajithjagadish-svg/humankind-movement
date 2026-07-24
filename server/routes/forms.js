@@ -2,6 +2,7 @@ const express = require('express');
 const ContactSubmission = require('../models/ContactSubmission');
 const IntakeSubmission = require('../models/IntakeSubmission');
 const EbookLead = require('../models/EbookLead');
+const { sendResourceEmail } = require('../services/mailer');
 
 const router = express.Router();
 
@@ -91,14 +92,22 @@ router.post('/ebook-signup', async (req, res) => {
     return res.status(400).json({ error: 'Please share your email and mobile number.' });
   }
 
+  const resourceSlug = (resource || '').trim() || undefined;
+
   await EbookLead.create({
     name: (name || '').trim(),
     email: email.trim(),
     mobileNumber: mobileNumber.trim(),
-    resource: (resource || '').trim() || undefined,
+    resource: resourceSlug,
   });
 
   forwardToFormspree({ name, email, mobileNumber, resource, _subject: 'New free guide signup from Humankind Movement' });
+
+  if (resourceSlug) {
+    sendResourceEmail({ to: email.trim(), resourceSlug }).catch((err) => {
+      console.error('sendResourceEmail failed:', err.message);
+    });
+  }
 
   res.json({ ok: true });
 });

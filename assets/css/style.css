@@ -291,7 +291,7 @@ nav.primary a[aria-current="page"] {
 .hero .cta-row { justify-content: center; margin-top: 1.6em; }
 
 .hero-left { text-align: left; }
-.hero-left .lede, .hero-left h1 { margin-left: 0; }
+.hero-left .lede, .hero-left h1 { margin-left: 0; max-width: none; }
 .hero-left .cta-row { justify-content: flex-start; }
 
 /* ---------- sections ---------- */
@@ -473,6 +473,19 @@ section.tight { padding: 48px 0; }
 .form-status[data-active] { display: block; }
 .form-status.ok { color: #1e7e34; }
 .form-status.err { color: var(--accent); }
+
+/* Reusable lead-capture card: form area for any ebook/program landing page */
+.form-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 32px;
+  box-shadow: 0 12px 32px -20px rgba(26, 26, 26, 0.25);
+}
+.form-card h2 { margin-top: 0; }
+.form-card .contact-form { max-width: none; }
+.form-card .contact-form .field:last-of-type { margin-bottom: 0; }
+.form-card button[type="submit"] { width: 100%; margin-top: 4px; }
 
 .pillar .num {
   font-size: 0.8rem;

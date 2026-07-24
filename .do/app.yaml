@@ -35,6 +35,15 @@ services:
       - key: ANTHROPIC_API_KEY
         scope: RUN_TIME
         type: SECRET
+      - key: BREVO_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: BREVO_SENDER_EMAIL
+        scope: RUN_TIME
+        value: hello@humankindmovement.in
+      - key: BREVO_SENDER_NAME
+        scope: RUN_TIME
+        value: Humankind Movement
     health_check:
       http_path: /healthz
       initial_delay_seconds: 20

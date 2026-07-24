@@ -42,6 +42,8 @@
     background: var(--accent);
   }
   #guide-download { margin-top: 1.4em; }
+  .hero-form-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: start; }
+  @media (max-width: 780px) { .hero-form-grid { grid-template-columns: 1fr; } }
 </style>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
@@ -80,42 +82,20 @@
 
 <main>
 
-  <section class="hero bg-tint">
-    <div class="container-narrow">
-      <span class="kicker">Free Guide for New Mothers</span>
-      <h1>Cleared, But Not Ready?</h1>
-      <p class="lede">Being medically cleared and feeling ready to move again are two different things. This free guide covers that gap, built on real evidence, without any pressure to "bounce back."</p>
-    </div>
-  </section>
-
-  <section class="bg-white">
-    <div class="container grid-2">
+  <section class="hero hero-left bg-tint">
+    <div class="container hero-form-grid">
       <div>
-        <h2>What's inside</h2>
-        <ul class="guide-list">
-          <li>Why "bouncing back" is the wrong goal, and what to aim for instead</li>
-          <li>What a diastasis recti gap actually tells you, and what it doesn't</li>
-          <li>The pelvic floor, beyond Kegels</li>
-          <li>A different recovery timeline if you had a C-section</li>
-          <li>A realistic, evidence-based return-to-exercise timeline, step by step</li>
-          <li>Why sleep and stress are part of physical recovery, not separate from it</li>
-          <li>A simple self-check before you start moving again</li>
-          <li>Four breathing exercises you can try today, safely</li>
-          <li>The bounce-back myths worth letting go of</li>
-        </ul>
-        <p class="note" style="margin-top:1.6em; max-width:56ch;">This is educational content built from published research, not a substitute for medical or physiotherapy care. If something in your recovery feels off, that always deserves a real clinical assessment first.</p>
+        <span class="kicker">Free Guide for New Mothers</span>
+        <h1>Cleared, But Not Ready?</h1>
+        <p class="lede">A free, evidence-based guide to the gap between medical clearance and actually feeling ready to move again. No bounce-back pressure, no fluff.</p>
       </div>
 
-      <div>
-        <h2>Get the free guide</h2>
-        <p class="note">Share your email and mobile number and it's yours, instantly.</p>
+      <div class="form-card">
+        <h2>Get the guide, free</h2>
+        <p class="note">Enter your email and mobile number. The PDF lands in your inbox immediately.</p>
 
         <form class="contact-form" id="guide-form" action="/api/ebook-signup" method="POST" data-ajax-form data-ga-event="ebook_signup">
           <input type="hidden" name="resource" value="postpartum-recovery-guide">
-          <div class="field">
-            <label for="gf-name">Name</label>
-            <input type="text" id="gf-name" name="name" autocomplete="name">
-          </div>
           <div class="field">
             <label for="gf-email">Email <span class="req">*</span></label>
             <input type="email" id="gf-email" name="email" autocomplete="email" required>
@@ -126,15 +106,33 @@
           </div>
 
           <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off">
-          <button type="submit" class="btn">Send Me the Free Guide</button>
+          <button type="submit" class="btn">Send Me the Guide</button>
           <p class="form-status err" role="alert"></p>
-          <p class="form-status ok" role="status">Thanks! Your download is ready below.</p>
+          <p class="form-status ok" role="status">Sent. Check your inbox (and your download below).</p>
         </form>
 
         <div id="guide-download" hidden>
-          <a class="btn btn-ghost" href="/assets/downloads/postpartum-recovery-guide.pdf" download>Download Your Guide (PDF) →</a>
+          <a class="btn btn-ghost" href="/assets/downloads/postpartum-recovery-guide.pdf" download>Download Now (PDF) →</a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="bg-white">
+    <div class="container">
+      <h2>What's inside</h2>
+      <ul class="guide-list">
+        <li>Why "bouncing back" is the wrong goal, and what to aim for instead</li>
+        <li>What a diastasis recti gap actually tells you, and what it doesn't</li>
+        <li>The pelvic floor, beyond Kegels</li>
+        <li>A different recovery timeline if you had a C-section</li>
+        <li>A realistic, evidence-based return-to-exercise timeline, step by step</li>
+        <li>Why sleep and stress are part of physical recovery, not separate from it</li>
+        <li>A simple self-check before you start moving again</li>
+        <li>Four breathing exercises you can try today, safely</li>
+        <li>The bounce-back myths worth letting go of</li>
+      </ul>
+      <p class="note" style="margin-top:1.6em; max-width:56ch;">This is educational content built from published research, not a substitute for medical or physiotherapy care. If something in your recovery feels off, that always deserves a real clinical assessment first.</p>
     </div>
   </section>
 
@@ -181,6 +179,15 @@
 
 <script src="assets/js/main.js"></script>
 <script src="assets/js/form-submit.js"></script>
+<script
+  src="assets/js/exit-intent.js"
+  data-storage-key="exit-intent-seen-postpartum-recovery-guide"
+  data-headline="Wait — don't leave without your free guide"
+  data-body="It only takes your email and mobile number, and it's evidence-based, not another bounce-back checklist."
+  data-cta-text="Get My Free Guide"
+  data-scroll-target="#guide-form"
+  data-success-selector="#guide-form .form-status.ok"
+></script>
 <script>
   document.getElementById("year").textContent = new Date().getFullYear();
 
