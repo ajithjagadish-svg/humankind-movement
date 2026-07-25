@@ -15,6 +15,13 @@
 // toward the top of the viewport (the standard "about to close the tab"
 // signal). Skips entirely if the visitor already converted on this page
 // (data-success-selector already has [data-active]).
+//
+// Uses two overlapping detectors rather than one, since the classic
+// "mouseout + clientY<=0" trick alone is unreliable in Safari: a
+// mouseleave on the document root (fires when the cursor truly exits the
+// window, no bubbling ambiguity) and a mousemove-based check for fast
+// upward movement near the top edge (catches cases where mouseleave still
+// doesn't fire, e.g. some Safari/trackpad combinations).
 (function () {
   var script = document.currentScript;
   if (!script) return;
@@ -95,12 +102,36 @@
     markSeen();
   }
 
-  function onMouseOut(e) {
-    if (e.clientY > 0) return;
+  var triggered = false;
+  function trigger() {
+    if (triggered) return;
     if (alreadyConverted()) return;
-    document.removeEventListener("mouseout", onMouseOut);
+    triggered = true;
+    document.documentElement.removeEventListener("mouseleave", onMouseLeave);
+    document.removeEventListener("mousemove", onMouseMove);
     buildOverlay();
   }
 
-  document.addEventListener("mouseout", onMouseOut);
+  // Primary: fires cleanly when the cursor truly exits the browser window
+  // (relatedTarget is null in that case), which is the real "about to
+  // close the tab" signal - and isn't subject to mouseout's bubbling
+  // quirks across browsers.
+  function onMouseLeave(e) {
+    if (e.relatedTarget !== null) return;
+    trigger();
+  }
+
+  // Secondary/fallback: fast upward movement near the top edge, for cases
+  // where mouseleave on the root still doesn't fire.
+  var lastY = null;
+  function onMouseMove(e) {
+    if (lastY !== null && e.clientY <= 8 && e.clientY < lastY) {
+      trigger();
+      return;
+    }
+    lastY = e.clientY;
+  }
+
+  document.documentElement.addEventListener("mouseleave", onMouseLeave);
+  document.addEventListener("mousemove", onMouseMove);
 })();
