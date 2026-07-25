@@ -16,12 +16,14 @@
 // signal). Skips entirely if the visitor already converted on this page
 // (data-success-selector already has [data-active]).
 //
-// Uses two overlapping detectors rather than one, since the classic
-// "mouseout + clientY<=0" trick alone is unreliable in Safari: a
-// mouseleave on the document root (fires when the cursor truly exits the
-// window, no bubbling ambiguity) and a mousemove-based check for fast
-// upward movement near the top edge (catches cases where mouseleave still
-// doesn't fire, e.g. some Safari/trackpad combinations).
+// Uses three overlapping detectors, since no single one covers every
+// device: a mouseleave on the document root (fires when the cursor truly
+// exits the window, no bubbling ambiguity), a mousemove-based check for
+// fast upward movement near the top edge (catches cases where mouseleave
+// still doesn't fire, e.g. some Safari/trackpad combinations), and - since
+// neither of those can ever fire on touch devices, which have no mouse
+// cursor at all - a scroll-up-after-scrolling-down heuristic gated by a
+// minimum time on page, as the mobile equivalent signal.
 (function () {
   var script = document.currentScript;
   if (!script) return;
@@ -109,6 +111,7 @@
     triggered = true;
     document.documentElement.removeEventListener("mouseleave", onMouseLeave);
     document.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("scroll", onScroll);
     buildOverlay();
   }
 
@@ -134,4 +137,36 @@
 
   document.documentElement.addEventListener("mouseleave", onMouseLeave);
   document.addEventListener("mousemove", onMouseMove);
+
+  // Mobile fallback: touch devices have no mouse cursor, so the two
+  // detectors above never fire there. Scrolling back up toward the top
+  // after having scrolled down a meaningful amount is the closest mobile
+  // equivalent of "about to leave" - gated by a minimum time on page so it
+  // doesn't fire the instant someone glances back up while reading.
+  var pageLoadTime = Date.now();
+  var maxScrollY = 0;
+  var MIN_DELAY_MS = 8000;
+  var MIN_SCROLL_DOWN = 400;
+  var UPWARD_REVERSAL = 150;
+  var scrollTicking = false;
+
+  function onScroll() {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(function () {
+      scrollTicking = false;
+      var y = window.scrollY || document.documentElement.scrollTop;
+      if (y > maxScrollY) maxScrollY = y;
+
+      var scrolledDownEnough = maxScrollY >= MIN_SCROLL_DOWN;
+      var scrolledBackUpEnough = maxScrollY - y >= UPWARD_REVERSAL;
+      var enoughTimeElapsed = Date.now() - pageLoadTime >= MIN_DELAY_MS;
+
+      if (scrolledDownEnough && scrolledBackUpEnough && enoughTimeElapsed) {
+        trigger();
+      }
+    });
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
 })();
