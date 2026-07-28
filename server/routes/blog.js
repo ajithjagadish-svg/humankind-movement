@@ -18,6 +18,14 @@ router.get('/', async (req, res) => {
   res.render('blog/index', { categories });
 });
 
+// Pre-migration posts were served at "/blog/:slug.html" and Google still has
+// several of those indexed - without this, they 404 outright instead of
+// consolidating onto the clean-URL canonical (see GSC Page Indexing:
+// "Not found (404)" and "Duplicate, Google chose different canonical").
+router.get('/:slug.html', (req, res) => {
+  res.redirect(301, '/blog/' + req.params.slug);
+});
+
 router.get('/:slug', async (req, res, next) => {
   const post = await BlogPost.findOne({ slug: req.params.slug, status: 'published' }).lean();
   if (!post) return next();
