@@ -620,7 +620,7 @@ table.simple th { color: var(--muted); font-weight: 600; font-size: 0.8rem; lett
 .media.ratio-wide { aspect-ratio: 16 / 10; }
 .media.ratio-tall { aspect-ratio: 4 / 5; }
 .media.ratio-video { aspect-ratio: 16 / 9; background: #141311; }
-.media.ratio-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media.ratio-video video { width: 100%; height: 100%; object-fit: contain; display: block; }
 
 .transcript-toggle {
   cursor: pointer;
