@@ -619,6 +619,17 @@ table.simple th { color: var(--muted); font-weight: 600; font-size: 0.8rem; lett
 .media.ratio-square { aspect-ratio: 1 / 1; }
 .media.ratio-wide { aspect-ratio: 16 / 10; }
 .media.ratio-tall { aspect-ratio: 4 / 5; }
+.media.ratio-video { aspect-ratio: 16 / 9; background: #141311; }
+.media.ratio-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.transcript-toggle {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.transcript-toggle::marker { color: var(--accent); }
+.transcript-body { color: var(--ink-soft); line-height: 1.7; }
 
 .portrait {
   width: 148px;
