@@ -88,8 +88,8 @@ router.post('/ebook-signup', async (req, res) => {
 
   if (_gotcha) return res.json({ ok: true });
 
-  if (!email || !mobileNumber) {
-    return res.status(400).json({ error: 'Please share your email and mobile number.' });
+  if (!email) {
+    return res.status(400).json({ error: 'Please share your email.' });
   }
 
   const resourceSlug = (resource || '').trim() || undefined;
@@ -97,7 +97,7 @@ router.post('/ebook-signup', async (req, res) => {
   await EbookLead.create({
     name: (name || '').trim(),
     email: email.trim(),
-    mobileNumber: mobileNumber.trim(),
+    mobileNumber: (mobileNumber || '').trim(),
     resource: resourceSlug,
   });
 

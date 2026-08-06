@@ -110,7 +110,7 @@
 
       <div class="form-card">
         <h2>Get the guide, free</h2>
-        <p class="note">Enter your email and mobile number. The PDF lands in your inbox immediately.</p>
+        <p class="note">Enter your email — the PDF lands in your inbox immediately.</p>
 
         <form class="contact-form" id="guide-form" action="/api/ebook-signup" method="POST" data-ajax-form data-ga-event="ebook_signup">
           <input type="hidden" name="resource" value="postpartum-recovery-guide">
@@ -119,14 +119,15 @@
             <input type="email" id="gf-email" name="email" autocomplete="email" required>
           </div>
           <div class="field">
-            <label for="gf-mobile">Mobile Number <span class="req">*</span></label>
-            <input type="tel" id="gf-mobile" name="mobileNumber" autocomplete="tel" required>
+            <label for="gf-mobile">Mobile Number <span class="opt">(optional — only if you'd like a callback)</span></label>
+            <input type="tel" id="gf-mobile" name="mobileNumber" autocomplete="tel">
           </div>
 
           <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
           <button type="submit" class="btn">Send Me the Guide</button>
           <p class="form-status err" role="alert"></p>
           <p class="form-status ok" role="status">Sent. Check your inbox (and your download below).</p>
+          <p class="note" style="margin-top:0.9em; margin-bottom:0;">No spam, no sharing your details with anyone else. Just the guide, and occasional posts like it.</p>
         </form>
 
         <div id="guide-download" hidden>
@@ -201,7 +202,7 @@
   src="assets/js/exit-intent.js"
   data-storage-key="exit-intent-seen-postpartum-recovery-guide"
   data-headline="Wait — don't leave without your free guide"
-  data-body="It only takes your email and mobile number, and it's evidence-based, not another bounce-back checklist."
+  data-body="It only takes your email, and it's evidence-based, not another bounce-back checklist."
   data-cta-text="Get My Free Guide"
   data-scroll-target="#guide-form"
   data-success-selector="#guide-form .form-status.ok"
