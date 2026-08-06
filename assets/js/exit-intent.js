@@ -11,6 +11,10 @@
 //   data-success-selector="#guide-form .form-status.ok"
 // ></script>
 //
+// Use data-scroll-target for a same-page form, or data-cta-href to send
+// the visitor to a different page instead (e.g. promoting a resource that
+// lives elsewhere). Set at most one - scroll-target takes priority if both
+// are present.
 // Behaviour: on desktop, shows once per session when the cursor leaves
 // toward the top of the viewport (the standard "about to close the tab"
 // signal). Skips entirely if the visitor already converted on this page
@@ -33,6 +37,7 @@
   var body = script.dataset.body || "";
   var ctaText = script.dataset.ctaText || "Take Me Back";
   var scrollTarget = script.dataset.scrollTarget || null;
+  var ctaHref = script.dataset.ctaHref || null;
   var successSelector = script.dataset.successSelector || null;
 
   if (sessionStorage.getItem(storageKey)) return;
@@ -97,6 +102,8 @@
           var firstField = target.matches("form") ? target.querySelector("input") : target.querySelector("form input");
           if (firstField) setTimeout(function () { firstField.focus(); }, 400);
         }
+      } else if (ctaHref) {
+        window.location.href = ctaHref;
       }
     });
 
