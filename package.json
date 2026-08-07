@@ -9,7 +9,8 @@
     "dev": "node --watch server/server.js",
     "create-admin": "node server/scripts/create-admin.js",
     "seed-blog-posts": "node server/scripts/seed-blog-posts.js",
-    "seed-content-ideas": "node server/scripts/seed-content-ideas.js"
+    "seed-content-ideas": "node server/scripts/seed-content-ideas.js",
+    "pagespeed": "node server/scripts/pagespeed-check.js"
   },
   "engines": {
     "node": ">=18"
@@ -27,6 +28,8 @@
   },
   "devDependencies": {
     "cheerio": "^1.0.0",
+    "chrome-launcher": "^1.2.1",
+    "lighthouse": "^13.4.1",
     "mongodb-memory-server": "^10.1.2"
   }
 }
