@@ -138,6 +138,15 @@ router.post('/posts/:id/edit', requireAuth, async (req, res, next) => {
 
 router.post('/posts/:id/delete', requireAuth, async (req, res) => {
   await BlogPost.findByIdAndDelete(req.params.id);
+
+  // Deleting a draft is how a drafted idea gets rejected. Reset the idea
+  // rather than leaving it pointed at a post that no longer exists, so the
+  // topic/rationale/sources stay available to redraft later.
+  await ContentIdea.findOneAndUpdate(
+    { linkedPost: req.params.id },
+    { status: 'idea', $unset: { linkedPost: '' } }
+  );
+
   res.redirect('/admin/posts');
 });
 
@@ -168,13 +177,24 @@ async function createOrUpdatePost(body, existing) {
     data.publishedAt = existing && existing.publishedAt ? existing.publishedAt : new Date();
   }
 
+  let savedPost;
   if (existing) {
     Object.assign(existing, data);
-    await existing.save();
+    savedPost = await existing.save();
   } else {
     const dupe = await BlogPost.findOne({ slug });
     if (dupe) throw new Error(`A post with the slug "${slug}" already exists.`);
-    await BlogPost.create(data);
+    savedPost = await BlogPost.create(data);
+  }
+
+  // Keep the Content Ideas dashboard's status label truthful - it should
+  // never say "published" while the actual post is still a draft, or vice
+  // versa. This is the single place a post's status changes, so sync here
+  // rather than relying on a separate manual button that can drift out of sync.
+  const linkedIdea = await ContentIdea.findOne({ linkedPost: savedPost._id });
+  if (linkedIdea && linkedIdea.status !== status) {
+    linkedIdea.status = status === 'published' ? 'published' : 'drafting';
+    await linkedIdea.save();
   }
 }
 
@@ -211,7 +231,12 @@ router.post('/content-ideas/:id/status', requireAuth, async (req, res) => {
 });
 
 router.post('/content-ideas/:id/delete', requireAuth, async (req, res) => {
-  await ContentIdea.findByIdAndDelete(req.params.id);
+  const idea = await ContentIdea.findByIdAndDelete(req.params.id);
+  // Deleting the idea itself should take its draft with it, otherwise the
+  // draft is left sitting in /admin/posts with nothing pointing to it.
+  if (idea && idea.linkedPost) {
+    await BlogPost.findByIdAndDelete(idea.linkedPost);
+  }
   res.redirect('/admin/content-ideas');
 });
 
@@ -223,6 +248,13 @@ const IDEA_TO_CATEGORY = { postpartum: 'postpartum', neurodivergent: 'neurodiver
 router.get('/content-ideas/:id/draft', requireAuth, async (req, res, next) => {
   const idea = await ContentIdea.findById(req.params.id).lean();
   if (!idea) return next();
+
+  // A full draft already exists for this idea - open the real editor (with
+  // the actual title/body/status), not a blank form pretending it's new.
+  if (idea.linkedPost) {
+    return res.redirect(`/admin/posts/${idea.linkedPost}/edit`);
+  }
+
   res.render('admin/post-editor', {
     post: {
       title: idea.topic,

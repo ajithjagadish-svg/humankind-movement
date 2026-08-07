@@ -75,11 +75,7 @@
               <button type="submit" class="btn btn-ghost">Mark as drafting</button>
             </form>
           <% } else if (idea.status === 'drafting') { %>
-            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft">Continue drafting</a>
-            <form method="POST" action="/admin/content-ideas/<%= idea._id %>/status">
-              <input type="hidden" name="status" value="published">
-              <button type="submit" class="btn btn-ghost">Mark as published</button>
-            </form>
+            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft">Review draft</a>
           <% } %>
           <form method="POST" action="/admin/carousels/generate">
             <input type="hidden" name="sourceType" value="contentIdea">
