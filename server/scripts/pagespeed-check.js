@@ -6,9 +6,17 @@
 //
 // Usage:
 //   node server/scripts/pagespeed-check.js <url> [url2] [url3] ...
-//   node server/scripts/pagespeed-check.js --core           (all core pages, production)
-//   node server/scripts/pagespeed-check.js --core --local   (all core pages, localhost:8080)
-//   node server/scripts/pagespeed-check.js <url> --desktop  (desktop instead of mobile)
+//   node server/scripts/pagespeed-check.js --core             (all 8 core pages, production)
+//   node server/scripts/pagespeed-check.js --blog              (every published blog post - can be slow, see below)
+//   node server/scripts/pagespeed-check.js --blog --recent=5   (5 most recently published posts only)
+//   node server/scripts/pagespeed-check.js --core --blog       (both, in one run)
+//   node server/scripts/pagespeed-check.js --core --local      (all core pages, localhost:8080)
+//   node server/scripts/pagespeed-check.js <url> --desktop     (desktop instead of mobile)
+//
+// --blog queries MongoDB for published post slugs, so it needs the same
+// .env (MONGODB_URI) the server uses. At ~10s/page, --blog with no --recent
+// limit checks every published post, which can take several minutes on a
+// large blog - use --recent=N for a quick check after publishing something.
 //
 // Exit code is non-zero if any page fails the thresholds below, so this
 // can also gate a "ready to ship" check without reading the output.
@@ -38,17 +46,39 @@ const MAX_CLS = 0.1;
 // each page's result for transparency, never silently hidden.
 const KNOWN_ENV_AUDITS = new Set(['third-party-cookies', 'inspector-issues']);
 
-function parseArgs(argv) {
+async function getBlogUrls(base, limit) {
+  require('dotenv').config();
+  const { connectDB, disconnectDB } = require('../config/db');
+  const BlogPost = require('../models/BlogPost');
+
+  await connectDB();
+  let query = BlogPost.find({ status: 'published' }).sort({ publishedAt: -1 }).select('slug');
+  if (limit) query = query.limit(limit);
+  const posts = await query.lean();
+  await disconnectDB();
+
+  return posts.map((p) => `${base}/blog/${p.slug}`);
+}
+
+async function parseArgs(argv) {
   const desktop = argv.includes('--desktop');
   const local = argv.includes('--local');
   const useCore = argv.includes('--core');
+  const useBlog = argv.includes('--blog');
+  const recentArg = argv.find((a) => a.startsWith('--recent='));
+  const recentLimit = recentArg ? Number(recentArg.split('=')[1]) : null;
   const rawUrls = argv.filter((a) => !a.startsWith('--'));
 
   const base = local ? 'http://localhost:8080' : 'https://humankindmovement.in';
-  let urls = useCore ? CORE_PAGES.map((slug) => `${base}/${slug}`) : rawUrls;
+
+  let urls = [...rawUrls];
+  if (useCore) urls.push(...CORE_PAGES.map((slug) => `${base}/${slug}`));
+  if (useBlog) urls.push(...(await getBlogUrls(base, recentLimit)));
 
   if (!urls.length) {
-    console.error('Usage: node server/scripts/pagespeed-check.js <url> [url2] ... [--desktop] [--local] [--core]');
+    console.error(
+      'Usage: node server/scripts/pagespeed-check.js <url> [url2] ... [--desktop] [--local] [--core] [--blog] [--recent=N]'
+    );
     process.exit(1);
   }
   return { urls, formFactor: desktop ? 'desktop' : 'mobile' };
@@ -103,7 +133,7 @@ async function runOne(url, chrome, formFactor) {
 }
 
 async function main() {
-  const { urls, formFactor } = parseArgs(process.argv.slice(2));
+  const { urls, formFactor } = await parseArgs(process.argv.slice(2));
   const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new'] });
 
   let anyFailed = false;
