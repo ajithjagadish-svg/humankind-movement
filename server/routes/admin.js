@@ -11,6 +11,7 @@ const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats } = require('../services/ga4');
 const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../services/searchConsole');
 const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
+const { getPageViewSummary } = require('../services/pageViews');
 
 const router = express.Router();
 
@@ -235,10 +236,23 @@ router.get('/content-ideas/:id/draft', requireAuth, async (req, res, next) => {
 
 // --- Analytics ---
 
+// The guide gets its own lightweight pageview counter (server/services/pageViews.js)
+// rather than depending on GA4, since it has none of its traffic from organic
+// search (it's promoted entirely via social) and GA4 isn't configured yet anyway.
+async function getGuideStats() {
+  const [{ total: totalViews }, totalSignups] = await Promise.all([
+    getPageViewSummary('/postpartum-recovery-guide'),
+    EbookLead.countDocuments({ resource: 'postpartum-recovery-guide' }),
+  ]);
+  const conversionRate = totalViews > 0 ? totalSignups / totalViews : null;
+  return { totalViews, totalSignups, conversionRate };
+}
+
 router.get('/analytics', requireAuth, async (req, res) => {
   const configured = { ga4: ga4Configured(), searchConsole: searchConsoleConfigured() };
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
-  res.render('admin/analytics', { posts, configured, refreshError: null, refreshedAt: null });
+  const guideStats = await getGuideStats();
+  res.render('admin/analytics', { posts, configured, guideStats, refreshError: null, refreshedAt: null });
 });
 
 router.post('/analytics/refresh', requireAuth, async (req, res) => {
@@ -274,7 +288,8 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
   }
 
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
-  res.render('admin/analytics', { posts, configured, refreshError, refreshedAt: new Date() });
+  const guideStats = await getGuideStats();
+  res.render('admin/analytics', { posts, configured, guideStats, refreshError, refreshedAt: new Date() });
 });
 
 // --- Submissions (contact + intake forms) ---

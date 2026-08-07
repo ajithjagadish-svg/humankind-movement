@@ -54,6 +54,16 @@
       <% } %>
     </div>
 
+    <div class="card" style="margin-bottom:20px;">
+      <h2 style="font-size:1rem; margin:0 0 0.6em;">Free Guide (Postpartum Recovery)</h2>
+      <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">
+        <span><strong style="font-size:1.4rem;"><%= guideStats.totalViews %></strong><br><span class="note">Page views</span></span>
+        <span><strong style="font-size:1.4rem;"><%= guideStats.totalSignups %></strong><br><span class="note">Signups</span></span>
+        <span><strong style="font-size:1.4rem;"><%= guideStats.conversionRate === null ? '—' : (guideStats.conversionRate * 100).toFixed(1) + '%' %></strong><br><span class="note">Conversion rate</span></span>
+      </p>
+      <p class="note" style="margin-top:0.8em;">Tracked directly (no GA4 needed) - only counts real visitors, bots excluded. Started 2026-08-07, so this does not include any traffic before that date.</p>
+    </div>
+
     <% if (configured.ga4 || configured.searchConsole) { %>
       <div class="card" style="padding:0; overflow-x:auto;">
         <table>
