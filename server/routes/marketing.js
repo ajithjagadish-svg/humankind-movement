@@ -5,6 +5,7 @@
 const express = require('express');
 const path = require('path');
 const BlogPost = require('../models/BlogPost');
+const { trackPageView } = require('../services/pageViews');
 
 // Strict routing matters here: LANGS.forEach below registers both "/es"
 // (redirect to "/es/") and "/es/" (serve index) - without strict mode
@@ -35,6 +36,7 @@ router.get('/index.html', (req, res) => {
 
 CORE_PAGES.forEach((slug) => {
   router.get('/' + slug, (req, res) => {
+    if (slug === 'postpartum-recovery-guide') trackPageView('/postpartum-recovery-guide', req);
     res.sendFile(path.join(REPO_ROOT, slug + '.html'));
   });
   router.get('/' + slug + '.html', (req, res) => {
