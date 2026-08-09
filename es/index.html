@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NC4HXRFPBP"></script>
+<!-- Google tag (gtag.js) - script fetch deferred until first interaction or idle, to keep it off the critical rendering path -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-NC4HXRFPBP');
+
+  function hkLoadGtag() {
+    if (window.__hkGtagLoaded) return;
+    window.__hkGtagLoaded = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-NC4HXRFPBP';
+    document.head.appendChild(s);
+  }
+  ['scroll', 'mousemove', 'touchstart', 'keydown'].forEach(function (evt) {
+    window.addEventListener(evt, hkLoadGtag, { once: true, passive: true });
+  });
+  window.addEventListener('load', function () { setTimeout(hkLoadGtag, 3000); });
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +42,10 @@
 <meta name="twitter:image" content="https://humankindmovement.in/assets/img/conversation.jpg">
 <link rel="icon" href="../assets/img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=optional">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=optional" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=optional" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="../assets/css/style.css">
 <script type="application/ld+json">
 {
@@ -65,7 +80,7 @@
 <header class="site">
   <div class="container nav-row">
     <a class="brand" href="/es/">
-      <img src="../assets/img/icon-mark.png" alt="Marca de Humankind Movement">
+      <img src="../assets/img/icon-mark.png" alt="Marca de Humankind Movement" width="204" height="204">
       <span class="brand-word">HUMANKIND<small>MOVEMENT</small></span>
     </a>
     <div class="nav-right">
@@ -102,7 +117,7 @@
         <a class="btn btn-ghost" href="contact">Ponte en contacto</a>
       </div>
       <div class="hero-media media ratio-wide">
-        <img src="../assets/img/conversation.jpg" alt="Dos personas en una conversación pausada y atenta" loading="eager">
+        <img src="../assets/img/conversation.jpg" alt="Dos personas en una conversación pausada y atenta" loading="eager" width="960" height="960">
       </div>
     </div>
   </section>
@@ -162,22 +177,22 @@
       <p class="lede center">Mira de cerca la marca y notarás que las cuatro líneas nunca se encuentran en el centro. No es un accidente de diseño. Es la idea. Cada trazo se sostiene por sí mismo, del mismo modo que cada una de estas cuatro áreas necesita su propia atención en lugar de una idea general de «salud».</p>
       <div class="grid-4" style="margin-top:2.6em; text-align:left;">
         <div class="feature-card dark">
-          <div class="pillar-icon"><img src="../assets/img/mark-top.png" alt="Trazo superior de la marca de Humankind Movement"></div>
+          <div class="pillar-icon"><img src="../assets/img/mark-top.png" alt="Trazo superior de la marca de Humankind Movement" width="56" height="95"></div>
           <h3>Movimiento</h3>
           <p>Construir un cuerpo que se sienta capaz, resiliente y adaptable.</p>
         </div>
         <div class="feature-card dark">
-          <div class="pillar-icon"><img src="../assets/img/mark-bottom.png" alt="Trazo inferior de la marca de Humankind Movement"></div>
+          <div class="pillar-icon"><img src="../assets/img/mark-bottom.png" alt="Trazo inferior de la marca de Humankind Movement" width="56" height="95"></div>
           <h3>Sueño</h3>
           <p>Recuperación, restauración y regulación del sistema nervioso.</p>
         </div>
         <div class="feature-card dark">
-          <div class="pillar-icon"><img src="../assets/img/mark-left.png" alt="Trazo izquierdo de la marca de Humankind Movement"></div>
+          <div class="pillar-icon"><img src="../assets/img/mark-left.png" alt="Trazo izquierdo de la marca de Humankind Movement" width="95" height="56"></div>
           <h3>Alimentación</h3>
           <p>Conciencia sobre la nutrición cotidiana como una parte del todo.</p>
         </div>
         <div class="feature-card dark">
-          <div class="pillar-icon"><img src="../assets/img/mark-right.png" alt="Trazo derecho de la marca de Humankind Movement"></div>
+          <div class="pillar-icon"><img src="../assets/img/mark-right.png" alt="Trazo derecho de la marca de Humankind Movement" width="95" height="56"></div>
           <h3>Tiempo a solas contigo mismo</h3>
           <p>Reflexión, arraigo emocional y construcción de una relación contigo mismo.</p>
         </div>
@@ -251,7 +266,7 @@
         </a>
       </div>
       <div>
-        <h4>Explorar</h4>
+        <h3>Explorar</h3>
         <ul>
           <li><a href="philosophy">Filosofía</a></li>
           <li><a href="the-method">El Método</a></li>
@@ -261,7 +276,7 @@
         </ul>
       </div>
       <div>
-        <h4>Contacto</h4>
+        <h3>Contacto</h3>
         <ul>
           <li><a href="contact">Enviar un mensaje →</a></li>
         </ul>
