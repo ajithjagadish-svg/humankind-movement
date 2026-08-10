@@ -54,6 +54,24 @@
       <% } %>
     </div>
 
+    <% if (configured.ga4) { %>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem; margin:0 0 0.6em;">Site Conversions (GA4 key events)</h2>
+        <% if (conversionError) { %>
+          <p class="note">Could not load conversion data: <%= conversionError %></p>
+        <% } else if (conversions) { %>
+          <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">
+            <span><strong style="font-size:1.4rem;"><%= conversions.events.book_call_click %></strong><br><span class="note">Discovery calls booked</span></span>
+            <span><strong style="font-size:1.4rem;"><%= conversions.events.contact_submit %></strong><br><span class="note">Contact form submits</span></span>
+            <span><strong style="font-size:1.4rem;"><%= conversions.events.intake_submit %></strong><br><span class="note">Intake form submits</span></span>
+            <span><strong style="font-size:1.4rem;"><%= conversions.events.ebook_signup %></strong><br><span class="note">Ebook signups</span></span>
+            <span><strong style="font-size:1.4rem;"><%= conversions.sessions %></strong><br><span class="note">Sessions</span></span>
+          </p>
+          <p class="note" style="margin-top:0.8em;">All-time totals from GA4 (since tracking began). Combined conversion rate: <%= conversions.sessions > 0 ? (((conversions.events.book_call_click + conversions.events.contact_submit + conversions.events.intake_submit + conversions.events.ebook_signup) / conversions.sessions) * 100).toFixed(1) + '%' : '—' %> of sessions.</p>
+        <% } %>
+      </div>
+    <% } %>
+
     <div class="card" style="margin-bottom:20px;">
       <h2 style="font-size:1rem; margin:0 0 0.6em;">Free Guide (Postpartum Recovery)</h2>
       <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">

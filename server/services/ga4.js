@@ -50,4 +50,46 @@ async function fetchGA4Stats({ sinceDate = '2020-01-01' } = {}) {
   return stats;
 }
 
-module.exports = { ga4Configured, fetchGA4Stats };
+const KEY_EVENTS = ['book_call_click', 'contact_submit', 'intake_submit', 'ebook_signup'];
+
+// Returns { sessions, events: { book_call_click, contact_submit, intake_submit, ebook_signup } },
+// or null if GA4 isn't configured yet. Counts are all-time (since sinceDate) sitewide totals,
+// matching the key events marked in the GA4 UI (Admin > Events > Mark as key event).
+async function fetchGA4ConversionSummary({ sinceDate = '2020-01-01' } = {}) {
+  if (!ga4Configured()) return null;
+
+  const auth = getAuth(['https://www.googleapis.com/auth/analytics.readonly']);
+  const analyticsData = google.analyticsdata({ version: 'v1beta', auth });
+  const property = `properties/${process.env.GA4_PROPERTY_ID}`;
+  const dateRanges = [{ startDate: sinceDate, endDate: 'today' }];
+
+  const [sessionsRes, eventsRes] = await Promise.all([
+    analyticsData.properties.runReport({
+      property,
+      requestBody: { dateRanges, metrics: [{ name: 'sessions' }] },
+    }),
+    analyticsData.properties.runReport({
+      property,
+      requestBody: {
+        dateRanges,
+        dimensions: [{ name: 'eventName' }],
+        metrics: [{ name: 'eventCount' }],
+        dimensionFilter: {
+          filter: { fieldName: 'eventName', inListFilter: { values: KEY_EVENTS } },
+        },
+      },
+    }),
+  ]);
+
+  const sessions = Number(sessionsRes.data.rows?.[0]?.metricValues?.[0]?.value) || 0;
+
+  const events = {};
+  KEY_EVENTS.forEach((name) => { events[name] = 0; });
+  (eventsRes.data.rows || []).forEach((row) => {
+    events[row.dimensionValues[0].value] = Number(row.metricValues[0].value) || 0;
+  });
+
+  return { sessions, events };
+}
+
+module.exports = { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary };

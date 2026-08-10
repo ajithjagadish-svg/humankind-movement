@@ -8,7 +8,7 @@ const EbookLead = require('../models/EbookLead');
 const Carousel = require('../models/Carousel');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
-const { ga4Configured, fetchGA4Stats } = require('../services/ga4');
+const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary } = require('../services/ga4');
 const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../services/searchConsole');
 const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
 const { getPageViewSummary } = require('../services/pageViews');
@@ -280,11 +280,22 @@ async function getGuideStats() {
   return { totalViews, totalSignups, conversionRate };
 }
 
+async function getConversionSummary(configured) {
+  if (!configured.ga4) return { conversions: null, conversionError: null };
+  try {
+    const conversions = await fetchGA4ConversionSummary();
+    return { conversions, conversionError: null };
+  } catch (err) {
+    return { conversions: null, conversionError: err.message };
+  }
+}
+
 router.get('/analytics', requireAuth, async (req, res) => {
   const configured = { ga4: ga4Configured(), searchConsole: searchConsoleConfigured() };
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
   const guideStats = await getGuideStats();
-  res.render('admin/analytics', { posts, configured, guideStats, refreshError: null, refreshedAt: null });
+  const { conversions, conversionError } = await getConversionSummary(configured);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, refreshError: null, refreshedAt: null });
 });
 
 router.post('/analytics/refresh', requireAuth, async (req, res) => {
@@ -321,7 +332,8 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
 
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
   const guideStats = await getGuideStats();
-  res.render('admin/analytics', { posts, configured, guideStats, refreshError, refreshedAt: new Date() });
+  const { conversions, conversionError } = await getConversionSummary(configured);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, refreshError, refreshedAt: new Date() });
 });
 
 // --- Submissions (contact + intake forms) ---
