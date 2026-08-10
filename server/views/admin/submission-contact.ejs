@@ -31,6 +31,8 @@
         <dd><%= submission.phone %></dd>
         <dt>Topic</dt>
         <dd><%= submission.topic %></dd>
+        <dt>Language</dt>
+        <dd><%= (submission.locale || 'en').toUpperCase() %></dd>
         <% if (submission.location) { %>
           <dt>Location</dt>
           <dd><%= submission.location %></dd>

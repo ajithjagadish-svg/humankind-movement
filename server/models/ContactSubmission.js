@@ -8,6 +8,7 @@ const ContactSubmissionSchema = new mongoose.Schema(
     topic: { type: String, required: true },
     location: { type: String, default: '' },
     message: { type: String, required: true },
+    locale: { type: String, enum: ['en', 'es', 'fr'], default: 'en' },
     status: { type: String, enum: ['new', 'read', 'archived'], default: 'new', index: true },
   },
   { timestamps: true }

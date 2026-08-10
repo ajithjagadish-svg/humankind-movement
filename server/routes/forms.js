@@ -21,8 +21,10 @@ function forwardToFormspree(body) {
   });
 }
 
+const CONTACT_LOCALES = ['en', 'es', 'fr'];
+
 router.post('/contact', async (req, res) => {
-  const { name, email, phone, topic, location, message, _gotcha } = req.body;
+  const { name, email, phone, topic, location, message, locale, _gotcha } = req.body;
 
   // Honeypot: a bot fills every field, a human never sees this one. Pretend
   // success either way so bots don't learn to avoid it.
@@ -32,6 +34,8 @@ router.post('/contact', async (req, res) => {
     return res.status(400).json({ error: 'Please fill in all required fields.' });
   }
 
+  const submissionLocale = CONTACT_LOCALES.includes(locale) ? locale : 'en';
+
   await ContactSubmission.create({
     name: name.trim(),
     email: email.trim(),
@@ -39,9 +43,11 @@ router.post('/contact', async (req, res) => {
     topic,
     location: (location || '').trim(),
     message: message.trim(),
+    locale: submissionLocale,
   });
 
-  forwardToFormspree({ name, email, phone, topic, location, message, _subject: 'New contact form message from Humankind Movement' });
+  const localeSuffix = submissionLocale === 'en' ? '' : ` (${submissionLocale.toUpperCase()})`;
+  forwardToFormspree({ name, email, phone, topic, location, message, _subject: `New contact form message from Humankind Movement${localeSuffix}` });
 
   res.json({ ok: true });
 });

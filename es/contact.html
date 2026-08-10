@@ -47,6 +47,102 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=optional" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=optional" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .faq-list { max-width: 68ch; }
+  .faq-item { border-bottom: 1px solid var(--line); padding: 18px 0; }
+  .faq-item summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .faq-item[open] summary::after { content: "\2212"; }
+  .faq-item p { margin: 0.7em 0 0; color: var(--ink-soft); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué tipo de coaching ofrece Humankind Movement?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Coaching individual y grupal para el bienestar general, la movilidad y la recuperación de lesiones; coaching de recuperación pre y posparto; programas de bienestar corporativos y comunitarios; coaching de movimiento para personas neurotípicas y neurodivergentes de todas las edades; y charlas o talleres."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿El coaching es online, o solo presencial?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La mayor parte del coaching se realiza online para personas de todo el mundo, junto con programas dedicados para empresas y comunidades. El coaching presencial también está disponible de forma limitada para clientes en Bangalore, según disponibilidad — ponte en contacto y menciona tu ubicación para saber qué es posible."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es la guía gratuita de recuperación posparto, y está basada en evidencia?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Es una guía gratuita sobre el espacio entre el alta médica y sentirte realmente lista para volver a moverte, elaborada a partir de investigación publicada, con el respaldo de la Dra. Teji Dawane, MBBS, MS (OBG), Jefa de Departamento y Consultora Principal de Obstetricia y Medicina Materna en el Hospital Medicover para Mujeres y Niños, Bengaluru. Evita deliberadamente la presión de «recuperar la forma» o los plazos genéricos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Trabajáis con personas neurodivergentes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. El coaching de movimiento para personas neurodivergentes de todas las edades es una de las áreas principales del coaching ofrecido, disponible de forma individual o en grupo junto a compañeros neurotípicos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "No estoy seguro/a de qué tipo de coaching es el adecuado para mí. ¿Qué debo hacer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ponte en contacto directamente. Cuéntanos lo que buscas (para ti, tu organización o una persona neurodivergente), dónde te encuentras y un poco sobre tu situación, y la primera conversación empezará en el lugar correcto."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Hay reseñas de clientes anteriores?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. Humankind Movement tiene una media de 4.9★ en 27 reseñas de Google."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Ayudáis con dolores como el de cuello, hombro, espalda, rodilla o pie?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. El coaching de movimiento que aborda dolores comunes, incluyendo cuello, hombro, espalda, rodilla y pie, forma parte del coaching individual y grupal general, y se construye en torno a tus patrones de movimiento y fuerza específicos. Es coaching, no un sustituto de un diagnóstico médico o de fisioterapia, así que una evaluación clínica real es el primer paso si algo se siente agudo o poco claro."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Existe una llamada de introducción de pago, y cuánto cuesta?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. Una llamada de introducción de 20 minutos cuesta ₹1.000, una breve conversación de pago para entender tu situación y confirmar el punto de partida adecuado antes de comprometerte con el coaching. Ponte en contacto a través del formulario para acordar un horario."
+      }
+    }
+  ]
+}
+</script>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -91,7 +187,7 @@
     <div class="container-narrow">
       <span class="kicker">Ponte en contacto</span>
       <h1>Comienza una conversación</h1>
-      <p class="lede">Coaching online para personas de todo el mundo. Programas para empresas y comunidades. Coaching de movimiento para personas neurodivergentes de todas las edades. Cuéntanos un poco sobre <span class="hl">lo que buscas</span>, y la primera conversación empezará en el lugar correcto.</p>
+      <p class="lede">Coaching online para personas de todo el mundo, individual o en grupo, además de coaching presencial para clientes en Bangalore. Programas para empresas y comunidades. Coaching de movimiento para personas neurotípicas y neurodivergentes de todas las edades. Cuéntanos un poco sobre <span class="hl">lo que buscas</span>, y la primera conversación empezará en el lugar correcto.</p>
     </div>
   </section>
 
@@ -102,61 +198,101 @@
         <p class="note">4.9★ de media en 27 reseñas de Google. <a class="link-arrow" href="https://share.google/1DfDVbxb1PKiajEfN" target="_blank" rel="noopener">Leerlas <span class="arrow">→</span></a></p>
         <p class="note">Incluye lo que buscas (para ti, tu organización o una persona neurodivergente), dónde te encuentras y cualquier detalle que ayude a que la primera conversación empiece en el lugar correcto.</p>
 
-        <form class="contact-form" id="contact-form" action="https://formspree.io/f/xvzezebd" method="POST">
+        <form class="contact-form" id="contact-form" action="/api/contact" method="POST" data-ajax-form data-ga-event="contact_submit">
+          <input type="hidden" name="locale" value="es">
           <div class="field">
             <label for="cf-name">Nombre <span class="req">*</span></label>
-            <input type="text" id="cf-name" name="name" autocomplete="name" data-fs-field required>
-            <span class="field-error" data-fs-error="name"></span>
+            <input type="text" id="cf-name" name="name" autocomplete="name" required>
           </div>
           <div class="field">
             <label for="cf-email">Correo electrónico <span class="req">*</span></label>
-            <input type="email" id="cf-email" name="email" autocomplete="email" data-fs-field required>
-            <span class="field-error" data-fs-error="email"></span>
+            <input type="email" id="cf-email" name="email" autocomplete="email" required>
           </div>
           <div class="field">
             <label for="cf-phone">Teléfono <span class="req">*</span></label>
-            <input type="tel" id="cf-phone" name="phone" autocomplete="tel" data-fs-field required>
-            <span class="field-error" data-fs-error="phone"></span>
+            <input type="tel" id="cf-phone" name="phone" autocomplete="tel" required>
           </div>
           <div class="field">
             <label for="cf-topic">Me pongo en contacto por <span class="req">*</span></label>
-            <select id="cf-topic" name="topic" data-fs-field required>
+            <select id="cf-topic" name="topic" required>
               <option value="" disabled selected>Elige una opción</option>
               <option value="1:1 coaching (myself)">Coaching individual, para mí</option>
+              <option value="In-person coaching (Bangalore)">Coaching presencial (Bangalore)</option>
               <option value="Prepartum / postpartum recovery">Recuperación pre y posparto</option>
               <option value="Corporate / community program">Programa corporativo o comunitario</option>
               <option value="Neurodivergent coaching">Coaching neurodivergente</option>
               <option value="Speaking / workshops">Charlas o talleres</option>
               <option value="Something else">Otra cosa</option>
             </select>
-            <span class="field-error" data-fs-error="topic"></span>
           </div>
           <div class="field">
             <label for="cf-location">Dónde te encuentras</label>
-            <input type="text" id="cf-location" name="location" autocomplete="address-level2" data-fs-field>
-            <span class="field-error" data-fs-error="location"></span>
+            <input type="text" id="cf-location" name="location" autocomplete="address-level2">
           </div>
           <div class="field">
             <label for="cf-message">Mensaje <span class="req">*</span></label>
-            <textarea id="cf-message" name="message" data-fs-field required></textarea>
-            <span class="field-error" data-fs-error="message"></span>
+            <textarea id="cf-message" name="message" required></textarea>
           </div>
           <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <input type="hidden" name="_subject" value="Nuevo mensaje de contacto de Humankind Movement (ES)">
-          <button type="submit" class="btn" data-fs-submit-btn>Enviar mensaje</button>
-          <p class="form-status err" data-fs-error role="alert"></p>
-          <p class="form-status ok" data-fs-success role="status">Gracias. Tu mensaje se ha enviado. Te responderé pronto.</p>
+          <button type="submit" class="btn">Enviar mensaje</button>
+          <p class="form-status err" role="alert"></p>
+          <p class="form-status ok" role="status">Gracias. Tu mensaje se ha enviado. Te responderé pronto.</p>
         </form>
       </div>
       <div class="feature-card tint">
         <h3>Motivos para escribir</h3>
         <ul class="list-quiet">
-          <li>Coaching individual, bienestar general, movilidad, recuperación de lesiones</li>
+          <li>Coaching individual y grupal, bienestar general, movilidad, recuperación de lesiones</li>
+          <li>Coaching presencial para clientes en Bangalore, según disponibilidad</li>
           <li>Recuperación pre y posparto</li>
           <li>Programas corporativos o comunitarios de bienestar</li>
           <li>Coaching neurodivergente, coaching de movimiento para personas de todas las edades</li>
           <li>Charlas o talleres</li>
         </ul>
+        <div style="margin-top:1.6em; padding-top:1.4em; border-top:1px solid var(--line);">
+          <p class="note" style="margin-bottom:0.8em;">¿Prefieres WhatsApp? Escríbenos directamente y sáltate el formulario.</p>
+          <a class="btn btn-ghost" href="https://wa.me/919844059292?text=Hola%2C%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20el%20coaching%20de%20Humankind%20Movement." target="_blank" rel="noopener" data-ga-event="whatsapp_click">Escribir por WhatsApp →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white" id="faq">
+    <div class="container">
+      <h2>Preguntas frecuentes</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>¿Qué tipo de coaching ofrece Humankind Movement?</summary>
+          <p>Coaching individual y grupal para el bienestar general, la movilidad y la recuperación de lesiones; coaching de recuperación pre y posparto; programas de bienestar corporativos y comunitarios; coaching de movimiento para personas neurotípicas y neurodivergentes de todas las edades; y charlas o talleres.</p>
+        </details>
+        <details class="faq-item">
+          <summary>¿El coaching es online, o solo presencial?</summary>
+          <p>La mayor parte del coaching se realiza online para personas de todo el mundo, junto con programas dedicados para empresas y comunidades. El coaching presencial también está disponible de forma limitada para clientes en Bangalore, según disponibilidad — ponte en contacto y menciona tu ubicación para saber qué es posible.</p>
+        </details>
+        <details class="faq-item">
+          <summary>¿Qué es la guía gratuita de recuperación posparto, y está basada en evidencia?</summary>
+          <p>Es una guía gratuita sobre el espacio entre el alta médica y sentirte realmente lista para volver a moverte, elaborada a partir de investigación publicada, con el respaldo de la Dra. Teji Dawane, MBBS, MS (OBG), Jefa de Departamento y Consultora Principal de Obstetricia y Medicina Materna en el Hospital Medicover para Mujeres y Niños, Bengaluru. Evita deliberadamente la presión de «recuperar la forma» o los plazos genéricos.</p>
+        </details>
+        <details class="faq-item">
+          <summary>¿Trabajáis con personas neurodivergentes?</summary>
+          <p>Sí. El coaching de movimiento para personas neurodivergentes de todas las edades es una de las áreas principales del coaching ofrecido, disponible de forma individual o en grupo junto a compañeros neurotípicos.</p>
+        </details>
+        <details class="faq-item">
+          <summary>No estoy seguro/a de qué tipo de coaching es el adecuado para mí. ¿Qué debo hacer?</summary>
+          <p>Ponte en contacto directamente. Cuéntanos lo que buscas (para ti, tu organización o una persona neurodivergente), dónde te encuentras y un poco sobre tu situación, y la primera conversación empezará en el lugar correcto.</p>
+        </details>
+        <details class="faq-item">
+          <summary>¿Hay reseñas de clientes anteriores?</summary>
+          <p>Sí. Humankind Movement tiene una media de 4.9★ en 27 reseñas de Google.</p>
+        </details>
+        <details class="faq-item">
+          <summary>¿Ayudáis con dolores como el de cuello, hombro, espalda, rodilla o pie?</summary>
+          <p>Sí. El coaching de movimiento que aborda dolores comunes, incluyendo cuello, hombro, espalda, rodilla y pie, forma parte del coaching individual y grupal general, y se construye en torno a tus patrones de movimiento y fuerza específicos. Es coaching, no un sustituto de un diagnóstico médico o de fisioterapia, así que una evaluación clínica real es el primer paso si algo se siente agudo o poco claro.</p>
+        </details>
+        <details class="faq-item">
+          <summary>¿Existe una llamada de introducción de pago, y cuánto cuesta?</summary>
+          <p>Sí. Una llamada de introducción de 20 minutos cuesta ₹1.000, una breve conversación de pago para entender tu situación y confirmar el punto de partida adecuado antes de comprometerte con el coaching. Ponte en contacto a través del formulario para acordar un horario.</p>
+        </details>
       </div>
     </div>
   </section>
@@ -199,11 +335,7 @@
 </footer>
 
 <script src="../assets/js/main.js"></script>
+<script src="../assets/js/form-submit.js"></script>
 <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
-<script>
-  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
-  formspree('initForm', { formElement: '#contact-form', formId: 'xvzezebd', useDefaultStyles: false });
-</script>
-<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 </body>
 </html>
