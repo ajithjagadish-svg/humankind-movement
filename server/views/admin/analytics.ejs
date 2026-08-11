@@ -61,13 +61,14 @@
           <p class="note">Could not load conversion data: <%= conversionError %></p>
         <% } else if (conversions) { %>
           <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">
-            <span><strong style="font-size:1.4rem;"><%= conversions.events.book_call_click %></strong><br><span class="note">Discovery calls booked</span></span>
+            <span><strong style="font-size:1.4rem;"><%= conversions.events.book_intro_call_click %></strong><br><span class="note">Intro call clicks (₹1,000)</span></span>
+            <span><strong style="font-size:1.4rem;"><%= conversions.events.book_call_click %></strong><br><span class="note">Discovery calls booked (legacy, retired)</span></span>
             <span><strong style="font-size:1.4rem;"><%= conversions.events.contact_submit %></strong><br><span class="note">Contact form submits</span></span>
             <span><strong style="font-size:1.4rem;"><%= conversions.events.intake_submit %></strong><br><span class="note">Intake form submits</span></span>
             <span><strong style="font-size:1.4rem;"><%= conversions.events.ebook_signup %></strong><br><span class="note">Ebook signups</span></span>
             <span><strong style="font-size:1.4rem;"><%= conversions.sessions %></strong><br><span class="note">Sessions</span></span>
           </p>
-          <p class="note" style="margin-top:0.8em;">All-time totals from GA4 (since tracking began). Combined conversion rate: <%= conversions.sessions > 0 ? (((conversions.events.book_call_click + conversions.events.contact_submit + conversions.events.intake_submit + conversions.events.ebook_signup) / conversions.sessions) * 100).toFixed(1) + '%' : '—' %> of sessions.</p>
+          <p class="note" style="margin-top:0.8em;">All-time totals from GA4 (since tracking began). Combined conversion rate: <%= conversions.sessions > 0 ? (((conversions.events.book_intro_call_click + conversions.events.book_call_click + conversions.events.contact_submit + conversions.events.intake_submit + conversions.events.ebook_signup) / conversions.sessions) * 100).toFixed(1) + '%' : '—' %> of sessions.</p>
         <% } %>
       </div>
     <% } %>

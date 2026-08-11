@@ -50,7 +50,7 @@ async function fetchGA4Stats({ sinceDate = '2020-01-01' } = {}) {
   return stats;
 }
 
-const KEY_EVENTS = ['book_call_click', 'contact_submit', 'intake_submit', 'ebook_signup'];
+const KEY_EVENTS = ['book_call_click', 'book_intro_call_click', 'contact_submit', 'intake_submit', 'ebook_signup'];
 
 // Returns { sessions, events: { book_call_click, contact_submit, intake_submit, ebook_signup } },
 // or null if GA4 isn't configured yet. Counts are all-time (since sinceDate) sitewide totals,

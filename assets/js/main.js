@@ -29,6 +29,11 @@ document.addEventListener("DOMContentLoaded", function () {
     var link = e.target.closest("a");
     if (!link) return;
 
+    if (link.dataset.gaEvent) {
+      trackEvent(link.dataset.gaEvent, { link_page: window.location.pathname });
+      return;
+    }
+
     if (link.href.indexOf("calendar.app.google") !== -1) {
       trackEvent("book_call_click", { link_page: window.location.pathname });
       return;
