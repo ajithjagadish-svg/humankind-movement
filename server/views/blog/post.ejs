@@ -15,7 +15,18 @@
     '@type': 'Article',
     headline: post.title,
     description: post.meta,
-    author: { '@type': 'Person', name: 'Ajith Jagadish' },
+    author: {
+      '@type': 'Person',
+      name: 'Ajith Jagadish',
+      jobTitle: 'Health & Wellness Coach, Certified Human Biomechanics Specialist',
+      url: 'https://humankindmovement.in/about',
+      image: 'https://humankindmovement.in/assets/img/ajith-portrait.jpg',
+      sameAs: [
+        'https://www.linkedin.com/in/ajithjagadish/',
+        'https://www.instagram.com/humankind_movement/',
+        'https://share.google/1DfDVbxb1PKiajEfN'
+      ]
+    },
     publisher: {
       '@type': 'Organization',
       name: 'Humankind Movement',
@@ -37,7 +48,7 @@
     <div class="container-narrow">
       <span class="kicker"><%= post.categoryLabel %></span>
       <h1><%= post.title %></h1>
-      <p class="note center">By Ajith Jagadish · <%= post.readMins %> min read</p>
+      <p class="note center">By <a href="/about">Ajith Jagadish</a> · <%= post.readMins %> min read</p>
     </div>
   </section>
 
@@ -54,6 +65,18 @@
   <section class="bg-white">
     <div class="container-narrow">
       <article><%- post.bodyHtml %></article>
+
+      <div class="about-flex" style="margin-top:2.6em; padding-top:2em; border-top:1px solid var(--line);">
+        <div class="portrait">
+          <img src="/assets/img/ajith-portrait.jpg" alt="Ajith Jagadish" loading="lazy" width="148" height="148">
+        </div>
+        <div>
+          <h3 style="margin-bottom:0.25em;">Ajith Jagadish</h3>
+          <p>Certified Human Biomechanics Specialist and the coach behind Humankind Movement, working with postpartum, neurodivergent, and general population clients.</p>
+          <p><a class="link-arrow" href="/about">Read more about Ajith <span class="arrow">→</span></a></p>
+        </div>
+      </div>
+
       <p style="margin-top:2.2em;"><a class="link-arrow" href="/blog">← Back to the Journal <span class="arrow"></span></a></p>
     </div>
   </section>
