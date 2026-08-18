@@ -91,34 +91,34 @@ router.get('/robots.txt', (req, res) => {
   res.sendFile(path.join(REPO_ROOT, 'robots.txt'));
 });
 
-// Static core pages - update lastmod by hand when a page's content changes.
-// Published blog posts are appended dynamically below, so they never go
-// stale as new posts are published (the old approach was a static file that
-// had to be hand-edited per post and had drifted to list 50 dead URLs).
+// Static core pages - lastmod must be updated by hand whenever a page's
+// content changes (verified 2026-08-18: these had drifted to a month stale,
+// including on /contact right after its FAQ was rewritten - there is no
+// automated signal here, so treat "did I touch a static page today" as a
+// prompt to also bump its line below).
 const SITEMAP_STATIC_PAGES = [
-  { loc: '/', lastmod: '2026-07-16', changefreq: 'weekly', priority: '1.0' },
-  { loc: '/philosophy', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/about', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/the-method', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/who-we-serve', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/blog', lastmod: '2026-07-16', changefreq: 'weekly', priority: '0.9' },
-  { loc: '/contact', lastmod: '2026-07-16', changefreq: 'monthly', priority: '0.8' },
-  { loc: '/postpartum-recovery-guide', lastmod: '2026-07-23', changefreq: 'monthly', priority: '0.8' },
-  { loc: '/es/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/philosophy', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/philosophy', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/the-method', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/the-method', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/who-we-serve', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/who-we-serve', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/experiences', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/about', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/about', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/contact', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/contact', lastmod: '2026-07-17', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/', lastmod: '2026-08-18', changefreq: 'weekly', priority: '1.0' },
+  { loc: '/philosophy', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/experiences', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/postpartum-recovery-guide', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/es/', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/philosophy', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/philosophy', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/experiences', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/experiences', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
 ];
 
 function sitemapUrlTag({ loc, lastmod, changefreq, priority }) {
@@ -137,10 +137,23 @@ router.get('/sitemap.xml', async (req, res) => {
     })
   );
 
+  // /blog itself changes whenever any post does - derive its lastmod from
+  // the most recently updated post instead of hand-maintaining it alongside
+  // the other static pages, so it never goes stale.
+  const blogListingLastmod = posts.length
+    ? posts.reduce((max, p) => (p.updatedAt > max ? p.updatedAt : max), posts[0].updatedAt).toISOString().slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
+  const blogListingTag = sitemapUrlTag({
+    loc: '/blog',
+    lastmod: blogListingLastmod,
+    changefreq: 'weekly',
+    priority: '0.9',
+  });
+
   const xml =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), ...postTags].join('\n') +
+    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), blogListingTag, ...postTags].join('\n') +
     '\n</urlset>\n';
 
   res.type('application/xml').send(xml);
