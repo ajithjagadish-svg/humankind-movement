@@ -52,6 +52,9 @@ document.addEventListener("DOMContentLoaded", function () {
           form.reset();
           if (statusOk) statusOk.setAttribute("data-active", "");
           if (form.dataset.gaEvent && typeof gtag === "function") gtag("event", form.dataset.gaEvent);
+          if (form.dataset.gaEvent && window.posthog && typeof window.posthog.capture === "function") {
+            window.posthog.capture(form.dataset.gaEvent, { form_action: form.getAttribute("action"), page_path: window.location.pathname });
+          }
         })
         .catch(function (err) {
           if (statusErr) {

@@ -52,6 +52,12 @@
     sessionStorage.setItem(storageKey, "1");
   }
 
+  function trackEvent(name) {
+    if (window.posthog && typeof window.posthog.capture === "function") {
+      window.posthog.capture(name, { prompt: storageKey, page_path: window.location.pathname });
+    }
+  }
+
   function buildOverlay() {
     var style = document.createElement("style");
     style.textContent =
@@ -94,6 +100,7 @@
     });
 
     overlay.querySelector(".exit-intent-cta").addEventListener("click", function () {
+      trackEvent("exit_intent_cta_click");
       close();
       if (scrollTarget) {
         var target = document.querySelector(scrollTarget);
@@ -109,6 +116,7 @@
 
     document.body.appendChild(overlay);
     markSeen();
+    trackEvent("exit_intent_shown");
   }
 
   var triggered = false;

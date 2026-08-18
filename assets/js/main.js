@@ -1,3 +1,9 @@
+(function () {
+  var posthogScript = document.createElement("script");
+  posthogScript.src = "/assets/js/posthog-init.js";
+  document.head.appendChild(posthogScript);
+}());
+
 document.addEventListener("DOMContentLoaded", function () {
   var toggle = document.querySelector(".nav-toggle");
   var nav = document.querySelector("nav.primary");
@@ -23,6 +29,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function trackEvent(name, params) {
     if (typeof gtag === "function") gtag("event", name, params);
+    if (window.posthog && typeof window.posthog.capture === "function") {
+      window.posthog.capture(name, params);
+    }
   }
 
   document.addEventListener("click", function (e) {

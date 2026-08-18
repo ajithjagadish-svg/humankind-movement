@@ -43,6 +43,26 @@ function createApp(mongoUri) {
 
   app.use('/admin', adminRoutes);
   app.use('/blog', blogRoutes);
+
+  app.get('/api/posthog-config', (req, res) => {
+    res.json({
+      projectToken: process.env.POSTHOG_PROJECT_TOKEN,
+      host: process.env.POSTHOG_HOST,
+    });
+  });
+
+  app.get('/api/posthog-identity', async (req, res) => {
+    if (!req.session || !req.session.adminUserId) {
+      return res.status(401).json({ user: null });
+    }
+
+    const AdminUser = require('./models/AdminUser');
+    const user = await AdminUser.findById(req.session.adminUserId).select('_id email').lean();
+    if (!user) return res.status(401).json({ user: null });
+
+    return res.json({ userId: user._id.toString(), email: user.email });
+  });
+
   app.use('/api', formsRoutes);
   app.use('/', marketingRoutes);
 
