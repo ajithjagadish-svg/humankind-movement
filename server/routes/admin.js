@@ -529,6 +529,16 @@ router.post('/engagement/:id/answer', requireAuth, async (req, res, next) => {
   res.redirect('/admin/engagement');
 });
 
+router.post('/engagement/:id/reply', requireAuth, async (req, res, next) => {
+  const lead = await EngagementLead.findById(req.params.id);
+  if (!lead) return next();
+
+  lead.theirReply = req.body.theirReply || '';
+  lead.theirReplyAt = lead.theirReply ? new Date() : null;
+  await lead.save();
+  res.redirect('/admin/engagement');
+});
+
 router.post('/engagement/:id/status', requireAuth, async (req, res, next) => {
   const { status } = req.body;
   if (!['new', 'commented', 'skipped'].includes(status)) return next();

@@ -96,6 +96,16 @@
           </form>
         <% } %>
 
+        <% if (lead.status !== 'new') { %>
+          <form method="POST" action="/admin/engagement/<%= lead._id %>/reply">
+            <label>Their reply<% if (lead.theirReplyAt) { %> <span class="note" style="font-weight:400;">&middot; noted <%= lead.theirReplyAt.toLocaleDateString() %></span><% } %></label>
+            <textarea name="theirReply" placeholder="Paste what they replied once you have it - checked manually or found via email." style="min-height:70px; font-family:inherit; font-size:0.92rem;"><%= lead.theirReply %></textarea>
+            <div class="actions" style="margin-top:0.6em;">
+              <button type="submit" class="btn btn-ghost">Save reply</button>
+            </div>
+          </form>
+        <% } %>
+
         <div class="lead-actions">
           <form method="POST" action="/admin/engagement/<%= lead._id %>/status">
             <input type="hidden" name="status" value="commented">
