@@ -500,6 +500,7 @@ router.get('/engagement', requireAuth, async (req, res) => {
   const filter = {};
   if (req.query.platform) filter.platform = req.query.platform;
   if (req.query.topic) filter.topic = req.query.topic;
+  if (req.query.status) filter.status = req.query.status;
 
   const leads = await EngagementLead.find(filter).lean();
   leads.sort((a, b) => {
@@ -512,6 +513,7 @@ router.get('/engagement', requireAuth, async (req, res) => {
     leads,
     filterPlatform: req.query.platform || '',
     filterTopic: req.query.topic || '',
+    filterStatus: req.query.status || '',
   });
 });
 

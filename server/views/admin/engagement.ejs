@@ -50,6 +50,12 @@
         <option value="movement-biomechanics" <%= filterTopic === 'movement-biomechanics' ? 'selected' : '' %>>Movement & biomechanics</option>
         <option value="corporate-wellness" <%= filterTopic === 'corporate-wellness' ? 'selected' : '' %>>Corporate wellness</option>
       </select>
+      <select name="status" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        <option value="new" <%= filterStatus === 'new' ? 'selected' : '' %>>New</option>
+        <option value="commented" <%= filterStatus === 'commented' ? 'selected' : '' %>>Commented (awaiting response)</option>
+        <option value="skipped" <%= filterStatus === 'skipped' ? 'selected' : '' %>>Skipped</option>
+      </select>
     </form>
 
     <% if (!leads.length) { %>
@@ -63,7 +69,7 @@
             <span class="badge platform-<%= lead.platform %>"><%= lead.platform %></span>
             <span class="badge topic"><%= lead.topic %></span>
           </div>
-          <span class="badge status-<%= lead.status %>"><%= lead.status %></span>
+          <span class="badge status-<%= lead.status %>"><%= lead.status === 'commented' ? 'awaiting response' : lead.status %></span>
         </div>
         <p class="lead-meta">
           <strong><%= lead.authorName || 'Unknown author' %></strong><% if (lead.authorHeadline) { %> &middot; <%= lead.authorHeadline %><% } %>
