@@ -26,6 +26,7 @@ const EngagementLeadSchema = new mongoose.Schema(
     questions: [QuestionSchema],
     theirReply: { type: String, default: '' },
     theirReplyAt: { type: Date, default: null },
+    followUpDraft: { type: String, default: '' },
     status: { type: String, enum: ['new', 'commented', 'skipped'], default: 'new', index: true },
   },
   { timestamps: true }

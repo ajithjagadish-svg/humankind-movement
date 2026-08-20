@@ -533,8 +533,11 @@ router.post('/engagement/:id/reply', requireAuth, async (req, res, next) => {
   const lead = await EngagementLead.findById(req.params.id);
   if (!lead) return next();
 
+  const wasEmpty = !lead.theirReply;
   lead.theirReply = req.body.theirReply || '';
-  lead.theirReplyAt = lead.theirReply ? new Date() : null;
+  if (wasEmpty && lead.theirReply) lead.theirReplyAt = new Date();
+  if (!lead.theirReply) lead.theirReplyAt = null;
+  if (typeof req.body.followUpDraft === 'string') lead.followUpDraft = req.body.followUpDraft;
   await lead.save();
   res.redirect('/admin/engagement');
 });
