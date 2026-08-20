@@ -12,6 +12,7 @@
   .lead-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
   .badge.platform-linkedin { background: #e3edf7; color: #0a5fa8; }
   .badge.platform-reddit { background: #fde9df; color: #b0430d; }
+  .badge.platform-instagram { background: #fbe4ef; color: #a3195b; }
   .badge.topic { background: #f1efe9; color: #6b6862; }
   .badge.status-new { background: #e6f4ea; color: #1e7b34; }
   .badge.status-commented { background: #f1efe9; color: #6b6862; }
@@ -33,7 +34,7 @@
     </div>
 
     <p class="note" style="margin-top:-14px; margin-bottom:20px; font-size:0.85rem; color:#6b6862;">
-      Populated by asking Claude to run a live LinkedIn/Reddit research pass - there's no "refresh" button here since the server can't drive a browser itself. Drafts are for you to review, edit, and post yourself; nothing here is ever posted automatically.
+      Populated by asking Claude to run a live LinkedIn/Reddit/Instagram research pass - there's no "refresh" button here since the server can't drive a browser itself. Drafts are for you to review, edit, and post yourself; nothing here is ever posted automatically.
     </p>
 
     <form class="filters" method="GET" action="/admin/engagement">
@@ -41,6 +42,7 @@
         <option value="">All platforms</option>
         <option value="linkedin" <%= filterPlatform === 'linkedin' ? 'selected' : '' %>>LinkedIn</option>
         <option value="reddit" <%= filterPlatform === 'reddit' ? 'selected' : '' %>>Reddit</option>
+        <option value="instagram" <%= filterPlatform === 'instagram' ? 'selected' : '' %>>Instagram</option>
       </select>
       <select name="topic" onchange="this.form.submit()">
         <option value="">All topics</option>

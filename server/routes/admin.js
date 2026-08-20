@@ -490,7 +490,7 @@ router.post('/carousels/:id/delete', requireAuth, async (req, res) => {
   res.redirect('/admin/carousels');
 });
 
-// --- Engagement queue (LinkedIn/Reddit leads, curated by Claude in a live
+// --- Engagement queue (LinkedIn/Reddit/Instagram leads, curated by Claude in a live
 // browsing session - see server/scripts/add-engagement-leads.js. There is no
 // "refresh" here, unlike Analytics: the server has no way to drive a browser
 // itself, so this list only grows when a research pass is explicitly run and

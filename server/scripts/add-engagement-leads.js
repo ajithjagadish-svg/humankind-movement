@@ -1,4 +1,4 @@
-// Inserts a batch of curated LinkedIn/Reddit engagement leads. Run after a
+// Inserts a batch of curated LinkedIn/Reddit/Instagram engagement leads. Run after a
 // live research pass (see the "Engagement queue" section of server/routes/
 // admin.js for the workflow) - edit the LEADS array below with that pass's
 // results, then `npm run add-engagement-leads`.
@@ -8,7 +8,7 @@ const EngagementLead = require('../models/EngagementLead');
 
 const LEADS = [
   // {
-  //   platform: 'linkedin', // or 'reddit'
+  //   platform: 'linkedin', // or 'reddit' or 'instagram'
   //   topic: 'postpartum', // aches-pains-rehab | postpartum | neurodivergent | movement-biomechanics | corporate-wellness
   //   postUrl: 'https://www.linkedin.com/posts/...',
   //   authorName: 'Jane Doe',
