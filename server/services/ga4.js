@@ -92,11 +92,15 @@ async function fetchGA4ConversionSummary({ sinceDate = '2020-01-01' } = {}) {
   return { sessions, events };
 }
 
-// Returns [{ date: 'YYYY-MM-DD', sessions, bookIntroCallClicks, contactSubmits }, ...]
+const TIME_SERIES_EVENTS = ['book_intro_call_click', 'contact_submit', 'intake_submit', 'ebook_signup'];
+
+// Returns [{ date: 'YYYY-MM-DD', sessions, events: { book_intro_call_click, ... } }, ...]
 // for the trailing `days` days (oldest first), or null if GA4 isn't configured.
-// This is the one series-over-time view GA4 data gets used for elsewhere in
-// this file only pulls all-time totals (fetchGA4ConversionSummary above), so
-// there was previously no trend to chart.
+// Sessions and conversion events are kept in the same row but are deliberately
+// NOT meant to be charted on one shared axis - sessions run in the hundreds,
+// conversions in the single/low-double digits, so a bar chart mixing both
+// makes the conversion bars an invisible sliver next to sessions. Chart these
+// as two separate line charts instead (see analytics.ejs).
 async function fetchGA4TimeSeries({ days = 30 } = {}) {
   if (!ga4Configured()) return null;
 
@@ -117,7 +121,7 @@ async function fetchGA4TimeSeries({ days = 30 } = {}) {
         dimensions: [{ name: 'date' }, { name: 'eventName' }],
         metrics: [{ name: 'eventCount' }],
         dimensionFilter: {
-          filter: { fieldName: 'eventName', inListFilter: { values: ['book_intro_call_click', 'contact_submit'] } },
+          filter: { fieldName: 'eventName', inListFilter: { values: TIME_SERIES_EVENTS } },
         },
       },
     }),
@@ -125,19 +129,18 @@ async function fetchGA4TimeSeries({ days = 30 } = {}) {
 
   const byDate = {};
   const toIso = (ga4Date) => `${ga4Date.slice(0, 4)}-${ga4Date.slice(4, 6)}-${ga4Date.slice(6, 8)}`;
+  const emptyEvents = () => TIME_SERIES_EVENTS.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
 
   (sessionsRes.data.rows || []).forEach((row) => {
     const date = toIso(row.dimensionValues[0].value);
-    byDate[date] = byDate[date] || { date, sessions: 0, bookIntroCallClicks: 0, contactSubmits: 0 };
+    byDate[date] = byDate[date] || { date, sessions: 0, events: emptyEvents() };
     byDate[date].sessions = Number(row.metricValues[0].value) || 0;
   });
   (eventsRes.data.rows || []).forEach((row) => {
     const date = toIso(row.dimensionValues[0].value);
     const eventName = row.dimensionValues[1].value;
-    byDate[date] = byDate[date] || { date, sessions: 0, bookIntroCallClicks: 0, contactSubmits: 0 };
-    const count = Number(row.metricValues[0].value) || 0;
-    if (eventName === 'book_intro_call_click') byDate[date].bookIntroCallClicks = count;
-    if (eventName === 'contact_submit') byDate[date].contactSubmits = count;
+    byDate[date] = byDate[date] || { date, sessions: 0, events: emptyEvents() };
+    byDate[date].events[eventName] = Number(row.metricValues[0].value) || 0;
   });
 
   return Object.values(byDate).sort((a, b) => (a.date < b.date ? -1 : 1));
