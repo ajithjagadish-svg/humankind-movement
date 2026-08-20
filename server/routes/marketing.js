@@ -23,9 +23,25 @@ const REPO_ROOT = path.join(__dirname, '..', '..');
 // working without carrying the extension forward. The Journal (/blog,
 // /blog/:slug) is deliberately excluded from this scheme - it's already
 // Mongo-backed with its own clean routes.
-const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact', 'intake', 'postpartum-recovery-guide'];
+// 'experiences' is deliberately absent from CORE_PAGES (the English route is
+// handled explicitly below, as a redirect to /services, not a served file)
+// but stays in TRANSLATED_PAGES so the separate es/fr loop further down keeps
+// serving es/experiences.html and fr/experiences.html unchanged - those two
+// locales haven't been split into /services/* pages yet.
+const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact', 'intake', 'postpartum-recovery-guide'];
 const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact'];
 const LANGS = ['es', 'fr'];
+
+// English-only for now - the five offerings that used to be anchor sections
+// on /experiences, each now a standalone page under services/ for SEO
+// (dedicated title/meta/content per offering beats one shared page).
+const SERVICE_PAGES = [
+  'one-to-one-coaching',
+  'postpartum-support',
+  'neurodivergent-coaching',
+  'workshops',
+  'corporate-wellbeing',
+];
 
 router.get('/', (req, res) => {
   res.sendFile(path.join(REPO_ROOT, 'index.html'));
@@ -41,6 +57,30 @@ CORE_PAGES.forEach((slug) => {
   });
   router.get('/' + slug + '.html', (req, res) => {
     res.redirect(301, '/' + slug);
+  });
+});
+
+// Content that used to live at /experiences now lives at /services -
+// overrides the generic CORE_PAGES handler above for the English route only.
+router.get('/experiences', (req, res) => {
+  res.redirect(301, '/services');
+});
+router.get('/experiences.html', (req, res) => {
+  res.redirect(301, '/services');
+});
+
+router.get('/services', (req, res) => {
+  res.sendFile(path.join(REPO_ROOT, 'services', 'index.html'));
+});
+router.get('/services.html', (req, res) => {
+  res.redirect(301, '/services');
+});
+SERVICE_PAGES.forEach((slug) => {
+  router.get('/services/' + slug, (req, res) => {
+    res.sendFile(path.join(REPO_ROOT, 'services', slug + '.html'));
+  });
+  router.get('/services/' + slug + '.html', (req, res) => {
+    res.redirect(301, '/services/' + slug);
   });
 });
 
@@ -75,10 +115,10 @@ router.get('/blog.html', (req, res) => {
 // point here). Now plain server-side 301s instead of client-side meta-refresh
 // pages, pointing at the clean /experiences URL.
 router.get('/coaching.html', (req, res) => {
-  res.redirect(301, '/experiences');
+  res.redirect(301, '/services');
 });
 router.get('/neurodivergent-coaching.html', (req, res) => {
-  res.redirect(301, '/experiences#neurodivergent-movement-coaching');
+  res.redirect(301, '/services/neurodivergent-coaching');
 });
 
 // The old private client-intake page (Google Form redirect) is replaced by
@@ -102,7 +142,12 @@ const SITEMAP_STATIC_PAGES = [
   { loc: '/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
   { loc: '/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
   { loc: '/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/experiences', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/services', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/services/one-to-one-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/postpartum-support', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/neurodivergent-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/workshops', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/corporate-wellbeing', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
   { loc: '/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.8' },
   { loc: '/postpartum-recovery-guide', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.8' },
   { loc: '/es/', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },

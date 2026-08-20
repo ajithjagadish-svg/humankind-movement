@@ -33,7 +33,7 @@
 const lighthouse = require('lighthouse').default;
 const chromeLauncher = require('chrome-launcher');
 
-const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact', 'intake', 'postpartum-recovery-guide'];
+const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'services', 'services/one-to-one-coaching', 'services/postpartum-support', 'services/neurodivergent-coaching', 'services/workshops', 'services/corporate-wellbeing', 'contact', 'intake', 'postpartum-recovery-guide'];
 
 const THRESHOLDS = { performance: 80, accessibility: 95, 'best-practices': 95, seo: 95 };
 const MAX_CLS = 0.1;

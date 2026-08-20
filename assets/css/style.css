@@ -258,6 +258,36 @@ nav.primary a[aria-current="page"] {
   border-radius: 2px;
 }
 
+nav.primary li.has-dropdown { position: relative; }
+nav.primary .dropdown-menu {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(20, 19, 17, 0.12);
+  min-width: 240px;
+  display: none;
+  z-index: 60;
+}
+nav.primary li.has-dropdown:hover .dropdown-menu,
+nav.primary li.has-dropdown:focus-within .dropdown-menu {
+  display: block;
+}
+nav.primary .dropdown-menu li { border: none; }
+nav.primary .dropdown-menu a {
+  display: block;
+  padding: 9px 16px;
+  white-space: nowrap;
+  border-bottom: none;
+}
+nav.primary .dropdown-menu a:hover { color: var(--ink); background: var(--paper-warm); }
+
 @media (max-width: 780px) {
   nav.primary {
     position: absolute;
@@ -277,7 +307,45 @@ nav.primary a[aria-current="page"] {
   nav.primary li { border-top: 1px solid var(--line); }
   nav.primary a { display: block; padding: 14px 0; }
   .nav-toggle { display: block; }
+
+  nav.primary li.has-dropdown { position: static; }
+  nav.primary .dropdown-menu {
+    display: block;
+    position: static;
+    transform: none;
+    border: none;
+    box-shadow: none;
+    background: none;
+    padding: 0 0 0 16px;
+    min-width: 0;
+  }
+  nav.primary .dropdown-menu li { border-top: none; }
+  nav.primary .dropdown-menu a { padding: 10px 0; font-size: 0.85rem; color: var(--muted); }
 }
+
+/* ---------- FAQ accordion (shared across contact + service pages) ---------- */
+.faq-list { max-width: 68ch; }
+.faq-item { border-bottom: 1px solid var(--line); padding: 18px 0; }
+.faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "+";
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.faq-item[open] summary::after { content: "\2212"; }
+.faq-item p { margin: 0.7em 0 0; color: var(--ink-soft); }
 
 /* ---------- hero ---------- */
 

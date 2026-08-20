@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Conversion tracking, delegated so it covers every "Book a Discovery
   // Call" link and blog-to-coaching-page link sitewide without having to
   // wire up each one individually.
-  var CORE_PATHS = ["/about", "/philosophy", "/the-method", "/who-we-serve", "/experiences", "/contact", "/intake"];
+  var CORE_PATHS = ["/about", "/philosophy", "/the-method", "/who-we-serve", "/services", "/services/one-to-one-coaching", "/services/postpartum-support", "/services/neurodivergent-coaching", "/services/workshops", "/services/corporate-wellbeing", "/contact", "/intake"];
 
   function trackEvent(name, params) {
     if (typeof gtag === "function") gtag("event", name, params);
