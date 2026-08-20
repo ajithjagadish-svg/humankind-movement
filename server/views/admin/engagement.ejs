@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Engagement | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .lead-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .lead-card.status-skipped { opacity: 0.55; }
+  .lead-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
+  .badge.platform-linkedin { background: #e3edf7; color: #0a5fa8; }
+  .badge.platform-reddit { background: #fde9df; color: #b0430d; }
+  .badge.topic { background: #f1efe9; color: #6b6862; }
+  .badge.status-new { background: #e6f4ea; color: #1e7b34; }
+  .badge.status-commented { background: #f1efe9; color: #6b6862; }
+  .badge.status-skipped { background: #fdecea; color: #b3261e; }
+  .lead-card textarea.comment-box { min-height: 100px; font-family: inherit; font-size: 0.92rem; }
+  .lead-card .question-row { margin-top: 1em; }
+  .lead-card .question-row label { margin-top: 0.4em; font-weight: 600; }
+  .filters { display: flex; gap: 10px; margin-bottom: 20px; }
+  .filters select { width: auto; }
+  .lead-actions { display: flex; gap: 8px; margin-top: 1.2em; flex-wrap: wrap; }
+  .lead-actions form { margin: 0; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'engagement' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Engagement (<%= leads.length %>)</h1>
+    </div>
+
+    <p class="note" style="margin-top:-14px; margin-bottom:20px; font-size:0.85rem; color:#6b6862;">
+      Populated by asking Claude to run a live LinkedIn/Reddit research pass - there's no "refresh" button here since the server can't drive a browser itself. Drafts are for you to review, edit, and post yourself; nothing here is ever posted automatically.
+    </p>
+
+    <form class="filters" method="GET" action="/admin/engagement">
+      <select name="platform" onchange="this.form.submit()">
+        <option value="">All platforms</option>
+        <option value="linkedin" <%= filterPlatform === 'linkedin' ? 'selected' : '' %>>LinkedIn</option>
+        <option value="reddit" <%= filterPlatform === 'reddit' ? 'selected' : '' %>>Reddit</option>
+      </select>
+      <select name="topic" onchange="this.form.submit()">
+        <option value="">All topics</option>
+        <option value="aches-pains-rehab" <%= filterTopic === 'aches-pains-rehab' ? 'selected' : '' %>>Aches, pains & rehab</option>
+        <option value="postpartum" <%= filterTopic === 'postpartum' ? 'selected' : '' %>>Postpartum</option>
+        <option value="neurodivergent" <%= filterTopic === 'neurodivergent' ? 'selected' : '' %>>Neurodivergent</option>
+        <option value="movement-biomechanics" <%= filterTopic === 'movement-biomechanics' ? 'selected' : '' %>>Movement & biomechanics</option>
+        <option value="corporate-wellness" <%= filterTopic === 'corporate-wellness' ? 'selected' : '' %>>Corporate wellness</option>
+      </select>
+    </form>
+
+    <% if (!leads.length) { %>
+      <p>Nothing here yet. Ask Claude to "find LinkedIn/Reddit posts to engage with" and it'll research a batch and populate this list.</p>
+    <% } %>
+
+    <% leads.forEach(function(lead) { %>
+      <div class="lead-card status-<%= lead.status %>">
+        <div class="row" style="margin-bottom:0;">
+          <div>
+            <span class="badge platform-<%= lead.platform %>"><%= lead.platform %></span>
+            <span class="badge topic"><%= lead.topic %></span>
+          </div>
+          <span class="badge status-<%= lead.status %>"><%= lead.status %></span>
+        </div>
+        <p class="lead-meta">
+          <strong><%= lead.authorName || 'Unknown author' %></strong><% if (lead.authorHeadline) { %> &middot; <%= lead.authorHeadline %><% } %>
+          <% if (lead.postedAt) { %> &middot; <%= lead.postedAt %><% } %>
+          &middot; <a href="<%= lead.postUrl %>" target="_blank" rel="noopener">Open post &rarr;</a>
+        </p>
+        <p style="font-size:0.92rem; white-space:pre-wrap;"><%= lead.postSnippet %></p>
+        <p class="note" style="font-size:0.85rem; color:#6b6862;"><strong>Why this is relevant:</strong> <%= lead.relevanceReason %></p>
+
+        <label>Draft comment (edit, then copy and post it yourself)</label>
+        <textarea class="comment-box" readonly onclick="this.removeAttribute('readonly'); this.focus();"><%= lead.draftComment %></textarea>
+
+        <% if (lead.questions && lead.questions.length) { %>
+          <form method="POST" action="/admin/engagement/<%= lead._id %>/answer">
+            <% lead.questions.forEach(function(q, i) { %>
+              <div class="question-row">
+                <label><%= q.question %></label>
+                <textarea name="answer_<%= i %>" style="min-height:60px; font-family:inherit; font-size:0.9rem;"><%= q.answer %></textarea>
+              </div>
+            <% }) %>
+            <div class="actions" style="margin-top:1em;">
+              <button type="submit" class="btn btn-ghost">Save answers</button>
+            </div>
+          </form>
+        <% } %>
+
+        <div class="lead-actions">
+          <form method="POST" action="/admin/engagement/<%= lead._id %>/status">
+            <input type="hidden" name="status" value="commented">
+            <button type="submit" class="btn">Mark commented</button>
+          </form>
+          <form method="POST" action="/admin/engagement/<%= lead._id %>/status">
+            <input type="hidden" name="status" value="skipped">
+            <button type="submit" class="btn btn-ghost">Skip</button>
+          </form>
+          <form method="POST" action="/admin/engagement/<%= lead._id %>/delete" onsubmit="return confirm('Delete this lead?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+</body>
+</html>

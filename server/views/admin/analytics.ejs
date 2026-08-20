@@ -6,12 +6,15 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Analytics | Humankind Movement Admin</title>
 <%- include('../partials/admin-styles') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <style>
   .setup-steps { font-size: 0.9rem; line-height: 1.6; }
   .setup-steps code { background: var(--paper); padding: 1px 6px; border-radius: 4px; }
   .status-pill { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 0.78rem; font-weight: 600; margin-right: 8px; }
   .status-pill.on { background: #e6f4ea; color: #1e7b34; }
   .status-pill.off { background: #f1efe9; color: #6b6862; }
+  .chart-box { position: relative; height: 260px; }
+  .chart-box.short { height: 180px; }
 </style>
 </head>
 <body>
@@ -60,28 +63,34 @@
         <% if (conversionError) { %>
           <p class="note">Could not load conversion data: <%= conversionError %></p>
         <% } else if (conversions) { %>
-          <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">
-            <span><strong style="font-size:1.4rem;"><%= conversions.events.book_intro_call_click %></strong><br><span class="note">Intro call clicks (₹1,000)</span></span>
-            <span><strong style="font-size:1.4rem;"><%= conversions.events.book_call_click %></strong><br><span class="note">Discovery calls booked (legacy, retired)</span></span>
-            <span><strong style="font-size:1.4rem;"><%= conversions.events.contact_submit %></strong><br><span class="note">Contact form submits</span></span>
-            <span><strong style="font-size:1.4rem;"><%= conversions.events.intake_submit %></strong><br><span class="note">Intake form submits</span></span>
-            <span><strong style="font-size:1.4rem;"><%= conversions.events.ebook_signup %></strong><br><span class="note">Ebook signups</span></span>
-            <span><strong style="font-size:1.4rem;"><%= conversions.sessions %></strong><br><span class="note">Sessions</span></span>
-          </p>
+          <div class="chart-box"><canvas id="conversionsChart"></canvas></div>
           <p class="note" style="margin-top:0.8em;">All-time totals from GA4 (since tracking began). Combined conversion rate: <%= conversions.sessions > 0 ? (((conversions.events.book_intro_call_click + conversions.events.book_call_click + conversions.events.contact_submit + conversions.events.intake_submit + conversions.events.ebook_signup) / conversions.sessions) * 100).toFixed(1) + '%' : '—' %> of sessions.</p>
         <% } %>
       </div>
     <% } %>
 
+    <% if (configured.ga4 && timeSeries && timeSeries.length) { %>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem; margin:0 0 0.6em;">Sessions, last 30 days</h2>
+        <div class="chart-box"><canvas id="sessionsChart"></canvas></div>
+      </div>
+    <% } %>
+
     <div class="card" style="margin-bottom:20px;">
       <h2 style="font-size:1rem; margin:0 0 0.6em;">Free Guide (Postpartum Recovery)</h2>
-      <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">
-        <span><strong style="font-size:1.4rem;"><%= guideStats.totalViews %></strong><br><span class="note">Page views</span></span>
-        <span><strong style="font-size:1.4rem;"><%= guideStats.totalSignups %></strong><br><span class="note">Signups</span></span>
+      <div style="display:flex; gap:28px; align-items:center; flex-wrap:wrap;">
+        <div class="chart-box short" style="flex:1; min-width:220px;"><canvas id="guideFunnelChart"></canvas></div>
         <span><strong style="font-size:1.4rem;"><%= guideStats.conversionRate === null ? '—' : (guideStats.conversionRate * 100).toFixed(1) + '%' %></strong><br><span class="note">Conversion rate</span></span>
-      </p>
+      </div>
       <p class="note" style="margin-top:0.8em;">Tracked directly (no GA4 needed) - only counts real visitors, bots excluded. Started 2026-08-07, so this does not include any traffic before that date.</p>
     </div>
+
+    <% if (configured.ga4 && posts.length) { %>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem; margin:0 0 0.6em;">Top posts by pageviews</h2>
+        <div class="chart-box"><canvas id="pageviewsChart"></canvas></div>
+      </div>
+    <% } %>
 
     <% if (configured.ga4 || configured.searchConsole) { %>
       <div class="card" style="padding:0; overflow-x:auto;">
@@ -114,5 +123,97 @@
       </div>
     <% } %>
   </main>
+  <script>
+    var CHART_COLORS = ['#c0392b', '#4a90a4', '#e0a458', '#6b6862', '#1e7b34', '#8e5572'];
+
+    <% if (configured.ga4 && conversions) { %>
+    new Chart(document.getElementById('conversionsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Intro call clicks', 'Contact submits', 'Intake submits', 'Ebook signups', 'Sessions'],
+        datasets: [{
+          data: [
+            <%= conversions.events.book_intro_call_click %>,
+            <%= conversions.events.contact_submit %>,
+            <%= conversions.events.intake_submit %>,
+            <%= conversions.events.ebook_signup %>,
+            <%= conversions.sessions %>
+          ],
+          backgroundColor: CHART_COLORS,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } },
+      },
+    });
+    <% } %>
+
+    <% if (configured.ga4 && timeSeries && timeSeries.length) { %>
+    new Chart(document.getElementById('sessionsChart'), {
+      type: 'line',
+      data: {
+        labels: <%- JSON.stringify(timeSeries.map(function(d) { return d.date.slice(5); })) %>,
+        datasets: [{
+          label: 'Sessions',
+          data: <%- JSON.stringify(timeSeries.map(function(d) { return d.sessions; })) %>,
+          borderColor: '#c0392b',
+          backgroundColor: 'rgba(192,57,43,0.1)',
+          tension: 0.25,
+          fill: true,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } },
+      },
+    });
+    <% } %>
+
+    new Chart(document.getElementById('guideFunnelChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Page views', 'Signups'],
+        datasets: [{
+          data: [<%= guideStats.totalViews %>, <%= guideStats.totalSignups %>],
+          backgroundColor: ['#4a90a4', '#c0392b'],
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } },
+      },
+    });
+
+    <% if (configured.ga4 && posts.length) { %>
+    (function () {
+      var topPosts = <%- JSON.stringify(posts.map(function(p) { return { title: p.title, pageviews: p.analytics.pageviews || 0 }; })) %>
+        .sort(function (a, b) { return b.pageviews - a.pageviews; })
+        .slice(0, 10);
+      new Chart(document.getElementById('pageviewsChart'), {
+        type: 'bar',
+        data: {
+          labels: topPosts.map(function (p) { return p.title.length > 40 ? p.title.slice(0, 40) + '…' : p.title; }),
+          datasets: [{ data: topPosts.map(function (p) { return p.pageviews; }), backgroundColor: '#c0392b' }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } },
+        },
+      });
+    })();
+    <% } %>
+  </script>
 </body>
 </html>

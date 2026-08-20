@@ -10,6 +10,7 @@
     "create-admin": "node server/scripts/create-admin.js",
     "seed-blog-posts": "node server/scripts/seed-blog-posts.js",
     "seed-content-ideas": "node server/scripts/seed-content-ideas.js",
+    "add-engagement-leads": "node server/scripts/add-engagement-leads.js",
     "pagespeed": "node server/scripts/pagespeed-check.js"
   },
   "engines": {

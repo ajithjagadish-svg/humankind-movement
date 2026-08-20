@@ -68,14 +68,14 @@
           </div>
         <% } %>
         <div class="idea-actions">
+          <% if (idea.status !== 'published') { %>
+            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft"><%= idea.linkedPost ? 'Review draft' : 'Write draft' %></a>
+          <% } %>
           <% if (idea.status === 'idea') { %>
-            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft">Draft this post</a>
             <form method="POST" action="/admin/content-ideas/<%= idea._id %>/status">
               <input type="hidden" name="status" value="drafting">
               <button type="submit" class="btn btn-ghost">Mark as drafting</button>
             </form>
-          <% } else if (idea.status === 'drafting') { %>
-            <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft">Review draft</a>
           <% } %>
           <form method="POST" action="/admin/carousels/generate">
             <input type="hidden" name="sourceType" value="contentIdea">

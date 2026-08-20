@@ -23,18 +23,18 @@ const REPO_ROOT = path.join(__dirname, '..', '..');
 // working without carrying the extension forward. The Journal (/blog,
 // /blog/:slug) is deliberately excluded from this scheme - it's already
 // Mongo-backed with its own clean routes.
-// 'experiences' is deliberately absent from CORE_PAGES (the English route is
-// handled explicitly below, as a redirect to /services, not a served file)
-// but stays in TRANSLATED_PAGES so the separate es/fr loop further down keeps
-// serving es/experiences.html and fr/experiences.html unchanged - those two
-// locales haven't been split into /services/* pages yet.
+// 'experiences' is deliberately absent from both CORE_PAGES and
+// TRANSLATED_PAGES - every locale now has its content split into
+// services/*.html, and '/experiences' (plus the es/fr equivalents) is
+// handled explicitly below as a redirect to the new /services hub, not a
+// served file.
 const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact', 'intake', 'postpartum-recovery-guide'];
-const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'experiences', 'contact'];
+const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact'];
 const LANGS = ['es', 'fr'];
 
-// English-only for now - the five offerings that used to be anchor sections
-// on /experiences, each now a standalone page under services/ for SEO
-// (dedicated title/meta/content per offering beats one shared page).
+// The five offerings that used to be anchor sections on /experiences, each
+// now a standalone page under services/ per locale for SEO (dedicated
+// title/meta/content per offering beats one shared page).
 const SERVICE_PAGES = [
   'one-to-one-coaching',
   'postpartum-support',
@@ -103,6 +103,30 @@ LANGS.forEach((lang) => {
       res.redirect(301, `/${lang}/${slug}`);
     });
   });
+
+  // Content that used to live at /{lang}/experiences now lives at
+  // /{lang}/services - mirrors the English redirect above.
+  router.get(`/${lang}/experiences`, (req, res) => {
+    res.redirect(301, `/${lang}/services`);
+  });
+  router.get(`/${lang}/experiences.html`, (req, res) => {
+    res.redirect(301, `/${lang}/services`);
+  });
+
+  router.get(`/${lang}/services`, (req, res) => {
+    res.sendFile(path.join(REPO_ROOT, lang, 'services', 'index.html'));
+  });
+  router.get(`/${lang}/services.html`, (req, res) => {
+    res.redirect(301, `/${lang}/services`);
+  });
+  SERVICE_PAGES.forEach((slug) => {
+    router.get(`/${lang}/services/${slug}`, (req, res) => {
+      res.sendFile(path.join(REPO_ROOT, lang, 'services', slug + '.html'));
+    });
+    router.get(`/${lang}/services/${slug}.html`, (req, res) => {
+      res.redirect(301, `/${lang}/services/${slug}`);
+    });
+  });
 });
 
 // Every marketing page's nav still links to the old "blog.html" filename -
@@ -158,8 +182,18 @@ const SITEMAP_STATIC_PAGES = [
   { loc: '/fr/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
   { loc: '/es/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/experiences', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/experiences', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/services', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/services', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/services/one-to-one-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/one-to-one-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/postpartum-support', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/postpartum-support', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/neurodivergent-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/neurodivergent-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/workshops', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/workshops', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/corporate-wellbeing', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/corporate-wellbeing', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
   { loc: '/es/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
   { loc: '/es/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },

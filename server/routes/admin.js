@@ -6,9 +6,10 @@ const ContactSubmission = require('../models/ContactSubmission');
 const IntakeSubmission = require('../models/IntakeSubmission');
 const EbookLead = require('../models/EbookLead');
 const Carousel = require('../models/Carousel');
+const EngagementLead = require('../models/EngagementLead');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
-const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary } = require('../services/ga4');
+const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary, fetchGA4TimeSeries } = require('../services/ga4');
 const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../services/searchConsole');
 const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
 const { getPageViewSummary } = require('../services/pageViews');
@@ -104,7 +105,7 @@ router.get('/posts/new', requireAuth, (req, res) => {
 
 router.post('/posts/new', requireAuth, async (req, res) => {
   try {
-    await createOrUpdatePost(req.body, null);
+    await createOrUpdatePost(req.body, null, req.body.contentIdeaId || null);
     res.redirect('/admin/posts');
   } catch (err) {
     res.status(400).render('admin/post-editor', {
@@ -150,7 +151,7 @@ router.post('/posts/:id/delete', requireAuth, async (req, res) => {
   res.redirect('/admin/posts');
 });
 
-async function createOrUpdatePost(body, existing) {
+async function createOrUpdatePost(body, existing, contentIdeaId) {
   const category = CATEGORIES.find((c) => c.key === body.category);
   if (!category) throw new Error('Please choose a valid category.');
   if (!body.title || !body.title.trim()) throw new Error('Title is required.');
@@ -185,6 +186,14 @@ async function createOrUpdatePost(body, existing) {
     const dupe = await BlogPost.findOne({ slug });
     if (dupe) throw new Error(`A post with the slug "${slug}" already exists.`);
     savedPost = await BlogPost.create(data);
+
+    // Link a freshly-created post back to the idea it was drafted from, so
+    // "Review draft" on the Content Ideas list opens this real post instead
+    // of a blank editor every time (previously nothing ever set this, so a
+    // new post created this way was silently orphaned from its idea).
+    if (contentIdeaId) {
+      await ContentIdea.findByIdAndUpdate(contentIdeaId, { linkedPost: savedPost._id });
+    }
   }
 
   // Keep the Content Ideas dashboard's status label truthful - it should
@@ -260,6 +269,7 @@ router.get('/content-ideas/:id/draft', requireAuth, async (req, res, next) => {
       title: idea.topic,
       meta: idea.rationale,
       category: IDEA_TO_CATEGORY[idea.targetService] || '',
+      contentIdeaId: idea._id,
     },
     categories: CATEGORIES,
     error: null,
@@ -290,12 +300,22 @@ async function getConversionSummary(configured) {
   }
 }
 
+async function getTimeSeries(configured) {
+  if (!configured.ga4) return null;
+  try {
+    return await fetchGA4TimeSeries({ days: 30 });
+  } catch (err) {
+    return null;
+  }
+}
+
 router.get('/analytics', requireAuth, async (req, res) => {
   const configured = { ga4: ga4Configured(), searchConsole: searchConsoleConfigured() };
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
   const guideStats = await getGuideStats();
   const { conversions, conversionError } = await getConversionSummary(configured);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, refreshError: null, refreshedAt: null });
+  const timeSeries = await getTimeSeries(configured);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, refreshError: null, refreshedAt: null });
 });
 
 router.post('/analytics/refresh', requireAuth, async (req, res) => {
@@ -333,7 +353,8 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
   const guideStats = await getGuideStats();
   const { conversions, conversionError } = await getConversionSummary(configured);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, refreshError, refreshedAt: new Date() });
+  const timeSeries = await getTimeSeries(configured);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, refreshError, refreshedAt: new Date() });
 });
 
 // --- Submissions (contact + intake forms) ---
@@ -467,6 +488,55 @@ router.post('/carousels/:id/save', requireAuth, async (req, res, next) => {
 router.post('/carousels/:id/delete', requireAuth, async (req, res) => {
   await Carousel.findByIdAndDelete(req.params.id);
   res.redirect('/admin/carousels');
+});
+
+// --- Engagement queue (LinkedIn/Reddit leads, curated by Claude in a live
+// browsing session - see server/scripts/add-engagement-leads.js. There is no
+// "refresh" here, unlike Analytics: the server has no way to drive a browser
+// itself, so this list only grows when a research pass is explicitly run and
+// its results inserted via that script.) ---
+
+router.get('/engagement', requireAuth, async (req, res) => {
+  const filter = {};
+  if (req.query.platform) filter.platform = req.query.platform;
+  if (req.query.topic) filter.topic = req.query.topic;
+
+  const leads = await EngagementLead.find(filter).lean();
+  leads.sort((a, b) => {
+    if (a.status === 'new' && b.status !== 'new') return -1;
+    if (a.status !== 'new' && b.status === 'new') return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  res.render('admin/engagement', {
+    leads,
+    filterPlatform: req.query.platform || '',
+    filterTopic: req.query.topic || '',
+  });
+});
+
+router.post('/engagement/:id/answer', requireAuth, async (req, res, next) => {
+  const lead = await EngagementLead.findById(req.params.id);
+  if (!lead) return next();
+
+  lead.questions.forEach((q, i) => {
+    const answer = req.body[`answer_${i}`];
+    if (typeof answer === 'string') q.answer = answer;
+  });
+  await lead.save();
+  res.redirect('/admin/engagement');
+});
+
+router.post('/engagement/:id/status', requireAuth, async (req, res, next) => {
+  const { status } = req.body;
+  if (!['new', 'commented', 'skipped'].includes(status)) return next();
+  await EngagementLead.findByIdAndUpdate(req.params.id, { status });
+  res.redirect('/admin/engagement');
+});
+
+router.post('/engagement/:id/delete', requireAuth, async (req, res) => {
+  await EngagementLead.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/engagement');
 });
 
 module.exports = router;
