@@ -8,6 +8,7 @@ const SlideSchema = new mongoose.Schema(
     bullets: [{ type: String }],
     variant: { type: String, enum: ['default', 'dark', 'cta'], default: 'default' },
     ctaBtn: { type: String, default: '' },
+    bgStyle: { type: String, enum: ['none', 'orb', 'lines'], default: 'none' },
   },
   { _id: false }
 );
