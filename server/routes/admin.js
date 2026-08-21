@@ -7,6 +7,7 @@ const IntakeSubmission = require('../models/IntakeSubmission');
 const EbookLead = require('../models/EbookLead');
 const Carousel = require('../models/Carousel');
 const EngagementLead = require('../models/EngagementLead');
+const SocialPost = require('../models/SocialPost');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary, fetchGA4TimeSeries } = require('../services/ga4');
@@ -309,13 +310,48 @@ async function getTimeSeries(configured) {
   }
 }
 
+// Pairs each tracked social post with the sessions GA4 recorded on its publish
+// day and the two days after, plus the 30-day average as a baseline. This is
+// deliberately NOT a correlation coefficient - with a handful of posts that
+// would just be false precision. It's a same-window comparison so a real
+// pattern (or the lack of one) is visible without overstating confidence.
+function getSocialPostsWithContext(socialPosts, timeSeries) {
+  if (!timeSeries || !timeSeries.length) {
+    return socialPosts.map((post) => ({ post, sessionsByDay: null, baseline: null }));
+  }
+  const byDate = {};
+  timeSeries.forEach((row) => { byDate[row.date] = row.sessions; });
+  const baseline = timeSeries.reduce((sum, row) => sum + row.sessions, 0) / timeSeries.length;
+
+  return socialPosts.map((post) => {
+    const sessionsByDay = [0, 1, 2].map((offset) => {
+      const d = new Date(post.publishedAt);
+      d.setUTCDate(d.getUTCDate() + offset);
+      const iso = d.toISOString().slice(0, 10);
+      return { date: iso, sessions: byDate[iso] !== undefined ? byDate[iso] : null };
+    });
+    const knownDays = sessionsByDay.filter((d) => d.sessions !== null);
+    const peakSessions = knownDays.length ? Math.max(...knownDays.map((d) => d.sessions)) : null;
+    const lift = peakSessions !== null && baseline > 0 ? peakSessions / baseline : null;
+    let liftLabel = 'no data';
+    if (lift !== null) {
+      if (lift >= 1.3) liftLabel = 'above baseline';
+      else if (lift <= 0.7) liftLabel = 'below baseline';
+      else liftLabel = 'near baseline';
+    }
+    return { post, sessionsByDay, baseline, lift, liftLabel };
+  });
+}
+
 router.get('/analytics', requireAuth, async (req, res) => {
   const configured = { ga4: ga4Configured(), searchConsole: searchConsoleConfigured() };
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
   const guideStats = await getGuideStats();
   const { conversions, conversionError } = await getConversionSummary(configured);
   const timeSeries = await getTimeSeries(configured);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, refreshError: null, refreshedAt: null });
+  const socialPosts = await SocialPost.find().sort({ publishedAt: -1 }).lean();
+  const socialPostsWithContext = getSocialPostsWithContext(socialPosts, timeSeries);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, refreshError: null, refreshedAt: null });
 });
 
 router.post('/analytics/refresh', requireAuth, async (req, res) => {
@@ -354,7 +390,9 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
   const guideStats = await getGuideStats();
   const { conversions, conversionError } = await getConversionSummary(configured);
   const timeSeries = await getTimeSeries(configured);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, refreshError, refreshedAt: new Date() });
+  const socialPosts = await SocialPost.find().sort({ publishedAt: -1 }).lean();
+  const socialPostsWithContext = getSocialPostsWithContext(socialPosts, timeSeries);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, refreshError, refreshedAt: new Date() });
 });
 
 // --- Submissions (contact + intake forms) ---

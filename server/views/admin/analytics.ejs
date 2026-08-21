@@ -14,6 +14,11 @@
   .status-pill.on { background: #e6f4ea; color: #1e7b34; }
   .status-pill.off { background: #f1efe9; color: #6b6862; }
   .chart-box { position: relative; height: 260px; }
+  .badge.platform-instagram { background: #fbe4ef; color: #a3195b; }
+  .badge.platform-linkedin { background: #e3edf7; color: #0a5fa8; }
+  .badge.status-new { background: #e6f4ea; color: #1e7b34; }
+  .badge.status-skipped { background: #fdecea; color: #b3261e; }
+  .badge.topic { background: #f1efe9; color: #6b6862; }
 </style>
 </head>
 <body>
@@ -96,6 +101,51 @@
       </p>
       <p class="note" style="margin-top:0.8em;">Tracked directly (no GA4 needed) - only counts real visitors, bots excluded. Started 2026-08-07, so this does not include any traffic before that date.</p>
     </div>
+
+    <% if (configured.ga4 && socialPostsWithContext.length) { %>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem; margin:0 0 0.2em;">Social posts &amp; website traffic</h2>
+        <p class="note" style="margin:0 0 1em;">
+          Pulled by asking Claude to check Instagram/LinkedIn post performance - not a live feed, so this is only as current as the last pull. "vs baseline" compares the busiest of the post's first 3 days against the 30-day average daily sessions - not a statistical correlation, since a handful of posts isn't enough data for that to mean anything. Treat it as a pattern to notice, not a proven cause.
+        </p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Post</th>
+                <th>Platform</th>
+                <th>Published</th>
+                <th>Engagement</th>
+                <th>Sessions (day 0 / +1 / +2)</th>
+                <th>vs baseline</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% socialPostsWithContext.forEach(function(item) { %>
+                <tr>
+                  <td style="max-width:260px;"><a href="<%= item.post.postUrl %>" target="_blank" rel="noopener"><%= item.post.caption.length > 70 ? item.post.caption.slice(0, 70) + '…' : item.post.caption %></a></td>
+                  <td><span class="badge platform-<%= item.post.platform %>"><%= item.post.platform %></span></td>
+                  <td><%= new Date(item.post.publishedAt).toLocaleDateString() %></td>
+                  <td class="note">
+                    <%= item.post.metrics.likes %> likes<% if (item.post.metrics.comments) { %>, <%= item.post.metrics.comments %> comments<% } %><% if (item.post.metrics.shares) { %>, <%= item.post.metrics.shares %> shares<% } %><% if (item.post.metrics.impressions !== null) { %>, <%= item.post.metrics.impressions %> impressions<% } %>
+                  </td>
+                  <td class="note">
+                    <% if (item.sessionsByDay) { %>
+                      <%= item.sessionsByDay.map(function(d) { return d.sessions === null ? '—' : d.sessions; }).join(' / ') %>
+                    <% } else { %>—<% } %>
+                  </td>
+                  <td>
+                    <% if (item.liftLabel === 'above baseline') { %><span class="badge status-new"><%= item.liftLabel %></span>
+                    <% } else if (item.liftLabel === 'below baseline') { %><span class="badge status-skipped"><%= item.liftLabel %></span>
+                    <% } else { %><span class="badge topic"><%= item.liftLabel %></span><% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
 
     <% if (configured.ga4 && posts.length) { %>
       <div class="card" style="margin-bottom:20px;">
