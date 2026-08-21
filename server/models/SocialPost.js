@@ -13,6 +13,7 @@ const SocialPostSchema = new mongoose.Schema(
       comments: { type: Number, default: 0 },
       shares: { type: Number, default: 0 },
       impressions: { type: Number, default: null },
+      clicks: { type: Number, default: null },
     },
   },
   { timestamps: true }

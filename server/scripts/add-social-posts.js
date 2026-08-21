@@ -11,12 +11,12 @@ const SocialPost = require('../models/SocialPost');
 const POSTS = [
   // {
   //   platform: 'instagram', // or 'linkedin'
-  //   account: 'Humankind Movement', // or 'Ajith personal'
+  //   account: 'Humankind Movement', // or 'Ajith personal' / 'Humankind Movement Page'
   //   postUrl: 'https://www.instagram.com/p/...',
   //   publishedAt: new Date('2026-08-18'),
   //   caption: 'Short caption snippet for display',
   //   hasSiteLink: true,
-  //   metrics: { likes: 0, comments: 0, shares: 0, impressions: null },
+  //   metrics: { likes: 0, comments: 0, shares: 0, impressions: null, clicks: null },
   // },
 ];
 

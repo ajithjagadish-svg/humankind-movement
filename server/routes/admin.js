@@ -343,6 +343,35 @@ function getSocialPostsWithContext(socialPosts, timeSeries) {
   });
 }
 
+// Groups tracked posts by platform + account (e.g. "linkedin - Ajith personal"
+// vs "linkedin - Humankind Movement Page") so reach can be compared account
+// to account, not just lumped together as "LinkedIn".
+function getAccountSummary(socialPosts) {
+  const groups = {};
+  socialPosts.forEach((post) => {
+    const key = `${post.platform}::${post.account}`;
+    if (!groups[key]) {
+      groups[key] = { platform: post.platform, account: post.account, posts: 0, impressions: 0, impressionsCount: 0, likes: 0, clicks: 0, clicksCount: 0 };
+    }
+    const g = groups[key];
+    g.posts += 1;
+    g.likes += post.metrics.likes || 0;
+    if (post.metrics.impressions !== null && post.metrics.impressions !== undefined) {
+      g.impressions += post.metrics.impressions;
+      g.impressionsCount += 1;
+    }
+    if (post.metrics.clicks !== null && post.metrics.clicks !== undefined) {
+      g.clicks += post.metrics.clicks;
+      g.clicksCount += 1;
+    }
+  });
+  return Object.values(groups).map((g) => ({
+    ...g,
+    avgImpressions: g.impressionsCount ? Math.round(g.impressions / g.impressionsCount) : null,
+    avgLikes: g.posts ? +(g.likes / g.posts).toFixed(1) : null,
+  }));
+}
+
 router.get('/analytics', requireAuth, async (req, res) => {
   const configured = { ga4: ga4Configured(), searchConsole: searchConsoleConfigured() };
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
@@ -351,7 +380,8 @@ router.get('/analytics', requireAuth, async (req, res) => {
   const timeSeries = await getTimeSeries(configured);
   const socialPosts = await SocialPost.find().sort({ publishedAt: -1 }).lean();
   const socialPostsWithContext = getSocialPostsWithContext(socialPosts, timeSeries);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, refreshError: null, refreshedAt: null });
+  const accountSummary = getAccountSummary(socialPosts);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, accountSummary, refreshError: null, refreshedAt: null });
 });
 
 router.post('/analytics/refresh', requireAuth, async (req, res) => {
@@ -392,7 +422,8 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
   const timeSeries = await getTimeSeries(configured);
   const socialPosts = await SocialPost.find().sort({ publishedAt: -1 }).lean();
   const socialPostsWithContext = getSocialPostsWithContext(socialPosts, timeSeries);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, refreshError, refreshedAt: new Date() });
+  const accountSummary = getAccountSummary(socialPosts);
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, accountSummary, refreshError, refreshedAt: new Date() });
 });
 
 // --- Submissions (contact + intake forms) ---

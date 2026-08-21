@@ -102,6 +102,40 @@
       <p class="note" style="margin-top:0.8em;">Tracked directly (no GA4 needed) - only counts real visitors, bots excluded. Started 2026-08-07, so this does not include any traffic before that date.</p>
     </div>
 
+    <% if (accountSummary && accountSummary.length) { %>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem; margin:0 0 0.2em;">Social reach by account</h2>
+        <p class="note" style="margin:0 0 1em;">"LinkedIn" and "Instagram" aren't single audiences - your personal profile, the Humankind Movement Page, and your personal Instagram are four separate audiences with very different reach. Same last-pull caveat as below.</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Platform</th>
+                <th>Posts tracked</th>
+                <th>Avg impressions/post</th>
+                <th>Avg likes/post</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% accountSummary.forEach(function(g) { %>
+                <tr>
+                  <td><%= g.account %></td>
+                  <td><span class="badge platform-<%= g.platform %>"><%= g.platform %></span></td>
+                  <td><%= g.posts %></td>
+                  <td><%= g.avgImpressions === null ? '—' : g.avgImpressions %></td>
+                  <td><%= g.avgLikes === null ? '—' : g.avgLikes %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:1em;">
+          <strong>What this is actually saying (as of this pull):</strong> your personal LinkedIn profile (2,630 followers) reaches roughly 5-10x further per post than the Humankind Movement Page (10 followers) - except one carousel post that did unusually well on the Page (98 impressions, 6 clicks) despite the tiny audience, worth noticing rather than assuming personal always wins. On Instagram, the business account gets a noticeably higher engagement rate per follower than your personal account, even with fewer followers (399 vs 1,071) - likely because personal content is athlete/lifestyle, not coaching-focused, so it isn't really competing for the same attention. Practical takeaway: personal LinkedIn is doing the heavy lifting on reach right now, so it's worth keeping every coaching post there, not just the Page. The Instagram business account is converting attention efficiently for its size - growing its follower count is likely to matter more than changing what it posts.
+        </p>
+      </div>
+    <% } %>
+
     <% if (configured.ga4 && socialPostsWithContext.length) { %>
       <div class="card" style="margin-bottom:20px;">
         <h2 style="font-size:1rem; margin:0 0 0.2em;">Social posts &amp; website traffic</h2>
@@ -127,7 +161,7 @@
                   <td><span class="badge platform-<%= item.post.platform %>"><%= item.post.platform %></span></td>
                   <td><%= new Date(item.post.publishedAt).toLocaleDateString() %></td>
                   <td class="note">
-                    <%= item.post.metrics.likes %> likes<% if (item.post.metrics.comments) { %>, <%= item.post.metrics.comments %> comments<% } %><% if (item.post.metrics.shares) { %>, <%= item.post.metrics.shares %> shares<% } %><% if (item.post.metrics.impressions !== null) { %>, <%= item.post.metrics.impressions %> impressions<% } %>
+                    <%= item.post.metrics.likes %> likes<% if (item.post.metrics.comments) { %>, <%= item.post.metrics.comments %> comments<% } %><% if (item.post.metrics.shares) { %>, <%= item.post.metrics.shares %> shares<% } %><% if (item.post.metrics.impressions !== null) { %>, <%= item.post.metrics.impressions %> impressions<% } %><% if (item.post.metrics.clicks !== null && item.post.metrics.clicks !== undefined) { %>, <%= item.post.metrics.clicks %> clicks<% } %>
                   </td>
                   <td class="note">
                     <% if (item.sessionsByDay) { %>
