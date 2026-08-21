@@ -1,11 +1,20 @@
 const mongoose = require('mongoose');
 
+const ChatBubbleSchema = new mongoose.Schema(
+  {
+    from: { type: String, enum: ['client', 'coach'], required: true },
+    text: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const SlideSchema = new mongoose.Schema(
   {
     eyebrow: { type: String, default: '' },
-    headline: { type: String, required: true },
+    headline: { type: String, default: '' },
     sub: { type: String, default: '' },
     bullets: [{ type: String }],
+    chatBubbles: [ChatBubbleSchema],
     variant: { type: String, enum: ['default', 'dark', 'cta'], default: 'default' },
     ctaBtn: { type: String, default: '' },
     bgStyle: { type: String, enum: ['none', 'orb', 'lines'], default: 'none' },
