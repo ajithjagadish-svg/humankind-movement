@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ChatBubbleSchema = new mongoose.Schema(
   {
-    from: { type: String, enum: ['client', 'coach'], required: true },
+    from: { type: String, enum: ['client', 'coach', 'divider'], required: true },
     text: { type: String, required: true },
   },
   { _id: false }
