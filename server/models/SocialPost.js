@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const SocialPostSchema = new mongoose.Schema(
   {
-    platform: { type: String, enum: ['instagram', 'linkedin'], required: true, index: true },
+    platform: { type: String, enum: ['instagram', 'linkedin', 'x', 'threads', 'youtube'], required: true, index: true },
     account: { type: String, required: true },
     postUrl: { type: String, required: true },
     publishedAt: { type: Date, required: true, index: true },
