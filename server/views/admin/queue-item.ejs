@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title><%= item ? item.title : 'New queue item' %> | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  main { max-width: 800px; }
+  .platform-row { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .platform-row-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 0.6em; }
+  .platform-row-head input { margin: 0; }
+  .platform-row textarea { min-height: 140px; font-family: inherit; font-size: 0.92rem; }
+  .platform-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .platform-row-actions button { font-size: 0.78rem; padding: 5px 12px; white-space: nowrap; }
+  .top-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+  .top-actions form { margin: 0; }
+  .copied-flash { font-size: 0.78rem; color: #1e7b34; font-weight: 600; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'queue' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;"><%= item ? item.title : 'New queue item' %></h1>
+      <a href="/admin/queue">← Back to queue</a>
+    </div>
+
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+    <% if (item && item._id) { %>
+      <div class="top-actions">
+        <form method="POST" action="/admin/queue/<%= item._id %>/status">
+          <input type="hidden" name="status" value="<%= item.status === 'posted' ? 'queued' : 'posted' %>">
+          <button type="submit" class="btn btn-ghost"><%= item.status === 'posted' ? 'Mark as queued' : 'Mark as posted' %></button>
+        </form>
+        <button type="button" class="btn btn-ghost" id="copy-all-btn">Copy all platforms</button>
+        <span class="copied-flash" id="copied-flash" style="display:none;">Copied</span>
+        <form method="POST" action="/admin/queue/<%= item._id %>/delete" onsubmit="return confirm('Delete this queue item? This cannot be undone.');" style="margin-left:auto;">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    <% } %>
+
+    <form id="item-form" method="POST" action="<%= item && item._id ? '/admin/queue/' + item._id + '/edit' : '/admin/queue/new' %>">
+      <input type="hidden" name="platformsJson" id="platformsJson">
+
+      <label>Title</label>
+      <input type="text" name="title" id="f-title" value="<%= item ? item.title : '' %>" required>
+
+      <label>Scheduled date</label>
+      <input type="date" name="scheduledDate" id="f-date" value="<%= item && item.scheduledDate ? new Date(item.scheduledDate).toISOString().slice(0,10) : '' %>" required>
+
+      <label>Notes (recording instructions, source links, anything not tied to one platform)</label>
+      <textarea name="notes" id="f-notes" style="min-height:100px; font-family:inherit; font-size:0.92rem;"><%= item ? item.notes : '' %></textarea>
+
+      <input type="hidden" name="status" id="f-status" value="<%= item ? item.status : 'queued' %>">
+
+      <h3 style="margin-top:2em;">Platforms</h3>
+      <div id="platforms-container">
+        <% (item && item.platforms ? item.platforms : []).forEach(function(p) { %>
+          <div class="platform-row">
+            <div class="platform-row-head">
+              <input type="text" class="p-name" value="<%= p.name %>" placeholder="e.g. LinkedIn Page">
+              <div class="platform-row-actions">
+                <button type="button" class="btn btn-ghost p-copy-btn">Copy</button>
+                <button type="button" class="btn btn-danger p-remove-btn">Remove</button>
+              </div>
+            </div>
+            <textarea class="p-content" placeholder="Paste or write the content for this platform"><%= p.content %></textarea>
+          </div>
+        <% }) %>
+      </div>
+      <button type="button" class="btn btn-ghost" id="add-platform-btn">+ Add platform</button>
+
+      <div class="actions">
+        <button type="submit" class="btn">Save</button>
+      </div>
+    </form>
+  </main>
+
+<script>
+(function () {
+  var container = document.getElementById('platforms-container');
+
+  function rows() {
+    return Array.prototype.slice.call(document.querySelectorAll('.platform-row'));
+  }
+
+  function addRow(name, content) {
+    var row = document.createElement('div');
+    row.className = 'platform-row';
+    row.innerHTML =
+      '<div class="platform-row-head">' +
+      '<input type="text" class="p-name" value="' + (name || '').replace(/"/g, '&quot;') + '" placeholder="e.g. LinkedIn Page">' +
+      '<div class="platform-row-actions">' +
+      '<button type="button" class="btn btn-ghost p-copy-btn">Copy</button>' +
+      '<button type="button" class="btn btn-danger p-remove-btn">Remove</button>' +
+      '</div></div>' +
+      '<textarea class="p-content" placeholder="Paste or write the content for this platform"></textarea>';
+    container.appendChild(row);
+    row.querySelector('.p-content').value = content || '';
+  }
+
+  document.getElementById('add-platform-btn').addEventListener('click', function () {
+    addRow('', '');
+  });
+
+  function flashCopied() {
+    var flash = document.getElementById('copied-flash');
+    if (!flash) return;
+    flash.style.display = 'inline';
+    setTimeout(function () { flash.style.display = 'none'; }, 1500);
+  }
+
+  container.addEventListener('click', function (e) {
+    var row = e.target.closest('.platform-row');
+    if (!row) return;
+    if (e.target.classList.contains('p-remove-btn')) {
+      row.remove();
+    } else if (e.target.classList.contains('p-copy-btn')) {
+      var text = row.querySelector('.p-content').value;
+      navigator.clipboard.writeText(text).then(flashCopied);
+    }
+  });
+
+  var copyAllBtn = document.getElementById('copy-all-btn');
+  if (copyAllBtn) {
+    copyAllBtn.addEventListener('click', function () {
+      var parts = rows().map(function (row) {
+        var name = row.querySelector('.p-name').value;
+        var content = row.querySelector('.p-content').value;
+        return name.toUpperCase() + ':\n' + content;
+      });
+      navigator.clipboard.writeText(parts.join('\n\n---\n\n')).then(flashCopied);
+    });
+  }
+
+  document.getElementById('item-form').addEventListener('submit', function () {
+    var platforms = rows().map(function (row) {
+      return {
+        name: row.querySelector('.p-name').value,
+        content: row.querySelector('.p-content').value,
+      };
+    });
+    document.getElementById('platformsJson').value = JSON.stringify(platforms);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Publish queue | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .queue-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .queue-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
+  .queue-platforms { font-size: 0.8rem; color: #6b6862; }
+  h2.section { font-size: 1rem; margin: 2em 0 0.8em; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'queue' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Publish Queue (<%= queued.length %> queued)</h1>
+      <a class="btn" href="/admin/queue/new">+ New item</a>
+    </div>
+    <p class="queue-meta">Content ready to copy-paste per platform, before it's posted anywhere. This does not post automatically to any platform - copy the section you need into Zoho Social, or paste directly into the app.</p>
+
+    <% if (!queued.length) { %>
+      <p>Nothing queued yet.</p>
+    <% } %>
+
+    <% queued.forEach(function(item) { %>
+      <div class="queue-card">
+        <div class="row" style="margin-bottom:0;">
+          <h3 style="margin:0;"><%= item.title %></h3>
+          <span class="badge draft"><%= new Date(item.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+        </div>
+        <p class="queue-platforms"><%= item.platforms.length %> platform<%= item.platforms.length === 1 ? '' : 's' %>: <%= item.platforms.map(function(p) { return p.name; }).join(', ') %></p>
+        <a class="btn" href="/admin/queue/<%= item._id %>">Open</a>
+      </div>
+    <% }) %>
+
+    <% if (posted.length) { %>
+      <h2 class="section">Already posted (<%= posted.length %>)</h2>
+      <% posted.forEach(function(item) { %>
+        <div class="queue-card">
+          <div class="row" style="margin-bottom:0;">
+            <h3 style="margin:0;"><%= item.title %></h3>
+            <span class="badge published">posted</span>
+          </div>
+          <p class="queue-meta"><%= new Date(item.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
+          <a class="btn btn-ghost" href="/admin/queue/<%= item._id %>">Open</a>
+        </div>
+      <% }) %>
+    <% } %>
+  </main>
+</body>
+</html>

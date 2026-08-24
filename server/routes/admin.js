@@ -8,6 +8,7 @@ const EbookLead = require('../models/EbookLead');
 const Carousel = require('../models/Carousel');
 const EngagementLead = require('../models/EngagementLead');
 const SocialPost = require('../models/SocialPost');
+const PublishQueueItem = require('../models/PublishQueueItem');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary, fetchGA4TimeSeries } = require('../services/ga4');
@@ -621,6 +622,87 @@ router.post('/engagement/:id/status', requireAuth, async (req, res, next) => {
 router.post('/engagement/:id/delete', requireAuth, async (req, res) => {
   await EngagementLead.findByIdAndDelete(req.params.id);
   res.redirect('/admin/engagement');
+});
+
+// --- Publish queue (pre-publish content, ready to copy per platform - see
+// server/models/PublishQueueItem.js for how this differs from SocialPost,
+// which tracks posts after they go live) ---
+
+router.get('/queue', requireAuth, async (req, res) => {
+  const items = await PublishQueueItem.find().sort({ scheduledDate: 1 }).lean();
+  const queued = items.filter((i) => i.status === 'queued');
+  const posted = items.filter((i) => i.status === 'posted');
+  res.render('admin/queue-list', { queued, posted });
+});
+
+router.get('/queue/new', requireAuth, (req, res) => {
+  res.render('admin/queue-item', { item: null, error: null });
+});
+
+router.post('/queue/new', requireAuth, async (req, res) => {
+  try {
+    await createOrUpdateQueueItem(req.body, null);
+    res.redirect('/admin/queue');
+  } catch (err) {
+    res.status(400).render('admin/queue-item', { item: req.body, error: err.message });
+  }
+});
+
+router.get('/queue/:id', requireAuth, async (req, res, next) => {
+  const item = await PublishQueueItem.findById(req.params.id).lean();
+  if (!item) return next();
+  res.render('admin/queue-item', { item, error: req.query.error || null });
+});
+
+router.post('/queue/:id/edit', requireAuth, async (req, res, next) => {
+  const existing = await PublishQueueItem.findById(req.params.id);
+  if (!existing) return next();
+  try {
+    await createOrUpdateQueueItem(req.body, existing);
+    res.redirect('/admin/queue');
+  } catch (err) {
+    res.status(400).render('admin/queue-item', { item: { ...req.body, _id: existing._id }, error: err.message });
+  }
+});
+
+async function createOrUpdateQueueItem(body, existing) {
+  if (!body.title || !body.title.trim()) throw new Error('Title is required.');
+  if (!body.scheduledDate) throw new Error('Scheduled date is required.');
+
+  let platforms = [];
+  try {
+    platforms = JSON.parse(body.platformsJson || '[]');
+  } catch (err) {
+    throw new Error('Could not read platform content.');
+  }
+  platforms = platforms.filter((p) => p.name && p.name.trim() && p.content && p.content.trim());
+  if (!platforms.length) throw new Error('Add at least one platform with content.');
+
+  const data = {
+    title: body.title.trim(),
+    scheduledDate: new Date(body.scheduledDate),
+    notes: (body.notes || '').trim(),
+    platforms,
+    status: body.status === 'posted' ? 'posted' : 'queued',
+  };
+
+  if (existing) {
+    Object.assign(existing, data);
+    await existing.save();
+  } else {
+    await PublishQueueItem.create(data);
+  }
+}
+
+router.post('/queue/:id/status', requireAuth, async (req, res, next) => {
+  if (!['queued', 'posted'].includes(req.body.status)) return next();
+  await PublishQueueItem.findByIdAndUpdate(req.params.id, { status: req.body.status });
+  res.redirect('/admin/queue');
+});
+
+router.post('/queue/:id/delete', requireAuth, async (req, res) => {
+  await PublishQueueItem.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/queue');
 });
 
 module.exports = router;
