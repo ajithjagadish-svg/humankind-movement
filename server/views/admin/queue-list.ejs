@@ -9,44 +9,87 @@
 <style>
   .queue-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
   .queue-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
-  .queue-platforms { font-size: 0.8rem; color: #6b6862; }
-  h2.section { font-size: 1rem; margin: 2em 0 0.8em; }
+  .platform-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.6em; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; padding: 3px 10px; border-radius: 100px; border: 1px solid var(--line); }
+  .pill.posted { background: #e6f4ea; color: #1e7b34; border-color: transparent; }
+  .pill.queued { background: #f1efe9; color: #6b6862; border-color: transparent; }
+  .filters { display: flex; gap: 12px; align-items: end; margin-bottom: 24px; flex-wrap: wrap; }
+  .filters label { margin: 0 0 0.3em; }
+  .filters select { width: auto; min-width: 180px; }
+  .filter-row-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
+  .filter-row-item form { margin: 0; }
 </style>
 </head>
 <body>
   <%- include('../partials/admin-nav', { active: 'queue' }) %>
   <main>
     <div class="row">
-      <h1 style="font-size:1.2rem; margin:0;">Publish Queue (<%= queued.length %> queued)</h1>
+      <h1 style="font-size:1.2rem; margin:0;">Publish Queue</h1>
       <a class="btn" href="/admin/queue/new">+ New item</a>
     </div>
-    <p class="queue-meta">Content ready to copy-paste per platform, before it's posted anywhere. This does not post automatically to any platform - copy the section you need into Zoho Social, or paste directly into the app.</p>
+    <p class="queue-meta">Content ready to copy per platform, before it's posted anywhere. Nothing here posts automatically - copy the section you need into Zoho Social, or paste directly into each app. Each platform's status is tracked separately, so nothing gets missed across a multi-platform post.</p>
 
-    <% if (!queued.length) { %>
-      <p>Nothing queued yet.</p>
-    <% } %>
-
-    <% queued.forEach(function(item) { %>
-      <div class="queue-card">
-        <div class="row" style="margin-bottom:0;">
-          <h3 style="margin:0;"><%= item.title %></h3>
-          <span class="badge draft"><%= new Date(item.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
-        </div>
-        <p class="queue-platforms"><%= item.platforms.length %> platform<%= item.platforms.length === 1 ? '' : 's' %>: <%= item.platforms.map(function(p) { return p.name; }).join(', ') %></p>
-        <a class="btn" href="/admin/queue/<%= item._id %>">Open</a>
+    <form method="GET" action="/admin/queue" class="filters">
+      <div>
+        <label>Platform</label>
+        <select name="platform" onchange="this.form.submit()">
+          <option value="">All platforms</option>
+          <% platformNames.forEach(function(name) { %>
+            <option value="<%= name %>" <%= filterPlatform === name ? 'selected' : '' %>><%= name %></option>
+          <% }) %>
+        </select>
       </div>
-    <% }) %>
+      <div>
+        <label>Status</label>
+        <select name="status" onchange="this.form.submit()">
+          <option value="">Any status</option>
+          <option value="queued" <%= filterStatus === 'queued' ? 'selected' : '' %>>Not posted</option>
+          <option value="posted" <%= filterStatus === 'posted' ? 'selected' : '' %>>Posted</option>
+        </select>
+      </div>
+      <% if (filterPlatform || filterStatus) { %>
+        <a class="btn btn-ghost" href="/admin/queue">Clear filters</a>
+      <% } %>
+    </form>
 
-    <% if (posted.length) { %>
-      <h2 class="section">Already posted (<%= posted.length %>)</h2>
-      <% posted.forEach(function(item) { %>
+    <% if (rows) { %>
+      <% if (!rows.length) { %>
+        <p>Nothing matches this filter.</p>
+      <% } %>
+      <% rows.forEach(function(r) { %>
+        <div class="filter-row-item">
+          <div>
+            <strong><%= r.item.title %></strong>
+            <div class="queue-meta" style="margin:0.2em 0 0;"><%= r.platform.name %> &middot; <%= new Date(r.item.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="pill <%= r.platform.status %>"><%= r.platform.status === 'posted' ? 'Posted' : 'Not posted' %></span>
+            <form method="POST" action="/admin/queue/<%= r.item._id %>/platform/<%= r.platform._id %>/status">
+              <input type="hidden" name="status" value="<%= r.platform.status === 'posted' ? 'queued' : 'posted' %>">
+              <button type="submit" class="btn btn-ghost">Mark <%= r.platform.status === 'posted' ? 'not posted' : 'posted' %></button>
+            </form>
+            <a class="btn btn-ghost" href="/admin/queue/<%= r.item._id %>">Open</a>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <% if (!items.length) { %>
+        <p>Nothing queued yet.</p>
+      <% } %>
+      <% items.forEach(function(item) { %>
+        <% var postedCount = item.platforms.filter(function(p) { return p.status === 'posted'; }).length; %>
         <div class="queue-card">
           <div class="row" style="margin-bottom:0;">
             <h3 style="margin:0;"><%= item.title %></h3>
-            <span class="badge published">posted</span>
+            <span class="badge <%= postedCount === item.platforms.length ? 'published' : 'draft' %>"><%= postedCount %> / <%= item.platforms.length %> posted</span>
           </div>
           <p class="queue-meta"><%= new Date(item.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
-          <a class="btn btn-ghost" href="/admin/queue/<%= item._id %>">Open</a>
+          <div class="platform-pills">
+            <% item.platforms.forEach(function(p) { %>
+              <span class="pill <%= p.status %>"><%= p.name %></span>
+            <% }) %>
+          </div>
+          <div style="margin-top:12px;"><a class="btn" href="/admin/queue/<%= item._id %>">Open</a></div>
         </div>
       <% }) %>
     <% } %>

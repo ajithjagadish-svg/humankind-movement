@@ -9,11 +9,14 @@
 <style>
   main { max-width: 800px; }
   .platform-row { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .platform-row-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 0.6em; }
+  .platform-row-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 0.6em; flex-wrap: wrap; }
   .platform-row-head input { margin: 0; }
   .platform-row textarea { min-height: 140px; font-family: inherit; font-size: 0.92rem; }
   .platform-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
   .platform-row-actions button { font-size: 0.78rem; padding: 5px 12px; white-space: nowrap; }
+  .status-toggle { font-size: 0.78rem; padding: 5px 12px; border-radius: 100px; border: 1px solid var(--line); cursor: pointer; background: #f1efe9; color: #6b6862; }
+  .status-toggle.posted { background: #e6f4ea; color: #1e7b34; border-color: transparent; }
+  .platform-row .p-url { margin-top: 0.5em; font-size: 0.85rem; }
   .top-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
   .top-actions form { margin: 0; }
   .copied-flash { font-size: 0.78rem; color: #1e7b34; font-weight: 600; }
@@ -31,10 +34,6 @@
 
     <% if (item && item._id) { %>
       <div class="top-actions">
-        <form method="POST" action="/admin/queue/<%= item._id %>/status">
-          <input type="hidden" name="status" value="<%= item.status === 'posted' ? 'queued' : 'posted' %>">
-          <button type="submit" class="btn btn-ghost"><%= item.status === 'posted' ? 'Mark as queued' : 'Mark as posted' %></button>
-        </form>
         <button type="button" class="btn btn-ghost" id="copy-all-btn">Copy all platforms</button>
         <span class="copied-flash" id="copied-flash" style="display:none;">Copied</span>
         <form method="POST" action="/admin/queue/<%= item._id %>/delete" onsubmit="return confirm('Delete this queue item? This cannot be undone.');" style="margin-left:auto;">
@@ -55,20 +54,20 @@
       <label>Notes (recording instructions, source links, anything not tied to one platform)</label>
       <textarea name="notes" id="f-notes" style="min-height:100px; font-family:inherit; font-size:0.92rem;"><%= item ? item.notes : '' %></textarea>
 
-      <input type="hidden" name="status" id="f-status" value="<%= item ? item.status : 'queued' %>">
-
       <h3 style="margin-top:2em;">Platforms</h3>
       <div id="platforms-container">
         <% (item && item.platforms ? item.platforms : []).forEach(function(p) { %>
           <div class="platform-row">
             <div class="platform-row-head">
-              <input type="text" class="p-name" value="<%= p.name %>" placeholder="e.g. LinkedIn Page">
+              <input type="text" class="p-name" value="<%= p.name %>" placeholder="e.g. LinkedIn Page" style="flex:1; min-width:160px;">
               <div class="platform-row-actions">
+                <button type="button" class="status-toggle p-status-btn <%= p.status %>" data-status="<%= p.status || 'queued' %>"><%= p.status === 'posted' ? 'Posted' : 'Not posted' %></button>
                 <button type="button" class="btn btn-ghost p-copy-btn">Copy</button>
                 <button type="button" class="btn btn-danger p-remove-btn">Remove</button>
               </div>
             </div>
             <textarea class="p-content" placeholder="Paste or write the content for this platform"><%= p.content %></textarea>
+            <input type="text" class="p-url" placeholder="Post URL once live (optional, for your own reference)" value="<%= p.postUrl || '' %>">
           </div>
         <% }) %>
       </div>
@@ -93,12 +92,14 @@
     row.className = 'platform-row';
     row.innerHTML =
       '<div class="platform-row-head">' +
-      '<input type="text" class="p-name" value="' + (name || '').replace(/"/g, '&quot;') + '" placeholder="e.g. LinkedIn Page">' +
+      '<input type="text" class="p-name" value="' + (name || '').replace(/"/g, '&quot;') + '" placeholder="e.g. LinkedIn Page" style="flex:1; min-width:160px;">' +
       '<div class="platform-row-actions">' +
+      '<button type="button" class="status-toggle p-status-btn queued" data-status="queued">Not posted</button>' +
       '<button type="button" class="btn btn-ghost p-copy-btn">Copy</button>' +
       '<button type="button" class="btn btn-danger p-remove-btn">Remove</button>' +
       '</div></div>' +
-      '<textarea class="p-content" placeholder="Paste or write the content for this platform"></textarea>';
+      '<textarea class="p-content" placeholder="Paste or write the content for this platform"></textarea>' +
+      '<input type="text" class="p-url" placeholder="Post URL once live (optional, for your own reference)">';
     container.appendChild(row);
     row.querySelector('.p-content').value = content || '';
   }
@@ -122,6 +123,12 @@
     } else if (e.target.classList.contains('p-copy-btn')) {
       var text = row.querySelector('.p-content').value;
       navigator.clipboard.writeText(text).then(flashCopied);
+    } else if (e.target.classList.contains('p-status-btn')) {
+      var btn = e.target;
+      var next = btn.dataset.status === 'posted' ? 'queued' : 'posted';
+      btn.dataset.status = next;
+      btn.textContent = next === 'posted' ? 'Posted' : 'Not posted';
+      btn.classList.toggle('posted', next === 'posted');
     }
   });
 
@@ -142,6 +149,8 @@
       return {
         name: row.querySelector('.p-name').value,
         content: row.querySelector('.p-content').value,
+        postUrl: row.querySelector('.p-url').value,
+        status: row.querySelector('.p-status-btn').dataset.status,
       };
     });
     document.getElementById('platformsJson').value = JSON.stringify(platforms);

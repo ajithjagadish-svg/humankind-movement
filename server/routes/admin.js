@@ -626,13 +626,32 @@ router.post('/engagement/:id/delete', requireAuth, async (req, res) => {
 
 // --- Publish queue (pre-publish content, ready to copy per platform - see
 // server/models/PublishQueueItem.js for how this differs from SocialPost,
-// which tracks posts after they go live) ---
+// which tracks posts after they go live). Status lives per-platform, not
+// per-item, since the whole point is catching a single missed platform out
+// of 6+ - so filtering by platform + status is how the list answers "what's
+// still not posted on X" directly, mirroring the /admin/engagement filter
+// pattern above. ---
 
 router.get('/queue', requireAuth, async (req, res) => {
   const items = await PublishQueueItem.find().sort({ scheduledDate: 1 }).lean();
-  const queued = items.filter((i) => i.status === 'queued');
-  const posted = items.filter((i) => i.status === 'posted');
-  res.render('admin/queue-list', { queued, posted });
+  const platformNames = [...new Set(items.flatMap((i) => i.platforms.map((p) => p.name)))].sort();
+
+  const filterPlatform = req.query.platform || '';
+  const filterStatus = req.query.status || '';
+
+  let rows = null;
+  if (filterPlatform || filterStatus) {
+    rows = [];
+    items.forEach((item) => {
+      item.platforms.forEach((p) => {
+        if (filterPlatform && p.name !== filterPlatform) return;
+        if (filterStatus && p.status !== filterStatus) return;
+        rows.push({ item, platform: p });
+      });
+    });
+  }
+
+  res.render('admin/queue-list', { items, rows, platformNames, filterPlatform, filterStatus });
 });
 
 router.get('/queue/new', requireAuth, (req, res) => {
@@ -675,7 +694,14 @@ async function createOrUpdateQueueItem(body, existing) {
   } catch (err) {
     throw new Error('Could not read platform content.');
   }
-  platforms = platforms.filter((p) => p.name && p.name.trim() && p.content && p.content.trim());
+  platforms = platforms
+    .filter((p) => p.name && p.name.trim() && p.content && p.content.trim())
+    .map((p) => ({
+      name: p.name.trim(),
+      content: p.content,
+      postUrl: (p.postUrl || '').trim(),
+      status: p.status === 'posted' ? 'posted' : 'queued',
+    }));
   if (!platforms.length) throw new Error('Add at least one platform with content.');
 
   const data = {
@@ -683,7 +709,6 @@ async function createOrUpdateQueueItem(body, existing) {
     scheduledDate: new Date(body.scheduledDate),
     notes: (body.notes || '').trim(),
     platforms,
-    status: body.status === 'posted' ? 'posted' : 'queued',
   };
 
   if (existing) {
@@ -694,10 +719,17 @@ async function createOrUpdateQueueItem(body, existing) {
   }
 }
 
-router.post('/queue/:id/status', requireAuth, async (req, res, next) => {
-  if (!['queued', 'posted'].includes(req.body.status)) return next();
-  await PublishQueueItem.findByIdAndUpdate(req.params.id, { status: req.body.status });
-  res.redirect('/admin/queue');
+// Quick one-click toggle for a single platform's status, used from the
+// filtered list view so marking something posted doesn't require opening
+// the full item editor.
+router.post('/queue/:id/platform/:platformId/status', requireAuth, async (req, res, next) => {
+  const item = await PublishQueueItem.findById(req.params.id);
+  if (!item) return next();
+  const platform = item.platforms.id(req.params.platformId);
+  if (!platform) return next();
+  platform.status = req.body.status === 'posted' ? 'posted' : 'queued';
+  await item.save();
+  res.redirect(req.get('Referrer') || '/admin/queue');
 });
 
 router.post('/queue/:id/delete', requireAuth, async (req, res) => {
