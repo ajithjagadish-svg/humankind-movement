@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title><%= profile ? 'Edit' : 'New' %> client profile | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 18px; margin-top: 1.4em; }
+  legend { font-size: 0.85rem; font-weight: 600; padding: 0 6px; }
+  .hint { font-size: 0.78rem; color: #6b6862; margin: 0.2em 0 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+</style>
+</head>
+<body>
+  <%
+    var p = profile || {};
+    var intake = fromIntake;
+    function val(field, intakeField, fallback) {
+      if (p[field] !== undefined && p[field] !== null) return p[field];
+      if (intake && intakeField && intake[intakeField]) return intake[intakeField];
+      return fallback || '';
+    }
+    var heightDefault = p.heightCm || (intake ? nutritionTargets.parseHeightToCm(intake.height) : '');
+    var weightDefault = p.currentWeightKg || (intake ? nutritionTargets.parseWeightToKg(intake.bodyWeight) : '');
+    var activityLevelDefault = val('activityLevel', 'activityLevel');
+    var goalDefault = val('goal', 'goal');
+    var dietaryDefault = val('dietaryPreference', 'dietaryPreference');
+    var proteinDefault = p.proteinPerKg || (nutritionTargets.defaultProteinPerKg(dietaryDefault) || 1.8);
+    var activityFactorDefault = p.activityFactor || nutritionTargets.ACTIVITY_FACTOR_DEFAULTS[activityLevelDefault] || '';
+    var calorieAdjustmentDefault = (p.calorieAdjustment !== undefined && p.calorieAdjustment !== '') ? p.calorieAdjustment : (nutritionTargets.CALORIE_ADJUSTMENT_DEFAULTS[goalDefault] !== undefined ? nutritionTargets.CALORIE_ADJUSTMENT_DEFAULTS[goalDefault] : 0);
+  %>
+  <%- include('../partials/admin-nav', { active: 'clients' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;"><%= profile ? 'Edit profile' : 'New client profile' %></h1>
+      <a href="/admin/clients">← Back to clients</a>
+    </div>
+
+    <div class="card">
+      <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <% if (intake) { %>
+        <p class="hint">Prefilled from <%= intake.fullName %>'s intake form. Review before saving - height and weight were parsed automatically and activity factor / calorie adjustment are just starting suggestions.</p>
+      <% } %>
+
+      <form method="POST" action="<%= profile ? '/admin/clients/' + profile._id + '/edit' : '/admin/clients/new' %>">
+        <% if (intake) { %><input type="hidden" name="intakeSubmissionId" value="<%= intake._id %>"><% } %>
+
+        <fieldset>
+          <legend>Basic details</legend>
+          <label>Full name</label>
+          <input type="text" name="fullName" value="<%= val('fullName', 'fullName') %>" required>
+          <div class="two-col">
+            <div>
+              <label>Email</label>
+              <input type="email" name="email" value="<%= val('email', 'email') %>">
+            </div>
+            <div>
+              <label>Date of birth</label>
+              <input type="date" name="dateOfBirth" value="<%= val('dateOfBirth', 'dateOfBirth') %>" required>
+            </div>
+          </div>
+          <div class="two-col">
+            <div>
+              <label>Height (cm)</label>
+              <input type="number" step="0.1" name="heightCm" value="<%= heightDefault %>" required>
+            </div>
+            <div>
+              <label>Current weight (kg)</label>
+              <input type="number" step="0.1" name="currentWeightKg" value="<%= weightDefault %>" required>
+            </div>
+          </div>
+          <label>Location</label>
+          <input type="text" name="location" value="<%= val('location', 'location') %>" placeholder="City, for sunlight/vitamin D timing">
+          <label>Dietary preference</label>
+          <input type="text" name="dietaryPreference" value="<%= dietaryDefault %>">
+        </fieldset>
+
+        <fieldset>
+          <legend>Goal and activity - locked 12 weeks once set</legend>
+          <p class="hint">Changing either resets that field's 12-week lock timer. Only change these for a genuine circumstance change, not a routine check-in - see the check-in log on the profile page for that instead.</p>
+          <label>Goal</label>
+          <select name="goal" required>
+            <% ['Weight loss', 'Weight maintenance', 'Weight or muscle gain', 'General health, not focused on weight', 'Other'].forEach(function(g) { %>
+              <option value="<%= g %>" <%= goalDefault === g ? 'selected' : '' %>><%= g %></option>
+            <% }) %>
+          </select>
+          <label>Activity level</label>
+          <select name="activityLevel" required>
+            <% Object.keys(nutritionTargets.ACTIVITY_FACTOR_DEFAULTS).forEach(function(lvl) { %>
+              <option value="<%= lvl %>" <%= activityLevelDefault === lvl ? 'selected' : '' %>><%= lvl %></option>
+            <% }) %>
+          </select>
+        </fieldset>
+
+        <fieldset>
+          <legend>Calculation inputs - coach can override the suggested defaults</legend>
+          <div class="two-col">
+            <div>
+              <label>Activity factor</label>
+              <input type="number" step="0.001" name="activityFactor" value="<%= activityFactorDefault %>" required>
+            </div>
+            <div>
+              <label>Calorie adjustment (+/- kcal)</label>
+              <input type="number" step="10" name="calorieAdjustment" value="<%= calorieAdjustmentDefault %>">
+            </div>
+          </div>
+          <div class="two-col">
+            <div>
+              <label>Protein (g/kg bodyweight)</label>
+              <input type="number" step="0.1" name="proteinPerKg" value="<%= proteinDefault %>" required>
+            </div>
+            <div>
+              <label>Fat (g/kg bodyweight)</label>
+              <input type="number" step="0.1" name="fatPerKg" value="<%= p.fatPerKg || 0.9 %>">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Current plan</legend>
+          <label>Plan version / label</label>
+          <input type="text" name="currentPlanVersion" value="<%= val('currentPlanVersion', null) %>" placeholder="e.g. Week 1-4 South Indian plan v1">
+          <p class="hint">A short label for whatever plan you handed the client - full plan documents live outside this system for now.</p>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn">Save profile</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

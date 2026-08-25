@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title><%= profile.fullName %> | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .targets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 1em; }
+  .target-box { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .target-box .num { font-size: 1.3rem; font-weight: 700; }
+  .target-box .label { font-size: 0.78rem; color: #6b6862; }
+  .lock-note { font-size: 0.82rem; color: #6b6862; margin-top: 0.6em; }
+  .lock-note.due { color: var(--accent); font-weight: 600; }
+  section.block { margin-top: 28px; }
+  section.block h2 { font-size: 1rem; margin-bottom: 0.6em; }
+  .log-row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 8px 0; font-size: 0.9rem; }
+  .log-row:last-child { border-bottom: none; }
+  .log-note { color: #6b6862; font-size: 0.82rem; }
+  form.inline-form { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-top: 1em; }
+  form.inline-form > div { flex: 1; min-width: 120px; }
+  form.inline-form label { margin-top: 0; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'clients' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;"><%= profile.fullName %></h1>
+      <div style="display:flex; gap:10px;">
+        <a class="btn btn-ghost" href="/admin/clients/<%= profile._id %>/edit">Edit</a>
+        <a href="/admin/clients">← Back to clients</a>
+      </div>
+    </div>
+
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+    <div class="card">
+      <p class="client-meta" style="font-size:0.85rem; color:#6b6862; margin:0 0 0.6em;">
+        <%= startingPoint.age %> yrs &middot; <%= profile.heightCm %> cm &middot; <%= profile.currentWeightKg %> kg &middot; <%= profile.location || 'location not set' %>
+        <% if (profile.currentPlanVersion) { %> &middot; on plan: <strong><%= profile.currentPlanVersion %></strong><% } %>
+      </p>
+
+      <h2 style="font-size:1rem; margin:0.6em 0 0;">Starting Point</h2>
+      <div class="targets-grid">
+        <div class="target-box"><div class="num"><%= startingPoint.bmr %></div><div class="label">BMR (kcal)</div></div>
+        <div class="target-box"><div class="num"><%= startingPoint.tdee %></div><div class="label">TDEE (kcal)</div></div>
+        <div class="target-box"><div class="num"><%= startingPoint.calorieTarget %></div><div class="label">Calorie target</div></div>
+        <div class="target-box"><div class="num"><%= startingPoint.proteinTarget %>g</div><div class="label">Protein/day (<%= startingPoint.proteinPerMeal %>g/meal)</div></div>
+        <div class="target-box"><div class="num"><%= startingPoint.fatTarget %>g</div><div class="label">Fat/day</div></div>
+        <div class="target-box"><div class="num"><%= startingPoint.carbTarget %>g</div><div class="label">Carbs/day</div></div>
+        <div class="target-box"><div class="num"><%= startingPoint.fiberTarget %>g</div><div class="label">Fiber/day</div></div>
+      </div>
+
+      <p class="lock-note <%= !goalLock.locked ? 'due' : '' %>">
+        Goal: <strong><%= profile.goal %></strong> —
+        <% if (goalLock.locked) { %>locked <%= goalLock.daysRemaining %> more day<%= goalLock.daysRemaining === 1 ? '' : 's' %> (set <%= new Date(profile.goalSetAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>)<% } else { %>reassessment due<% } %>
+      </p>
+      <p class="lock-note <%= !activityLock.locked ? 'due' : '' %>">
+        Activity level: <strong><%= profile.activityLevel %></strong> —
+        <% if (activityLock.locked) { %>locked <%= activityLock.daysRemaining %> more day<%= activityLock.daysRemaining === 1 ? '' : 's' %><% } else { %>reassessment due<% } %>
+      </p>
+    </div>
+
+    <section class="block card">
+      <h2>Weight log</h2>
+      <% if (!profile.weightLog.length) { %><p class="log-note">No entries yet.</p><% } %>
+      <% profile.weightLog.slice().reverse().forEach(function(w) { %>
+        <div class="log-row">
+          <span><%= new Date(w.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %> — <strong><%= w.weightKg %> kg</strong></span>
+          <span class="log-note"><%= w.note || '' %></span>
+        </div>
+      <% }) %>
+      <form class="inline-form" method="POST" action="/admin/clients/<%= profile._id %>/weight">
+        <div><label>Weight (kg)</label><input type="number" step="0.1" name="weightKg" required></div>
+        <div><label>Note</label><input type="text" name="note" placeholder="optional"></div>
+        <div style="flex:0;"><button type="submit" class="btn btn-ghost">Log weight</button></div>
+      </form>
+    </section>
+
+    <section class="block card">
+      <h2>Check-ins</h2>
+      <p class="hint" style="font-size:0.82rem; color:#6b6862; margin-top:0;">Hand the client a plan (label it above), they follow it for a stretch, then log what happened here: continue as-is, adjust the plan while keeping the same targets, or - once the lock above has cleared - flag for a full reassessment.</p>
+      <% if (!profile.checkIns.length) { %><p class="log-note">No check-ins logged yet.</p><% } %>
+      <% profile.checkIns.slice().reverse().forEach(function(c) { %>
+        <div class="log-row">
+          <span><%= new Date(c.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %> — <strong><%= c.decision === 'continue' ? 'Continue' : c.decision === 'adjust-plan' ? 'Adjust plan' : 'Reassess goal' %></strong><%= c.weightKg ? ' · ' + c.weightKg + ' kg' : '' %></span>
+          <span class="log-note"><%= c.note || '' %></span>
+        </div>
+      <% }) %>
+      <form class="inline-form" method="POST" action="/admin/clients/<%= profile._id %>/checkin">
+        <div><label>Weight (kg)</label><input type="number" step="0.1" name="weightKg" placeholder="optional"></div>
+        <div>
+          <label>Decision</label>
+          <select name="decision" required>
+            <option value="continue">Continue same plan</option>
+            <option value="adjust-plan">Adjust plan, same targets</option>
+            <option value="reassess-goal">Flag for full reassessment</option>
+          </select>
+        </div>
+        <div><label>Note</label><input type="text" name="note" placeholder="optional"></div>
+        <div style="flex:0;"><button type="submit" class="btn btn-ghost">Log check-in</button></div>
+      </form>
+    </section>
+
+    <div class="actions">
+      <form method="POST" action="/admin/clients/<%= profile._id %>/delete" onsubmit="return confirm('Delete this client profile?');">
+        <button type="submit" class="btn btn-danger">Delete profile</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

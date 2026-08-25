@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Client profiles | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .client-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .client-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'clients' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">Client Profiles</h1>
+      <a class="btn" href="/admin/clients/new">+ New profile</a>
+    </div>
+    <p class="client-meta">The ongoing record for each client - current weight, locked goal/activity level, and the calculated Starting Point. Open an intake form under Submissions to create a profile from it, or start one directly here.</p>
+
+    <% if (!clients.length) { %>
+      <p>No client profiles yet.</p>
+    <% } %>
+    <% clients.forEach(function(c) { %>
+      <% var goalLock = nutritionTargets.lockStatus(c.goalSetAt); %>
+      <div class="client-card">
+        <div class="row" style="margin-bottom:0;">
+          <h3 style="margin:0;"><%= c.fullName %></h3>
+          <span class="badge <%= goalLock.locked ? 'draft' : 'published' %>"><%= goalLock.locked ? goalLock.daysRemaining + 'd left on goal lock' : 'Reassessment due' %></span>
+        </div>
+        <p class="client-meta"><%= c.goal %> &middot; <%= c.currentWeightKg %> kg &middot; last logged <%= c.weightLog && c.weightLog.length ? new Date(c.weightLog[c.weightLog.length - 1].date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—' %></p>
+        <div style="margin-top:12px;"><a class="btn" href="/admin/clients/<%= c._id %>">Open</a></div>
+      </div>
+    <% }) %>
+  </main>
+</body>
+</html>

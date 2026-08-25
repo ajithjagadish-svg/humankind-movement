@@ -82,6 +82,7 @@
       </dl>
 
       <div class="actions">
+        <a class="btn" href="/admin/clients/new?fromIntake=<%= submission._id %>">Create client profile</a>
         <form method="POST" action="/admin/submissions/intake/<%= submission._id %>/delete" onsubmit="return confirm('Delete this intake form?');">
           <button type="submit" class="btn btn-danger">Delete</button>
         </form>

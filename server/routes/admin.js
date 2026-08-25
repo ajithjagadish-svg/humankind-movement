@@ -9,12 +9,14 @@ const Carousel = require('../models/Carousel');
 const EngagementLead = require('../models/EngagementLead');
 const SocialPost = require('../models/SocialPost');
 const PublishQueueItem = require('../models/PublishQueueItem');
+const ClientProfile = require('../models/ClientProfile');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary, fetchGA4TimeSeries } = require('../services/ga4');
 const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../services/searchConsole');
 const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
 const { getPageViewSummary } = require('../services/pageViews');
+const nutritionTargets = require('../services/nutritionTargets');
 
 const router = express.Router();
 
@@ -483,6 +485,168 @@ router.post('/submissions/intake/:id/delete', requireAuth, async (req, res) => {
   res.redirect('/admin/submissions');
 });
 
+// --- Client profiles (the ongoing "Starting Point" record - see
+// server/models/ClientProfile.js and server/services/nutritionTargets.js.
+// Distinct from IntakeSubmission, which is a frozen one-time snapshot: this
+// is the living record a coach opens repeatedly to log weight and run the
+// hand-out-a-plan / check-in-later loop. ---
+
+router.get('/clients', requireAuth, async (req, res) => {
+  const clients = await ClientProfile.find().sort({ createdAt: -1 }).lean();
+  res.render('admin/clients-list', { clients, nutritionTargets });
+});
+
+router.get('/clients/new', requireAuth, async (req, res, next) => {
+  let fromIntake = null;
+  if (req.query.fromIntake) {
+    fromIntake = await IntakeSubmission.findById(req.query.fromIntake).lean();
+    if (!fromIntake) return next();
+  }
+  res.render('admin/client-profile-form', { profile: null, fromIntake, error: null, nutritionTargets });
+});
+
+router.post('/clients/new', requireAuth, async (req, res) => {
+  try {
+    const profile = await buildClientProfileData(req.body);
+    const created = await ClientProfile.create(profile);
+    res.redirect(`/admin/clients/${created._id}`);
+  } catch (err) {
+    res.status(400).render('admin/client-profile-form', { profile: req.body, fromIntake: null, error: err.message, nutritionTargets });
+  }
+});
+
+router.get('/clients/:id', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id).lean();
+  if (!profile) return next();
+
+  const startingPoint = nutritionTargets.computeStartingPoint({
+    dateOfBirth: profile.dateOfBirth,
+    heightCm: profile.heightCm,
+    bodyWeightKg: profile.currentWeightKg,
+    activityFactor: profile.activityFactor,
+    calorieAdjustment: profile.calorieAdjustment,
+    proteinPerKg: profile.proteinPerKg,
+    fatPerKg: profile.fatPerKg,
+  });
+  const goalLock = nutritionTargets.lockStatus(profile.goalSetAt);
+  const activityLock = nutritionTargets.lockStatus(profile.activityLevelSetAt);
+
+  res.render('admin/client-profile', { profile, startingPoint, goalLock, activityLock, nutritionTargets, error: req.query.error || null });
+});
+
+router.get('/clients/:id/edit', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id).lean();
+  if (!profile) return next();
+  res.render('admin/client-profile-form', { profile, fromIntake: null, error: null, nutritionTargets });
+});
+
+router.post('/clients/:id/edit', requireAuth, async (req, res, next) => {
+  const existing = await ClientProfile.findById(req.params.id);
+  if (!existing) return next();
+  try {
+    const data = await buildClientProfileData(req.body, existing);
+    Object.assign(existing, data);
+    await existing.save();
+    res.redirect(`/admin/clients/${existing._id}`);
+  } catch (err) {
+    res.status(400).render('admin/client-profile-form', { profile: { ...req.body, _id: existing._id }, fromIntake: null, error: err.message, nutritionTargets });
+  }
+});
+
+async function buildClientProfileData(body, existing) {
+  if (!body.fullName || !body.fullName.trim()) throw new Error('Name is required.');
+  if (!body.dateOfBirth) throw new Error('Date of birth is required.');
+  if (!body.goal) throw new Error('Goal is required.');
+  if (!body.activityLevel) throw new Error('Activity level is required.');
+
+  const heightCm = parseFloat(body.heightCm);
+  const currentWeightKg = parseFloat(body.currentWeightKg);
+  const activityFactor = parseFloat(body.activityFactor);
+  const calorieAdjustment = parseFloat(body.calorieAdjustment) || 0;
+  const proteinPerKg = parseFloat(body.proteinPerKg);
+  const fatPerKg = parseFloat(body.fatPerKg) || 0.9;
+
+  if (!heightCm || heightCm <= 0) throw new Error('Height (cm) must be a positive number.');
+  if (!currentWeightKg || currentWeightKg <= 0) throw new Error('Weight (kg) must be a positive number.');
+  if (!activityFactor || activityFactor <= 0) throw new Error('Activity factor must be a positive number.');
+  if (!proteinPerKg || proteinPerKg <= 0) throw new Error('Protein per kg must be a positive number.');
+
+  const data = {
+    fullName: body.fullName.trim(),
+    email: (body.email || '').trim(),
+    dateOfBirth: body.dateOfBirth,
+    heightCm,
+    location: (body.location || '').trim(),
+    dietaryPreference: (body.dietaryPreference || '').trim(),
+    currentWeightKg,
+    goal: body.goal,
+    activityLevel: body.activityLevel,
+    activityFactor,
+    calorieAdjustment,
+    proteinPerKg,
+    fatPerKg,
+    currentPlanVersion: (body.currentPlanVersion || '').trim(),
+  };
+
+  if (body.intakeSubmissionId) data.intakeSubmissionId = body.intakeSubmissionId;
+
+  if (!existing) {
+    data.goalSetAt = new Date();
+    data.activityLevelSetAt = new Date();
+    data.weightLog = [{ date: new Date(), weightKg: currentWeightKg, note: 'Starting weight' }];
+    if (data.currentPlanVersion) data.currentPlanIssuedAt = new Date();
+  } else {
+    if (existing.goal !== data.goal) data.goalSetAt = new Date();
+    if (existing.activityLevel !== data.activityLevel) data.activityLevelSetAt = new Date();
+    if (data.currentPlanVersion && data.currentPlanVersion !== existing.currentPlanVersion) data.currentPlanIssuedAt = new Date();
+  }
+
+  return data;
+}
+
+router.post('/clients/:id/weight', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id);
+  if (!profile) return next();
+  const weightKg = parseFloat(req.body.weightKg);
+  if (!weightKg || weightKg <= 0) {
+    return res.redirect(`/admin/clients/${profile._id}?error=${encodeURIComponent('Enter a valid weight in kg.')}`);
+  }
+  profile.weightLog.push({ date: new Date(), weightKg, note: (req.body.note || '').trim() });
+  profile.currentWeightKg = weightKg;
+  await profile.save();
+  res.redirect(`/admin/clients/${profile._id}`);
+});
+
+// The hand-out-a-plan / follow-it / report-back loop: coach logs what the
+// client reported at check-in and what happens next. "reassess-goal" does
+// not itself change goal/activityLevel - the coach still edits those via
+// the form above, which is what actually resets the 12-week lock timer.
+router.post('/clients/:id/checkin', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id);
+  if (!profile) return next();
+  if (!['continue', 'adjust-plan', 'reassess-goal'].includes(req.body.decision)) {
+    return res.redirect(`/admin/clients/${profile._id}?error=${encodeURIComponent('Choose a check-in decision.')}`);
+  }
+  const weightKg = parseFloat(req.body.weightKg);
+  profile.checkIns.push({
+    date: new Date(),
+    weightKg: weightKg || undefined,
+    decision: req.body.decision,
+    note: (req.body.note || '').trim(),
+  });
+  if (weightKg) {
+    profile.weightLog.push({ date: new Date(), weightKg, note: 'Logged at check-in' });
+    profile.currentWeightKg = weightKg;
+  }
+  await profile.save();
+  res.redirect(`/admin/clients/${profile._id}`);
+});
+
+router.post('/clients/:id/delete', requireAuth, async (req, res) => {
+  await ClientProfile.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/clients');
+});
+
 // --- Carousels (LinkedIn/Instagram carousel copy, generated via Claude) ---
 
 async function resolveCarouselSource(sourceType, sourceId) {
@@ -560,7 +724,7 @@ router.post('/carousels/:id/delete', requireAuth, async (req, res) => {
   res.redirect('/admin/carousels');
 });
 
-// --- Engagement queue (LinkedIn/Reddit/Instagram leads, curated by Claude in a live
+// --- Engagement queue (LinkedIn/Reddit/Instagram/Threads leads, curated by Claude in a live
 // browsing session - see server/scripts/add-engagement-leads.js. There is no
 // "refresh" here, unlike Analytics: the server has no way to drive a browser
 // itself, so this list only grows when a research pass is explicitly run and
