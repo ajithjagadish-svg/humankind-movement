@@ -59,6 +59,7 @@ const REQUIRED_INTAKE_FIELDS = [
   'dateOfBirth',
   'height',
   'bodyWeight',
+  'location',
   'emergencyContact',
   'healthHistory',
   'currentPainOrDiscomfort',
@@ -66,6 +67,7 @@ const REQUIRED_INTAKE_FIELDS = [
   'typicalDay',
   'activityLevel',
   'fitnessEquipment',
+  'goal',
   'dietaryPreference',
   'sessionPreference',
 ];

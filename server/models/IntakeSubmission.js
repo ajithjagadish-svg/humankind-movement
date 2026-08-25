@@ -2,8 +2,14 @@ const mongoose = require('mongoose');
 
 // Mirrors the real "Humankind Movement - Client Information" Google Form
 // this replaces, field for field (pulled from the live form itself, not
-// guessed) - plus one addition not in the original form: a bulk-session
-// option for postpartum clients under Session Preference.
+// guessed) - plus additions not in the original form: a bulk-session
+// option for postpartum clients under Session Preference, and location,
+// goal, cuisineBackground, foodAllergiesOrIntolerances, currentSupplements
+// (added for the nutrition-planning workflow - see the "Nutrition Chart"
+// project on the desktop). goal is deliberately locked for 12 weeks once
+// a coaching program starts, per the reassessment-window research in
+// CHAT_TRANSCRIPT.md - that lock lives in whatever future flow lets a
+// client update their profile, not in this one-time intake form itself.
 const IntakeSubmissionSchema = new mongoose.Schema(
   {
     // Basic Details
@@ -13,6 +19,7 @@ const IntakeSubmissionSchema = new mongoose.Schema(
     dateOfBirth: { type: String, required: true },
     height: { type: String, required: true },
     bodyWeight: { type: String, required: true },
+    location: { type: String, required: true },
 
     // Safety and Emergency Information
     emergencyContact: { type: String, required: true },
@@ -28,10 +35,15 @@ const IntakeSubmissionSchema = new mongoose.Schema(
     activityLevel: { type: String, required: true },
     movementPractices: { type: String, default: '' },
     fitnessEquipment: { type: String, required: true },
+    goal: { type: String, required: true },
+    goalOther: { type: String, default: '' },
 
     // Food and Lifestyle Preferences
     dietaryPreference: { type: String, required: true },
     dietaryPreferenceOther: { type: String, default: '' },
+    cuisineBackground: { type: String, default: '' },
+    foodAllergiesOrIntolerances: { type: String, default: '' },
+    currentSupplements: { type: String, default: '' },
     lifestyleHabits: { type: [String], default: [] },
     lifestyleHabitsOther: { type: String, default: '' },
 

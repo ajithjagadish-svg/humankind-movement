@@ -164,6 +164,11 @@
             <label for="ik-bodyWeight">Body Weight (kilograms) <span class="req">*</span></label>
             <input type="text" id="ik-bodyWeight" name="bodyWeight" required>
           </div>
+          <div class="field">
+            <label for="ik-location">Where do you live? <span class="req">*</span></label>
+            <p class="note" style="margin:0 0 0.4em;">City, state or province, and country. For example: San Diego, California, USA. This helps me plan around your local food culture and how much usable sunlight you actually get through the year.</p>
+            <input type="text" id="ik-location" name="location" required>
+          </div>
           <div class="intake-nav intake-nav-single">
             <button type="button" class="btn intake-next">Continue</button>
           </div>
@@ -228,6 +233,18 @@
             <label for="ik-movementPractices">Which sport or movement practices do you currently do or used to do?</label>
             <textarea id="ik-movementPractices" name="movementPractices"></textarea>
           </div>
+          <div class="option-group">
+            <span class="option-label">What's your primary goal right now? <span class="req">*</span></span>
+            <p class="note" style="margin:-6px 0 2px;">This shapes the calorie and macro targets in your plan. Once we set it, we hold it steady for about 12 weeks before reassessing, so it has enough time to actually show a result.</p>
+            <label class="option-row"><input type="radio" name="goal" value="Weight loss" required> Weight loss</label>
+            <label class="option-row"><input type="radio" name="goal" value="Weight maintenance"> Weight maintenance</label>
+            <label class="option-row"><input type="radio" name="goal" value="Weight or muscle gain"> Weight or muscle gain</label>
+            <label class="option-row"><input type="radio" name="goal" value="General health, not focused on weight"> General health, not focused on weight</label>
+            <label class="option-row">
+              <input type="radio" name="goal" value="Other" id="ik-goalOtherRadio">
+              <span style="display:flex; align-items:center; gap:8px; flex:1;">Other: <input type="text" name="goalOther" aria-label="Other goal" style="flex:1; padding:6px 8px;"></span>
+            </label>
+          </div>
           <div class="field">
             <label for="ik-fitnessEquipment">Fitness Equipment and Facilities <span class="req">*</span></label>
             <p class="note" style="margin:0 0 0.4em;">List any fitness equipment, gym access, sports facility, or open space you have access to. If you do not have any, please write NA. Example: Dumbbells – 5 kg x 2 / Resistance band loop – low, medium, high x 1 each / Yoga mat / Foam roller / Kettlebell – 12 kg x 1</p>
@@ -251,6 +268,21 @@
               <input type="radio" name="dietaryPreference" value="Other" id="ik-dietaryPreferenceOtherRadio">
               <span style="display:flex; align-items:center; gap:8px; flex:1;">Other: <input type="text" name="dietaryPreferenceOther" aria-label="Other dietary preference" style="flex:1; padding:6px 8px;"></span>
             </label>
+          </div>
+          <div class="field">
+            <label for="ik-cuisineBackground">What cuisine or food culture did you grow up eating?</label>
+            <p class="note" style="margin:0 0 0.4em;">For example: South Indian, Punjabi, Gujarati, Bengali, or a mix. This helps me build a plan around food you'll actually want to keep eating, not something unfamiliar. Leave blank if you'd rather I not assume.</p>
+            <input type="text" id="ik-cuisineBackground" name="cuisineBackground">
+          </div>
+          <div class="field">
+            <label for="ik-foodAllergiesOrIntolerances">Any food allergies or intolerances?</label>
+            <p class="note" style="margin:0 0 0.4em;">Write NA if none.</p>
+            <textarea id="ik-foodAllergiesOrIntolerances" name="foodAllergiesOrIntolerances"></textarea>
+          </div>
+          <div class="field">
+            <label for="ik-currentSupplements">Are you currently taking any supplements?</label>
+            <p class="note" style="margin:0 0 0.4em;">List what you're taking and the dose if you know it. Write NA if none.</p>
+            <textarea id="ik-currentSupplements" name="currentSupplements"></textarea>
           </div>
           <div class="option-group">
             <span class="option-label">Which of the following are part of your lifestyle? <span class="req">*</span></span>

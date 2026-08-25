@@ -32,6 +32,7 @@
         <dt>Date of birth</dt><dd><%= submission.dateOfBirth %></dd>
         <dt>Height</dt><dd><%= submission.height %></dd>
         <dt>Body weight (kg)</dt><dd><%= submission.bodyWeight %></dd>
+        <dt>Location</dt><dd><%= submission.location %></dd>
       </dl>
 
       <h2 class="section-title">Safety and emergency information</h2>
@@ -53,11 +54,15 @@
         <dt>Activity level</dt><dd><%= submission.activityLevel %></dd>
         <dt>Sport / movement practices</dt><dd><%= submission.movementPractices || '—' %></dd>
         <dt>Fitness equipment and facilities</dt><dd><%= submission.fitnessEquipment %></dd>
+        <dt>Goal</dt><dd><%= submission.goal %><% if (submission.goal === 'Other' && submission.goalOther) { %> (<%= submission.goalOther %>)<% } %></dd>
       </dl>
 
       <h2 class="section-title">Food and lifestyle preferences</h2>
       <dl>
         <dt>Dietary preference</dt><dd><%= submission.dietaryPreference %><% if (submission.dietaryPreference === 'Other' && submission.dietaryPreferenceOther) { %> (<%= submission.dietaryPreferenceOther %>)<% } %></dd>
+        <dt>Cuisine / food culture background</dt><dd><%= submission.cuisineBackground || '—' %></dd>
+        <dt>Food allergies or intolerances</dt><dd><%= submission.foodAllergiesOrIntolerances || '—' %></dd>
+        <dt>Current supplements</dt><dd><%= submission.currentSupplements || '—' %></dd>
         <dt>Lifestyle habits</dt><dd><%= (submission.lifestyleHabits && submission.lifestyleHabits.length) ? submission.lifestyleHabits.join(', ') : '—' %><% if (submission.lifestyleHabitsOther) { %> (<%= submission.lifestyleHabitsOther %>)<% } %></dd>
       </dl>
 
