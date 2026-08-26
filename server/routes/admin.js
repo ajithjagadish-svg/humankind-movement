@@ -18,6 +18,8 @@ const { anthropicConfigured, generateCarouselSlides } = require('../services/car
 const { getPageViewSummary } = require('../services/pageViews');
 const nutritionTargets = require('../services/nutritionTargets');
 const { generatePlanPdf } = require('../services/planPdf');
+const { generateSunlightGuidance } = require('../services/sunlightGuidance');
+const { generateMealPlanDraft } = require('../services/mealPlanGen');
 
 const router = express.Router();
 
@@ -579,6 +581,7 @@ async function buildClientProfileData(body, existing) {
     heightCm,
     location: (body.location || '').trim(),
     dietaryPreference: (body.dietaryPreference || '').trim(),
+    cuisineBackground: (body.cuisineBackground || '').trim(),
     currentWeightKg,
     goal: body.goal,
     activityLevel: body.activityLevel,
@@ -587,7 +590,7 @@ async function buildClientProfileData(body, existing) {
     proteinPerKg,
     fatPerKg,
     currentPlanVersion: (body.currentPlanVersion || '').trim(),
-    weeklyPlanNotes: (body.weeklyPlanNotes || '').trim(),
+    weeklyPlanTable: (body.weeklyPlanTable || '').trim(),
     sunlightNotes: (body.sunlightNotes || '').trim(),
   };
 
@@ -643,6 +646,55 @@ router.post('/clients/:id/checkin', requireAuth, async (req, res, next) => {
   }
   await profile.save();
   res.redirect(`/admin/clients/${profile._id}`);
+});
+
+// Looks up the client's location via OpenStreetMap and writes a rule-based
+// sunlight/vitamin-D guidance paragraph straight into sunlightNotes -
+// deterministic, not an LLM guess (see sunlightGuidance.js). Overwrites
+// whatever was there before, since the whole point is "look this up for
+// me" - the coach can still hand-edit the result afterward on the edit form.
+router.post('/clients/:id/lookup-sunlight', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id);
+  if (!profile) return next();
+  if (!profile.location) {
+    return res.redirect(`/admin/clients/${profile._id}/edit?error=${encodeURIComponent('Add a location first, then look up sunlight guidance.')}`);
+  }
+  try {
+    profile.sunlightNotes = await generateSunlightGuidance(profile.location);
+    await profile.save();
+  } catch (err) {
+    return res.redirect(`/admin/clients/${profile._id}/edit?error=${encodeURIComponent(err.message)}`);
+  }
+  res.redirect(`/admin/clients/${profile._id}/edit`);
+});
+
+// Drafts a weekly meal table via Claude, adapted to dietaryPreference and
+// cuisineBackground (see mealPlanGen.js) - a starting point for the coach
+// to review and correct, not verified nutrition data. Overwrites the
+// existing weeklyPlanTable, same reasoning as the sunlight lookup above.
+router.post('/clients/:id/generate-mealplan', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id);
+  if (!profile) return next();
+  try {
+    const startingPoint = nutritionTargets.computeStartingPoint({
+      dateOfBirth: profile.dateOfBirth,
+      heightCm: profile.heightCm,
+      bodyWeightKg: profile.currentWeightKg,
+      activityFactor: profile.activityFactor,
+      calorieAdjustment: profile.calorieAdjustment,
+      proteinPerKg: profile.proteinPerKg,
+      fatPerKg: profile.fatPerKg,
+    });
+    profile.weeklyPlanTable = await generateMealPlanDraft({
+      dietaryPreference: profile.dietaryPreference,
+      cuisineBackground: profile.cuisineBackground,
+      startingPoint,
+    });
+    await profile.save();
+  } catch (err) {
+    return res.redirect(`/admin/clients/${profile._id}/edit?error=${encodeURIComponent(err.message)}`);
+  }
+  res.redirect(`/admin/clients/${profile._id}/edit`);
 });
 
 router.get('/clients/:id/pdf', requireAuth, async (req, res, next) => {

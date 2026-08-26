@@ -11,12 +11,12 @@ const mongoose = require('mongoose');
 // for why that's on hold).
 //
 // checkIns is the hand-out-a-plan / follow-it / report-back loop: coach
-// gives the client a plan (planVersion is just a short label/note, the
-// weeklyPlanNotes/sunlightNotes fields below hold the actual content that
-// goes into the generated PDF), the client follows it for a stretch (weeks,
-// not fixed), then a check-in records what happened and whether to
-// continue as-is, adjust the plan while keeping the same targets, or - only
-// once the 12-week lock has elapsed - reassess the goal/activity itself.
+// gives the client a plan (planVersion is just a short label/note,
+// weeklyPlanTable/sunlightNotes below hold the actual content that goes
+// into the generated PDF), the client follows it for a stretch (weeks, not
+// fixed), then a check-in records what happened and whether to continue
+// as-is, adjust the plan while keeping the same targets, or - only once
+// the 12-week lock has elapsed - reassess the goal/activity itself.
 const CheckInSchema = new mongoose.Schema(
   {
     date: { type: Date, default: Date.now },
@@ -46,6 +46,7 @@ const ClientProfileSchema = new mongoose.Schema(
     heightCm: { type: Number, required: true },
     location: { type: String, default: '' },
     dietaryPreference: { type: String, default: '' },
+    cuisineBackground: { type: String, default: '' },
 
     currentWeightKg: { type: Number, required: true },
     weightLog: { type: [WeightLogEntrySchema], default: [] },
@@ -61,7 +62,12 @@ const ClientProfileSchema = new mongoose.Schema(
 
     currentPlanVersion: { type: String, default: '' },
     currentPlanIssuedAt: { type: Date },
-    weeklyPlanNotes: { type: String, default: '' },
+    // Raw pasted text, tab or | separated: Day, Meal, Time, Eat order,
+    // Dish, Swap, Protein g, Carb g, Fat g, Fibre g, kcal, Note - parsed by
+    // server/services/mealPlanTable.js at PDF-render time. Pasting straight
+    // from a spreadsheet range (including blank Day/Meal/Time cells for
+    // grouped rows) works as-is - see that file's parser for why.
+    weeklyPlanTable: { type: String, default: '' },
     sunlightNotes: { type: String, default: '' },
     checkIns: { type: [CheckInSchema], default: [] },
 

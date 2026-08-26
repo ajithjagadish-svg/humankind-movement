@@ -74,7 +74,10 @@
           <label>Location</label>
           <input type="text" name="location" value="<%= val('location', 'location') %>" placeholder="City, for sunlight/vitamin D timing">
           <label>Dietary preference</label>
-          <input type="text" name="dietaryPreference" value="<%= dietaryDefault %>">
+          <input type="text" name="dietaryPreference" value="<%= dietaryDefault %>" placeholder="Eat meat / Vegetarian / Vegetarian, eat eggs / Vegan">
+          <p class="hint" style="margin-top:0;">Drives what the AI meal plan draft below can include.</p>
+          <label>Cuisine background</label>
+          <input type="text" name="cuisineBackground" value="<%= val('cuisineBackground', 'cuisineBackground') %>" placeholder="e.g. South Indian, Punjabi, Gujarati">
         </fieldset>
 
         <fieldset>
@@ -124,10 +127,26 @@
           <input type="text" name="currentPlanVersion" value="<%= val('currentPlanVersion', null) %>" placeholder="e.g. Week 1-4 South Indian plan v1">
           <p class="hint">Shown at the top of the generated PDF.</p>
 
-          <label>Weekly plan content</label>
-          <textarea name="weeklyPlanNotes" style="min-height:220px; font-family:inherit; font-size:0.95rem;" placeholder="Write or paste the actual weekly menu - meals, swaps, portions. This goes straight into the client's PDF, formatted under 'Your Weekly Plan'."><%= val('weeklyPlanNotes', null) %></textarea>
+          <div class="row" style="margin-bottom:0.4em; align-items:baseline;">
+            <label style="margin:0;">Weekly meal table</label>
+            <% if (profile) { %>
+              <form method="POST" action="/admin/clients/<%= profile._id %>/generate-mealplan" onsubmit="return confirm('Replace the current weekly plan with a fresh AI draft based on diet, cuisine, and targets? Review it carefully before using it with a client.');">
+                <button type="submit" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Draft with AI</button>
+              </form>
+            <% } %>
+          </div>
+          <p class="hint" style="margin-top:0;">Build this in a spreadsheet (columns: Day, Meal, Time, Eat order, Dish, Swap, Protein g, Carb g, Fat g, Fibre g, kcal, Note - one row per food item, leave Day/Meal/Time blank on the rows that continue the same meal), select the range, and paste it directly here - or use "Draft with AI" to generate a starting point from the dietary preference, cuisine background, and calculation inputs above (save those first). Either way, this is a draft: review the dishes and macros before it goes to a client - AI-estimated numbers are not lab-verified. It renders as a real table in the PDF, grouped by day with totals - not a paragraph.</p>
+          <textarea name="weeklyPlanTable" style="min-height:260px; font-family:ui-monospace, monospace; font-size:0.82rem;" placeholder="Mon&#9;Breakfast&#9;07:30&#9;1 - Fibre first&#9;Kosambari, 150 g&#9;Swap: pachadi, 150 g&#9;9&#9;18&#9;5&#9;7&#9;145&#9;Coffee 60 min after, not with this meal.&#10;&#9;&#9;&#9;2 - Protein&#9;Egg podimas, 3 eggs&#9;Swap: 2 eggs muttai kuzhambu&#9;20&#9;5&#9;16&#9;1&#9;240&#9;"><%= val('weeklyPlanTable', null) %></textarea>
 
-          <label>Sunlight / Vitamin D guidance</label>
+          <div class="row" style="margin-bottom:0.4em; margin-top:1.1em; align-items:baseline;">
+            <label style="margin:0;">Sunlight / Vitamin D guidance</label>
+            <% if (profile) { %>
+              <form method="POST" action="/admin/clients/<%= profile._id %>/lookup-sunlight" onsubmit="return confirm('Look up sunlight guidance for this client\'s location and replace the text below?');">
+                <button type="submit" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Look up automatically</button>
+              </form>
+            <% } %>
+          </div>
+          <p class="hint" style="margin-top:0;">"Look up automatically" geocodes the location above and writes a latitude-based guidance paragraph (effective months, midday window, this month's status) - save the location first if you've just changed it.</p>
           <textarea name="sunlightNotes" style="min-height:120px; font-family:inherit; font-size:0.95rem;" placeholder="Best time of day for sun exposure given their location, e.g. 'Toronto - midday (11am-1pm), Apr-Sep only; supplement Oct-Mar.'"><%= val('sunlightNotes', null) %></textarea>
         </fieldset>
 
