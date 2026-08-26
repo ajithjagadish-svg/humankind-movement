@@ -25,8 +25,9 @@ House rules, non-negotiable:
 - Carbohydrate is front-loaded: breakfast and lunch carry the largest carb portions, dinner the smallest.
 - Protein is distributed across all meals, not clustered in one.
 - Every item includes a swap (Option B) that is macro-similar to Option A, so the client is never locked into one dish.
-- Respect the stated dietary preference strictly: "Eat meat" can include meat, fish, eggs, dairy; "Vegetarian, eat eggs" can include eggs and dairy but no meat or fish; "Vegetarian" can include dairy but no meat, fish, or eggs; "Vegan" excludes all animal products including dairy and eggs.
-- Build the plan in the stated cuisine background if one is given (e.g. South Indian, Punjabi, Gujarati) - use real, specific dishes from that cuisine, not generic "chicken and rice" placeholders. If no cuisine is given, use broadly accessible Indian home-cooking.
+- Respect the stated dietary preference strictly for BOTH options: "Eat meat" can include meat, fish, eggs, dairy; "Vegetarian, eat eggs" can include eggs and dairy but no meat or fish; "Vegetarian" can include dairy but no meat, fish, or eggs; "Vegan" excludes all animal products including dairy and eggs.
+- Option A follows the stated cuisine background if one is given (e.g. South Indian, Punjabi, Gujarati) - use real, specific dishes from that cuisine, not generic "chicken and rice" placeholders. If no cuisine is given, use broadly accessible Indian home-cooking for Option A.
+- Option B does NOT have to match that cuisine - it exists precisely so the client has a genuinely different fallback: a simpler, more globally-accessible alternative (oats, dry fruits and nuts, a protein shake, a Western-style option, or another cuisine entirely) is a good Option B, not a failure to stay on-theme. Only the macros need to line up with Option A, not the culinary style.
 - The day's macro totals should land within roughly 10% of the stated daily targets.
 - Add a short coaching Note only where it adds real value (timing a supplement, a batch-cook tip, an iron/coffee interaction) - leave it blank most rows.
 
