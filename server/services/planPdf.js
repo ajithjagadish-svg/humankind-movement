@@ -26,7 +26,15 @@ const INK = '#1a1a1a';
 const ACCENT = '#c0392b';
 const MUTED = '#6b6862';
 const PAPER = '#faf8f4';
-const LOGO_PATH = path.join(__dirname, '..', '..', 'assets', 'img', 'logo.png');
+// logo.png has ~70% transparent padding baked into its 500x500 canvas (the
+// mark itself only occupies the centre 30%), which made it read as both
+// tiny and like leftover white space no matter how large a box it was
+// drawn into. logo-cropped.png is the same mark cropped tight (170x162,
+// see assets/img/logo.png's own bbox) with a small breathing-room border,
+// so a given draw width now maps to the actual visible size.
+const LOGO_PATH = path.join(__dirname, '..', '..', 'assets', 'img', 'logo-cropped.png');
+const LOGO_ASPECT_W = 170;
+const LOGO_ASPECT_H = 162;
 
 const PORTRAIT_MARGIN = 56;
 const LANDSCAPE_MARGIN = 40;
@@ -45,10 +53,12 @@ const CATEGORY_COLORS = {
 // Uses doc.page.width, so it works unmodified on both portrait and
 // landscape pages.
 function addLetterhead(doc, title, subtitle) {
-  const logoSize = 72;
+  const logoSize = 52;
+  const logoHeight = logoSize * (LOGO_ASPECT_H / LOGO_ASPECT_W);
+  const bandHeight = 130;
   const margin = doc.page.margins.left;
-  doc.rect(0, 0, doc.page.width, logoSize + 64).fill(PAPER);
-  doc.image(LOGO_PATH, margin, 32, { width: logoSize });
+  doc.rect(0, 0, doc.page.width, bandHeight).fill(PAPER);
+  doc.image(LOGO_PATH, margin, (bandHeight - logoHeight) / 2 - 10, { width: logoSize });
 
   const textX = margin + logoSize + 20;
   doc
@@ -65,9 +75,9 @@ function addLetterhead(doc, title, subtitle) {
   }
 
   doc
-    .moveTo(margin, logoSize + 48).lineTo(doc.page.width - margin, logoSize + 48)
+    .moveTo(margin, bandHeight - 4).lineTo(doc.page.width - margin, bandHeight - 4)
     .strokeColor(ACCENT).lineWidth(2).stroke();
-  doc.y = logoSize + 64;
+  doc.y = bandHeight + 16;
 }
 
 // minRoom should be the real height the section needs (heading + its
@@ -240,7 +250,7 @@ function drawMealPlanTable(doc, weeklyPlanTable) {
   const x = LANDSCAPE_MARGIN;
 
   doc.addPage({ size: 'A4', layout: 'landscape', margin: LANDSCAPE_MARGIN });
-  const logoSize = 52;
+  const logoSize = 36;
   const textX = x + logoSize + 18;
   const introWidth = doc.page.width - textX - LANDSCAPE_MARGIN - 240;
   const introText = 'Every meal is sequenced fibre -> protein -> fat -> carbohydrate. Swap freely within the same row - the two options are macro-similar.';
