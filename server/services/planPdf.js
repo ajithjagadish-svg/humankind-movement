@@ -12,6 +12,15 @@ const { parseMealPlanTable, eatOrderCategory, groupByDay, weeklyAverage } = requ
 // than a generic summary sheet. Brand colors and logo are pulled from
 // assets/img/logo.png and the site's own --ink/--accent tokens (#1a1a1a /
 // #c0392b), not redrawn from memory.
+//
+// Front-matter (Starting Point, rules, sunlight) is portrait - the format
+// every PDF viewer handles correctly with zero window/zoom fiddling. Only
+// the meal table is landscape, because it genuinely needs the width (12
+// columns) - that was the original design; a later pass made everything
+// landscape for visual consistency, which turned out to cause real-world
+// viewers (Preview.app confirmed) to clip wide portrait-shaped windows
+// against a much wider page. Consistency lost to correctly displaying,
+// every time, with no user action required - not a close call.
 
 const INK = '#1a1a1a';
 const ACCENT = '#c0392b';
@@ -19,13 +28,8 @@ const MUTED = '#6b6862';
 const PAPER = '#faf8f4';
 const LOGO_PATH = path.join(__dirname, '..', '..', 'assets', 'img', 'logo.png');
 
-// Every page in this document is landscape - the meal table needs the
-// width, and a document that switches orientation mid-read looks like an
-// assembly error rather than a design choice. Prose sections cap their own
-// text width (CONTENT_WIDTH) instead of stretching line length across the
-// full landscape page, which would be uncomfortable to read.
-const PAGE_MARGIN = 40;
-const CONTENT_WIDTH = 620;
+const PORTRAIT_MARGIN = 56;
+const LANDSCAPE_MARGIN = 40;
 
 const CATEGORY_COLORS = {
   fibre: { text: '#2e7d32', bg: '#e8f5e9', label: 'Fibre first' },
@@ -38,12 +42,15 @@ const CATEGORY_COLORS = {
 // A logo this small is the single most common note we get back on drafts -
 // it needs to read at a glance, not be found on inspection. 72pt (1 inch)
 // is bold enough to anchor the page without crowding the title beneath it.
+// Uses doc.page.width, so it works unmodified on both portrait and
+// landscape pages.
 function addLetterhead(doc, title, subtitle) {
   const logoSize = 72;
+  const margin = doc.page.margins.left;
   doc.rect(0, 0, doc.page.width, logoSize + 64).fill(PAPER);
-  doc.image(LOGO_PATH, PAGE_MARGIN, 32, { width: logoSize });
+  doc.image(LOGO_PATH, margin, 32, { width: logoSize });
 
-  const textX = PAGE_MARGIN + logoSize + 20;
+  const textX = margin + logoSize + 20;
   doc
     .font('Helvetica-Bold').fontSize(15).fillColor(INK)
     .text('HUMANKIND MOVEMENT', textX, 40, { characterSpacing: 0.8 });
@@ -54,11 +61,11 @@ function addLetterhead(doc, title, subtitle) {
     .font('Helvetica-Bold').fontSize(21).fillColor(ACCENT)
     .text(title, textX, 80);
   if (subtitle) {
-    doc.font('Helvetica').fontSize(10).fillColor(MUTED).text(subtitle, textX, 106, { width: doc.page.width - textX - PAGE_MARGIN });
+    doc.font('Helvetica').fontSize(10).fillColor(MUTED).text(subtitle, textX, 106, { width: doc.page.width - textX - margin });
   }
 
   doc
-    .moveTo(PAGE_MARGIN, logoSize + 48).lineTo(doc.page.width - PAGE_MARGIN, logoSize + 48)
+    .moveTo(margin, logoSize + 48).lineTo(doc.page.width - margin, logoSize + 48)
     .strokeColor(ACCENT).lineWidth(2).stroke();
   doc.y = logoSize + 64;
 }
@@ -70,26 +77,27 @@ function addLetterhead(doc, title, subtitle) {
 // a nearly-blank page for a couple of lines of text.
 function sectionHeading(doc, text, minRoom = 50) {
   if (doc.y > doc.page.height - doc.page.margins.bottom - minRoom) {
-    doc.addPage({ size: 'A4', layout: 'landscape', margin: PAGE_MARGIN });
+    doc.addPage({ size: 'A4', margin: PORTRAIT_MARGIN });
   }
   doc.moveDown(0.6);
-  doc.font('Helvetica-Bold').fontSize(12.5).fillColor(ACCENT).text(text.toUpperCase(), { width: CONTENT_WIDTH, characterSpacing: 0.5 });
+  doc.font('Helvetica-Bold').fontSize(12.5).fillColor(ACCENT).text(text.toUpperCase(), { characterSpacing: 0.5 });
   doc.moveDown(0.3);
   doc.font('Helvetica').fontSize(10.5).fillColor(INK);
 }
 
 function targetRow(doc, label, value) {
   const y = doc.y;
-  doc.font('Helvetica').fontSize(10).fillColor(MUTED).text(label, PAGE_MARGIN, y, { continued: false, width: 200 });
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(INK).text(value, PAGE_MARGIN + 200, y, { width: CONTENT_WIDTH - 200 });
+  const margin = doc.page.margins.left;
+  doc.font('Helvetica').fontSize(10).fillColor(MUTED).text(label, margin, y, { continued: false, width: 200 });
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(INK).text(value, margin + 200, y, { width: doc.page.width - margin * 2 - 200 });
   doc.moveDown(0.35);
 }
 
 function bulletList(doc, items) {
   items.forEach((item) => {
-    doc.font('Helvetica').fontSize(9.8).fillColor(INK).text(`•  ${item.rule}`, { width: CONTENT_WIDTH, paragraphGap: 1 });
+    doc.font('Helvetica').fontSize(9.8).fillColor(INK).text(`•  ${item.rule}`, { paragraphGap: 1 });
     if (item.evidence) {
-      doc.font('Helvetica-Oblique').fontSize(8.3).fillColor(MUTED).text(`    ${item.evidence}`, { width: CONTENT_WIDTH, paragraphGap: 6 });
+      doc.font('Helvetica-Oblique').fontSize(8.3).fillColor(MUTED).text(`    ${item.evidence}`, { paragraphGap: 6 });
     } else {
       doc.moveDown(0.15);
     }
@@ -99,9 +107,9 @@ function bulletList(doc, items) {
 function paragraphOrPlaceholder(doc, text, placeholder) {
   const content = (text || '').trim();
   if (content) {
-    doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(content, { width: CONTENT_WIDTH, paragraphGap: 4 });
+    doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(content, { paragraphGap: 4 });
   } else {
-    doc.font('Helvetica-Oblique').fontSize(10).fillColor(MUTED).text(placeholder, { width: CONTENT_WIDTH });
+    doc.font('Helvetica-Oblique').fontSize(10).fillColor(MUTED).text(placeholder);
   }
 }
 
@@ -178,8 +186,8 @@ function drawColumnHeaderRow(doc, x, y) {
 function ensureRoom(doc, x, needed, redrawHeader) {
   const bottomLimit = doc.page.height - 44;
   if (doc.y + needed > bottomLimit) {
-    doc.addPage({ size: 'A4', layout: 'landscape', margin: PAGE_MARGIN });
-    doc.y = PAGE_MARGIN;
+    doc.addPage({ size: 'A4', layout: 'landscape', margin: LANDSCAPE_MARGIN });
+    doc.y = LANDSCAPE_MARGIN;
     doc.y = redrawHeader(x, doc.y);
   }
 }
@@ -229,30 +237,30 @@ function drawMealPlanTable(doc, weeklyPlanTable) {
 
   const days = groupByDay(rows);
   const avg = weeklyAverage(days);
-  const x = PAGE_MARGIN;
+  const x = LANDSCAPE_MARGIN;
 
-  doc.addPage({ size: 'A4', layout: 'landscape', margin: PAGE_MARGIN });
+  doc.addPage({ size: 'A4', layout: 'landscape', margin: LANDSCAPE_MARGIN });
   const logoSize = 52;
   const textX = x + logoSize + 18;
-  const introWidth = doc.page.width - textX - PAGE_MARGIN - 240;
+  const introWidth = doc.page.width - textX - LANDSCAPE_MARGIN - 240;
   const introText = 'Every meal is sequenced fibre -> protein -> fat -> carbohydrate. Swap freely within the same row - the two options are macro-similar.';
 
-  doc.image(LOGO_PATH, x, PAGE_MARGIN - 10, { width: logoSize });
-  doc.font('Helvetica-Bold').fontSize(17).fillColor(ACCENT).text('Your Weekly Plan', textX, PAGE_MARGIN - 6);
+  doc.image(LOGO_PATH, x, LANDSCAPE_MARGIN - 10, { width: logoSize });
+  doc.font('Helvetica-Bold').fontSize(17).fillColor(ACCENT).text('Your Weekly Plan', textX, LANDSCAPE_MARGIN - 6);
   doc.font('Helvetica').fontSize(8.6).fillColor(MUTED);
   const introHeight = doc.heightOfString(introText, { width: introWidth });
-  doc.text(introText, textX, PAGE_MARGIN + 16, { width: introWidth });
+  doc.text(introText, textX, LANDSCAPE_MARGIN + 16, { width: introWidth });
 
   if (avg) {
-    const boxX = doc.page.width - PAGE_MARGIN - 230;
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(MUTED).text('WEEKLY AVERAGE / DAY', boxX, PAGE_MARGIN - 6);
+    const boxX = doc.page.width - LANDSCAPE_MARGIN - 230;
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(MUTED).text('WEEKLY AVERAGE / DAY', boxX, LANDSCAPE_MARGIN - 6);
     doc.font('Helvetica-Bold').fontSize(9).fillColor(INK).text(
       `${avg.kcal} kcal   ·   P ${avg.proteinG}g   C ${avg.carbG}g   F ${avg.fatG}g   Fib ${avg.fibreG}g`,
-      boxX, PAGE_MARGIN + 8, { width: 230 }
+      boxX, LANDSCAPE_MARGIN + 8, { width: 230 }
     );
   }
 
-  const legendY = Math.max(PAGE_MARGIN - 10 + logoSize, PAGE_MARGIN + 16 + introHeight) + 10;
+  const legendY = Math.max(LANDSCAPE_MARGIN - 10 + logoSize, LANDSCAPE_MARGIN + 16 + introHeight) + 10;
   drawEatOrderLegend(doc, x, legendY);
   doc.y = legendY + 18;
 
@@ -282,7 +290,7 @@ function drawMealPlanTable(doc, weeklyPlanTable) {
 }
 
 function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: PAGE_MARGIN, bufferPages: true });
+  const doc = new PDFDocument({ size: 'A4', margin: PORTRAIT_MARGIN, bufferPages: true });
   doc.pipe(res);
 
   addLetterhead(doc, 'Your Nutrition Plan', `${profile.fullName}${profile.location ? '  ·  ' + profile.location : ''}`);
@@ -294,7 +302,7 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   doc.moveDown(0.8);
   doc.font('Helvetica-Oblique').fontSize(10.5).fillColor(INK).text(
     'This reflects where you are right now, not a fixed destination. The numbers below come from your current weight, activity, and goal - they will be revisited as you change, not before.',
-    { width: CONTENT_WIDTH, paragraphGap: 6 }
+    { paragraphGap: 6 }
   );
 
   sectionHeading(doc, 'Your Starting Point');
@@ -307,8 +315,7 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   doc.font('Helvetica').fontSize(9.5).fillColor(MUTED).text(
     `Goal: ${profile.goal}  ·  Activity level: ${profile.activityLevel}` +
     (profile.trainingSchedule ? `  ·  Training: ${profile.trainingSchedule}` : '') +
-    (goalLock && goalLock.locked ? `  ·  held steady until ${new Date(goalLock.unlocksAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} so we can see a clean signal before reassessing` : ''),
-    { width: CONTENT_WIDTH }
+    (goalLock && goalLock.locked ? `  ·  held steady until ${new Date(goalLock.unlocksAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} so we can see a clean signal before reassessing` : '')
   );
 
   sectionHeading(doc, 'How to Build Each Meal');
@@ -322,13 +329,13 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
 
   const sunlightText = (profile.sunlightNotes || '').trim() || 'Your coach will add sun-exposure timing specific to where you live here.';
   doc.font('Helvetica').fontSize(10.5);
-  const sunlightHeight = doc.heightOfString(sunlightText, { width: CONTENT_WIDTH });
+  const sunlightHeight = doc.heightOfString(sunlightText, { width: doc.page.width - PORTRAIT_MARGIN * 2 });
   sectionHeading(doc, 'Sunlight and Vitamin D', 50 + sunlightHeight);
   paragraphOrPlaceholder(doc, profile.sunlightNotes, 'Your coach will add sun-exposure timing specific to where you live here.');
 
   const hasTable = drawMealPlanTable(doc, profile.weeklyPlanTable);
   if (!hasTable) {
-    doc.addPage({ size: 'A4', layout: 'landscape', margin: PAGE_MARGIN });
+    doc.addPage({ size: 'A4', margin: PORTRAIT_MARGIN });
     addLetterhead(doc, 'Your Weekly Plan');
     paragraphOrPlaceholder(doc, '', 'Your coach will add your specific day-by-day meal table here.');
   }
@@ -340,12 +347,13 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   const bottomMargin = doc.page.margins.bottom;
   for (let i = 0; i < range.count; i += 1) {
     doc.switchToPage(range.start + i);
+    const margin = doc.page.margins.left;
     doc.page.margins.bottom = 0;
     doc.font('Helvetica').fontSize(8).fillColor(MUTED).text(
       `Humankind Movement  ·  Page ${i + 1} of ${range.count}`,
-      PAGE_MARGIN,
+      margin,
       doc.page.height - 30,
-      { align: 'center', width: doc.page.width - PAGE_MARGIN * 2 }
+      { align: 'center', width: doc.page.width - margin * 2 }
     );
     doc.page.margins.bottom = bottomMargin;
   }
