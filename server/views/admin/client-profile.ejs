@@ -65,6 +65,15 @@
     </div>
 
     <section class="block card">
+      <h2>Check-in prompt</h2>
+      <p class="hint" style="font-size:0.82rem; color:#6b6862; margin-top:0;">Log weight and check-ins below as they happen, then paste this into Claude Code whenever you want the plan reviewed or revised based on what's been logged.</p>
+      <textarea id="checkin-prompt" readonly style="min-height:70px; font-family:inherit; font-size:0.9rem; background:#faf8f4;">Check in on <%= profile.fullName %>'s Client Profile (id: <%= profile._id %>) - review the weight log and check-ins logged since the last update, and update the weekly meal plan and/or sunlight guidance if the data suggests a change.</textarea>
+      <div class="actions" style="margin-top:0.6em;">
+        <button type="button" class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('checkin-prompt').value); this.textContent='Copied!'; setTimeout(() => { this.textContent = 'Copy prompt'; }, 1500);">Copy prompt</button>
+      </div>
+    </section>
+
+    <section class="block card">
       <h2>Weight log</h2>
       <% if (!profile.weightLog.length) { %><p class="log-note">No entries yet.</p><% } %>
       <% profile.weightLog.slice().reverse().forEach(function(w) { %>
