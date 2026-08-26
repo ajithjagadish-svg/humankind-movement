@@ -540,7 +540,7 @@ router.get('/clients/:id', requireAuth, async (req, res, next) => {
 router.get('/clients/:id/edit', requireAuth, async (req, res, next) => {
   const profile = await ClientProfile.findById(req.params.id).lean();
   if (!profile) return next();
-  res.render('admin/client-profile-form', { profile, fromIntake: null, error: null, nutritionTargets });
+  res.render('admin/client-profile-form', { profile, fromIntake: null, error: req.query.error || null, success: req.query.success || null, nutritionTargets });
 });
 
 router.post('/clients/:id/edit', requireAuth, async (req, res, next) => {
@@ -666,7 +666,7 @@ router.post('/clients/:id/lookup-sunlight', requireAuth, async (req, res, next) 
   } catch (err) {
     return res.redirect(`/admin/clients/${profile._id}/edit?error=${encodeURIComponent(err.message)}`);
   }
-  res.redirect(`/admin/clients/${profile._id}/edit`);
+  res.redirect(`/admin/clients/${profile._id}/edit?success=${encodeURIComponent('Sunlight guidance updated below.')}`);
 });
 
 // Drafts a weekly meal table via Claude, adapted to dietaryPreference and
@@ -696,7 +696,7 @@ router.post('/clients/:id/generate-mealplan', requireAuth, async (req, res, next
   } catch (err) {
     return res.redirect(`/admin/clients/${profile._id}/edit?error=${encodeURIComponent(err.message)}`);
   }
-  res.redirect(`/admin/clients/${profile._id}/edit`);
+  res.redirect(`/admin/clients/${profile._id}/edit?success=${encodeURIComponent('AI draft generated - review it in the Weekly meal table box below.')}`);
 });
 
 router.get('/clients/:id/pdf', requireAuth, async (req, res, next) => {

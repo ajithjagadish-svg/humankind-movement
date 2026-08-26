@@ -40,6 +40,7 @@
 
     <div class="card">
       <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <% if (typeof success !== 'undefined' && success) { %><div class="success"><%= success %></div><% } %>
       <% if (intake) { %>
         <p class="hint">Prefilled from <%= intake.fullName %>'s intake form. Review before saving - height and weight were parsed automatically and activity factor / calorie adjustment are just starting suggestions.</p>
       <% } %>
@@ -133,7 +134,7 @@
           <div class="row" style="margin-bottom:0.4em; align-items:baseline;">
             <label style="margin:0;">Weekly meal table</label>
             <% if (profile) { %>
-              <form method="POST" action="/admin/clients/<%= profile._id %>/generate-mealplan" onsubmit="return confirm('Replace the current weekly plan with a fresh AI draft based on diet, cuisine, and targets? Review it carefully before using it with a client.');">
+              <form method="POST" action="/admin/clients/<%= profile._id %>/generate-mealplan">
                 <button type="submit" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Draft with AI</button>
               </form>
             <% } %>
@@ -144,7 +145,7 @@
           <div class="row" style="margin-bottom:0.4em; margin-top:1.1em; align-items:baseline;">
             <label style="margin:0;">Sunlight / Vitamin D guidance</label>
             <% if (profile) { %>
-              <form method="POST" action="/admin/clients/<%= profile._id %>/lookup-sunlight" onsubmit="return confirm('Look up sunlight guidance for this client\'s location and replace the text below?');">
+              <form method="POST" action="/admin/clients/<%= profile._id %>/lookup-sunlight">
                 <button type="submit" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Look up automatically</button>
               </form>
             <% } %>
