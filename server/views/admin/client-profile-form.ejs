@@ -95,6 +95,9 @@
               <option value="<%= lvl %>" <%= activityLevelDefault === lvl ? 'selected' : '' %>><%= lvl %></option>
             <% }) %>
           </select>
+          <label>Training schedule</label>
+          <input type="text" name="trainingSchedule" value="<%= val('trainingSchedule', null) %>" placeholder="e.g. Mon, Wed, Fri around 6:00 PM">
+          <p class="hint" style="margin-top:0;">Not locked - update this whenever the actual training slot changes. Drives the post-training feed and "(Training)" day labels in the AI meal plan draft below, and shows on the PDF summary line.</p>
         </fieldset>
 
         <fieldset>

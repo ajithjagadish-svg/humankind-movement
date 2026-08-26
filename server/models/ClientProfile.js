@@ -56,6 +56,11 @@ const ClientProfileSchema = new mongoose.Schema(
     activityLevel: { type: String, required: true },
     activityFactor: { type: Number, required: true },
     activityLevelSetAt: { type: Date, default: Date.now },
+    // Free text, e.g. "Mon, Wed, Fri around 6:00 PM" - not locked like goal/
+    // activityLevel since a client's actual training slot shifts far more
+    // often than their goal does. Feeds the AI meal plan draft (adds a
+    // post-training feed on those days) and shows on the PDF's summary line.
+    trainingSchedule: { type: String, default: '' },
     calorieAdjustment: { type: Number, default: 0 },
     proteinPerKg: { type: Number, required: true },
     fatPerKg: { type: Number, default: 0.9 },

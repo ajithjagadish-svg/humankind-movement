@@ -63,11 +63,13 @@ function addLetterhead(doc, title, subtitle) {
   doc.y = logoSize + 64;
 }
 
-function sectionHeading(doc, text) {
-  // A heading stranded alone at the bottom of a page, with its content
-  // pushed to the next, reads as a production glitch - start it on a fresh
-  // page instead whenever there isn't reasonable room left for it.
-  if (doc.y > doc.page.height - doc.page.margins.bottom - 110) {
+// minRoom should be the real height the section needs (heading + its
+// content), not a flat guess - a fixed 110pt margin was pushing short
+// sections (like Sunlight's one paragraph) onto a whole fresh page even
+// when they would have fit in the space left on the current one, wasting
+// a nearly-blank page for a couple of lines of text.
+function sectionHeading(doc, text, minRoom = 50) {
+  if (doc.y > doc.page.height - doc.page.margins.bottom - minRoom) {
     doc.addPage({ size: 'A4', layout: 'landscape', margin: PAGE_MARGIN });
   }
   doc.moveDown(0.6);
@@ -304,6 +306,7 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   doc.moveDown(0.4);
   doc.font('Helvetica').fontSize(9.5).fillColor(MUTED).text(
     `Goal: ${profile.goal}  ·  Activity level: ${profile.activityLevel}` +
+    (profile.trainingSchedule ? `  ·  Training: ${profile.trainingSchedule}` : '') +
     (goalLock && goalLock.locked ? `  ·  held steady until ${new Date(goalLock.unlocksAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} so we can see a clean signal before reassessing` : ''),
     { width: CONTENT_WIDTH }
   );
@@ -317,7 +320,10 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   sectionHeading(doc, 'Drinks and Supplements');
   bulletList(doc, DRINK_SUPPLEMENT_RULES);
 
-  sectionHeading(doc, 'Sunlight and Vitamin D');
+  const sunlightText = (profile.sunlightNotes || '').trim() || 'Your coach will add sun-exposure timing specific to where you live here.';
+  doc.font('Helvetica').fontSize(10.5);
+  const sunlightHeight = doc.heightOfString(sunlightText, { width: CONTENT_WIDTH });
+  sectionHeading(doc, 'Sunlight and Vitamin D', 50 + sunlightHeight);
   paragraphOrPlaceholder(doc, profile.sunlightNotes, 'Your coach will add sun-exposure timing specific to where you live here.');
 
   const hasTable = drawMealPlanTable(doc, profile.weeklyPlanTable);

@@ -585,6 +585,7 @@ async function buildClientProfileData(body, existing) {
     currentWeightKg,
     goal: body.goal,
     activityLevel: body.activityLevel,
+    trainingSchedule: (body.trainingSchedule || '').trim(),
     activityFactor,
     calorieAdjustment,
     proteinPerKg,
@@ -688,6 +689,7 @@ router.post('/clients/:id/generate-mealplan', requireAuth, async (req, res, next
     profile.weeklyPlanTable = await generateMealPlanDraft({
       dietaryPreference: profile.dietaryPreference,
       cuisineBackground: profile.cuisineBackground,
+      trainingSchedule: profile.trainingSchedule,
       startingPoint,
     });
     await profile.save();

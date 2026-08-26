@@ -27,22 +27,25 @@ House rules, non-negotiable:
 - Every item includes a swap (Option B) that is macro-similar to Option A, so the client is never locked into one dish.
 - Respect the stated dietary preference strictly for BOTH options: "Eat meat" can include meat, fish, eggs, dairy; "Vegetarian, eat eggs" can include eggs and dairy but no meat or fish; "Vegetarian" can include dairy but no meat, fish, or eggs; "Vegan" excludes all animal products including dairy and eggs.
 - Option A follows the stated cuisine background if one is given (e.g. South Indian, Punjabi, Gujarati) - use real, specific dishes from that cuisine, not generic "chicken and rice" placeholders. If no cuisine is given, use broadly accessible Indian home-cooking for Option A.
-- Option B does NOT have to match that cuisine - it exists precisely so the client has a genuinely different fallback: a simpler, more globally-accessible alternative (oats, dry fruits and nuts, a protein shake, a Western-style option, or another cuisine entirely) is a good Option B, not a failure to stay on-theme. Only the macros need to line up with Option A, not the culinary style.
+- Option B does NOT have to match that cuisine - it exists so the client has a genuinely different fallback: a simpler, more globally-accessible alternative (oats, dry fruits and nuts, a protein shake, a Western-style option, or another cuisine entirely) is a good Option B, not a failure to stay on-theme.
+- When Option B departs from Option A's cuisine, do it for the WHOLE meal, not one item in isolation. Every item in that meal (fibre, protein, fat, carb) gets its own Option B in the SAME alternative style, so the client can eat all-A or all-B and get a coherent meal either way - never "oats" as the fibre swap sitting next to a South Indian protein swap in the same meal. Example: if breakfast's Option B goes Western-oats-style, its Fibre item swaps to something like "diced fruit or berries", Protein to "Greek yogurt or a scoop of whey stirred into the oats", Fat to "chia seeds, flax, or almonds", Carb to "rolled oats" - a full second breakfast, not a patchwork.
 - The day's macro totals should land within roughly 10% of the stated daily targets.
+- If a training schedule is given, add a post-training protein feed within about 60 minutes after each session on those days, and label those days in the Day column like "Mon (Training)".
 - Add a short coaching Note only where it adds real value (timing a supplement, a batch-cook tip, an iron/coffee interaction) - leave it blank most rows.
 
 Output ONLY the data as tab-separated rows, one row per food item, no header row, no markdown, no commentary. Columns in order: Day, Meal, Time, Eat order, Dish (Option A), Swap (Option B), Protein g, Carb g, Fat g, Fibre g, kcal, Note. Leave Day/Meal/Time blank on rows that continue the same meal as the row above (only the first item of each meal carries those three values) - this is a spreadsheet-paste convention the renderer relies on. Use plain numbers with no units in the macro columns.`;
 
-function buildUserPrompt({ dietaryPreference, cuisineBackground, startingPoint }) {
+function buildUserPrompt({ dietaryPreference, cuisineBackground, trainingSchedule, startingPoint }) {
   return [
     `Dietary preference: ${dietaryPreference || 'not specified - assume a general non-vegetarian Indian diet'}`,
     `Cuisine background: ${cuisineBackground || 'not specified - use broadly accessible Indian home-cooking'}`,
+    `Training schedule: ${trainingSchedule || 'not specified - no post-training feed needed'}`,
     `Daily targets: ${startingPoint.calorieTarget} kcal, ${startingPoint.proteinTarget} g protein (~${startingPoint.proteinPerMeal} g per meal), ${startingPoint.fatTarget} g fat, ${startingPoint.carbTarget} g carbohydrate, ${startingPoint.fiberTarget} g fibre.`,
     'Write the full 7-day table now (Monday through Sunday).',
   ].join('\n');
 }
 
-async function generateMealPlanDraft({ dietaryPreference, cuisineBackground, startingPoint }) {
+async function generateMealPlanDraft({ dietaryPreference, cuisineBackground, trainingSchedule, startingPoint }) {
   if (!anthropicConfigured()) {
     throw new Error('ANTHROPIC_API_KEY is not configured. Add it as a secret env var to enable meal plan drafting.');
   }
@@ -53,7 +56,7 @@ async function generateMealPlanDraft({ dietaryPreference, cuisineBackground, sta
     model: 'claude-sonnet-5',
     max_tokens: 8000,
     system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: buildUserPrompt({ dietaryPreference, cuisineBackground, startingPoint }) }],
+    messages: [{ role: 'user', content: buildUserPrompt({ dietaryPreference, cuisineBackground, trainingSchedule, startingPoint }) }],
   });
 
   const text = response.content.map((block) => (block.type === 'text' ? block.text : '')).join('').trim();
