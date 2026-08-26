@@ -28,7 +28,8 @@
   <main>
     <div class="row">
       <h1 style="font-size:1.2rem; margin:0;"><%= profile.fullName %></h1>
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; align-items:center;">
+        <a class="btn" href="/admin/clients/<%= profile._id %>/pdf">Generate Plan PDF</a>
         <a class="btn btn-ghost" href="/admin/clients/<%= profile._id %>/edit">Edit</a>
         <a href="/admin/clients">← Back to clients</a>
       </div>

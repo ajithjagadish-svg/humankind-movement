@@ -11,9 +11,10 @@ const mongoose = require('mongoose');
 // for why that's on hold).
 //
 // checkIns is the hand-out-a-plan / follow-it / report-back loop: coach
-// gives the client a plan (planVersion is just a short label/note - actual
-// PDF generation is a later build), the client follows it for a stretch
-// (weeks, not fixed), then a check-in records what happened and whether to
+// gives the client a plan (planVersion is just a short label/note, the
+// weeklyPlanNotes/sunlightNotes fields below hold the actual content that
+// goes into the generated PDF), the client follows it for a stretch (weeks,
+// not fixed), then a check-in records what happened and whether to
 // continue as-is, adjust the plan while keeping the same targets, or - only
 // once the 12-week lock has elapsed - reassess the goal/activity itself.
 const CheckInSchema = new mongoose.Schema(
@@ -60,6 +61,8 @@ const ClientProfileSchema = new mongoose.Schema(
 
     currentPlanVersion: { type: String, default: '' },
     currentPlanIssuedAt: { type: Date },
+    weeklyPlanNotes: { type: String, default: '' },
+    sunlightNotes: { type: String, default: '' },
     checkIns: { type: [CheckInSchema], default: [] },
 
     status: { type: String, enum: ['active', 'paused', 'completed'], default: 'active', index: true },

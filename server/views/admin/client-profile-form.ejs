@@ -122,7 +122,13 @@
           <legend>Current plan</legend>
           <label>Plan version / label</label>
           <input type="text" name="currentPlanVersion" value="<%= val('currentPlanVersion', null) %>" placeholder="e.g. Week 1-4 South Indian plan v1">
-          <p class="hint">A short label for whatever plan you handed the client - full plan documents live outside this system for now.</p>
+          <p class="hint">Shown at the top of the generated PDF.</p>
+
+          <label>Weekly plan content</label>
+          <textarea name="weeklyPlanNotes" style="min-height:220px; font-family:inherit; font-size:0.95rem;" placeholder="Write or paste the actual weekly menu - meals, swaps, portions. This goes straight into the client's PDF, formatted under 'Your Weekly Plan'."><%= val('weeklyPlanNotes', null) %></textarea>
+
+          <label>Sunlight / Vitamin D guidance</label>
+          <textarea name="sunlightNotes" style="min-height:120px; font-family:inherit; font-size:0.95rem;" placeholder="Best time of day for sun exposure given their location, e.g. 'Toronto - midday (11am-1pm), Apr-Sep only; supplement Oct-Mar.'"><%= val('sunlightNotes', null) %></textarea>
         </fieldset>
 
         <div class="actions">

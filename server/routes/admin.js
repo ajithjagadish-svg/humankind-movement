@@ -17,6 +17,7 @@ const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../service
 const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
 const { getPageViewSummary } = require('../services/pageViews');
 const nutritionTargets = require('../services/nutritionTargets');
+const { generatePlanPdf } = require('../services/planPdf');
 
 const router = express.Router();
 
@@ -586,6 +587,8 @@ async function buildClientProfileData(body, existing) {
     proteinPerKg,
     fatPerKg,
     currentPlanVersion: (body.currentPlanVersion || '').trim(),
+    weeklyPlanNotes: (body.weeklyPlanNotes || '').trim(),
+    sunlightNotes: (body.sunlightNotes || '').trim(),
   };
 
   if (body.intakeSubmissionId) data.intakeSubmissionId = body.intakeSubmissionId;
@@ -640,6 +643,27 @@ router.post('/clients/:id/checkin', requireAuth, async (req, res, next) => {
   }
   await profile.save();
   res.redirect(`/admin/clients/${profile._id}`);
+});
+
+router.get('/clients/:id/pdf', requireAuth, async (req, res, next) => {
+  const profile = await ClientProfile.findById(req.params.id).lean();
+  if (!profile) return next();
+
+  const startingPoint = nutritionTargets.computeStartingPoint({
+    dateOfBirth: profile.dateOfBirth,
+    heightCm: profile.heightCm,
+    bodyWeightKg: profile.currentWeightKg,
+    activityFactor: profile.activityFactor,
+    calorieAdjustment: profile.calorieAdjustment,
+    proteinPerKg: profile.proteinPerKg,
+    fatPerKg: profile.fatPerKg,
+  });
+  const goalLock = nutritionTargets.lockStatus(profile.goalSetAt);
+
+  const filename = `${profile.fullName.replace(/[^a-z0-9]+/gi, '-')}-nutrition-plan.pdf`;
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  generatePlanPdf({ profile, startingPoint, goalLock }, res);
 });
 
 router.post('/clients/:id/delete', requireAuth, async (req, res) => {

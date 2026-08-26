@@ -27,6 +27,7 @@
     "express-session": "^1.18.1",
     "googleapis": "^144.0.0",
     "mongoose": "^8.9.5",
+    "pdfkit": "^0.20.1",
     "posthog-js": "^1.417.4"
   },
   "devDependencies": {
