@@ -45,6 +45,18 @@
         <p class="hint">Prefilled from <%= intake.fullName %>'s intake form. Review before saving - height and weight were parsed automatically and activity factor / calorie adjustment are just starting suggestions.</p>
       <% } %>
 
+      <% if (profile) { %>
+        <!-- Standalone forms for the two action buttons below - deliberately
+             OUTSIDE the main form. Nesting a <form> inside another <form> is
+             invalid HTML; browsers silently drop the inner tag, which made
+             "Draft with AI" submit the outer Save-profile form instead of its
+             own endpoint, and even orphaned the real Save button outside any
+             form. The buttons target these via the form="..." attribute
+             instead, which works from anywhere in the document. -->
+        <form id="generateMealplanForm" method="POST" action="/admin/clients/<%= profile._id %>/generate-mealplan"></form>
+        <form id="lookupSunlightForm" method="POST" action="/admin/clients/<%= profile._id %>/lookup-sunlight"></form>
+      <% } %>
+
       <form method="POST" action="<%= profile ? '/admin/clients/' + profile._id + '/edit' : '/admin/clients/new' %>">
         <% if (intake) { %><input type="hidden" name="intakeSubmissionId" value="<%= intake._id %>"><% } %>
 
@@ -134,9 +146,7 @@
           <div class="row" style="margin-bottom:0.4em; align-items:baseline;">
             <label style="margin:0;">Weekly meal table</label>
             <% if (profile) { %>
-              <form method="POST" action="/admin/clients/<%= profile._id %>/generate-mealplan">
-                <button type="submit" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Draft with AI</button>
-              </form>
+              <button type="submit" form="generateMealplanForm" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Draft with AI</button>
             <% } %>
           </div>
           <p class="hint" style="margin-top:0;">Build this in a spreadsheet (columns: Day, Meal, Time, Eat order, Dish, Swap, Protein g, Carb g, Fat g, Fibre g, kcal, Note - one row per food item, leave Day/Meal/Time blank on the rows that continue the same meal), select the range, and paste it directly here - or use "Draft with AI" to generate a starting point from the dietary preference, cuisine background, and calculation inputs above (save those first). Either way, this is a draft: review the dishes and macros before it goes to a client - AI-estimated numbers are not lab-verified. It renders as a real table in the PDF, grouped by day with totals - not a paragraph.</p>
@@ -145,9 +155,7 @@
           <div class="row" style="margin-bottom:0.4em; margin-top:1.1em; align-items:baseline;">
             <label style="margin:0;">Sunlight / Vitamin D guidance</label>
             <% if (profile) { %>
-              <form method="POST" action="/admin/clients/<%= profile._id %>/lookup-sunlight">
-                <button type="submit" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Look up automatically</button>
-              </form>
+              <button type="submit" form="lookupSunlightForm" class="btn btn-ghost" style="padding:5px 12px; font-size:0.8rem;">Look up automatically</button>
             <% } %>
           </div>
           <p class="hint" style="margin-top:0;">"Look up automatically" geocodes the location above and writes a latitude-based guidance paragraph (effective months, midday window, this month's status) - save the location first if you've just changed it.</p>
