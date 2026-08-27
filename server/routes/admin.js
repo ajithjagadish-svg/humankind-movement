@@ -220,17 +220,20 @@ async function createOrUpdatePost(body, existing, contentIdeaId) {
 const IDEA_STATUSES = ['idea', 'drafting', 'published'];
 
 router.get('/content-ideas', requireAuth, async (req, res) => {
-  const ideas = await ContentIdea.find().sort({ createdAt: -1 }).lean();
-  res.render('admin/content-ideas', { ideas, categories: CATEGORIES, error: req.query.carouselError || null });
+  const filterFormat = ['blog-post', 'social-content'].includes(req.query.format) ? req.query.format : null;
+  const query = filterFormat ? { format: filterFormat } : {};
+  const ideas = await ContentIdea.find(query).sort({ createdAt: -1 }).lean();
+  res.render('admin/content-ideas', { ideas, categories: CATEGORIES, error: req.query.carouselError || null, filterFormat });
 });
 
 router.post('/content-ideas/new', requireAuth, async (req, res) => {
-  const { topic, rationale, targetService, sourceLinks } = req.body;
+  const { topic, rationale, targetService, sourceLinks, format } = req.body;
   if (topic && topic.trim() && rationale && rationale.trim()) {
     await ContentIdea.create({
       topic: topic.trim(),
       rationale: rationale.trim(),
       targetService: targetService || 'other',
+      format: format === 'social-content' ? 'social-content' : 'blog-post',
       sourceLinks: (sourceLinks || '')
         .split('\n')
         .map((s) => s.trim())

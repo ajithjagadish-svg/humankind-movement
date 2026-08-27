@@ -14,6 +14,12 @@
   .idea-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   .idea-actions form { margin: 0; }
   details summary { cursor: pointer; font-size: 0.9rem; color: var(--accent); margin-bottom: 1.4em; }
+  .format-badge { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; }
+  .format-badge.blog-post { background: #eaf1ff; color: #2452b8; }
+  .format-badge.social-content { background: #fdeee0; color: #b8622a; }
+  .idea-filters { display: flex; gap: 8px; margin-bottom: 16px; }
+  .idea-filters a { font-size: 0.85rem; padding: 6px 12px; border-radius: 100px; border: 1px solid var(--line); color: var(--ink-soft); }
+  .idea-filters a.active { background: var(--ink); color: #fff; border-color: var(--ink); }
 </style>
 </head>
 <body>
@@ -21,6 +27,13 @@
   <main>
     <div class="row">
       <h1 style="font-size:1.2rem; margin:0;">Content ideas (<%= ideas.length %>)</h1>
+    </div>
+    <p class="idea-meta" style="margin-top:-8px;">Blog-post ideas feed the /admin/posts draft pipeline. Social-content ideas (Reels, carousels, LinkedIn posts) never become a blog post - their actual script lives on the <a href="/admin/queue">Publish Queue</a> page instead.</p>
+
+    <div class="idea-filters">
+      <a href="/admin/content-ideas" class="<%= !filterFormat ? 'active' : '' %>">All</a>
+      <a href="/admin/content-ideas?format=blog-post" class="<%= filterFormat === 'blog-post' ? 'active' : '' %>">Blog posts</a>
+      <a href="/admin/content-ideas?format=social-content" class="<%= filterFormat === 'social-content' ? 'active' : '' %>">Social content</a>
     </div>
 
     <details class="card" style="margin-bottom:20px;">
@@ -32,6 +45,12 @@
 
         <label for="rationale">Why this topic (rationale, ideally citing what you found)</label>
         <textarea id="rationale" name="rationale" required style="min-height:100px; font-family:inherit;"></textarea>
+
+        <label for="format">Is this a blog post idea or a social-content idea?</label>
+        <select id="format" name="format">
+          <option value="blog-post">Blog post (writes a draft in /admin/posts)</option>
+          <option value="social-content">Social content (Reel, carousel, LinkedIn post - script goes on the Publish Queue)</option>
+        </select>
 
         <label for="targetService">Which service does this support?</label>
         <select id="targetService" name="targetService">
@@ -57,7 +76,10 @@
           <h3 style="margin:0;"><%= idea.topic %></h3>
           <span class="badge <%= idea.status === 'published' ? 'published' : 'draft' %>"><%= idea.status %></span>
         </div>
-        <p class="idea-meta">For: <%= idea.targetService %></p>
+        <p class="idea-meta">
+          <span class="format-badge <%= idea.format || 'blog-post' %>"><%= (idea.format === 'social-content') ? 'Social content' : 'Blog post' %></span>
+          For: <%= idea.targetService %>
+        </p>
         <p><%= idea.rationale %></p>
         <% if (idea.sourceLinks && idea.sourceLinks.length) { %>
           <div class="idea-links">
@@ -68,8 +90,11 @@
           </div>
         <% } %>
         <div class="idea-actions">
-          <% if (idea.status !== 'published') { %>
+          <% if (idea.format !== 'social-content' && idea.status !== 'published') { %>
             <a class="btn" href="/admin/content-ideas/<%= idea._id %>/draft"><%= idea.linkedPost ? 'Review draft' : 'Write draft' %></a>
+          <% } %>
+          <% if (idea.format === 'social-content') { %>
+            <a class="btn" href="/admin/queue">View on Publish Queue</a>
           <% } %>
           <% if (idea.status === 'idea') { %>
             <form method="POST" action="/admin/content-ideas/<%= idea._id %>/status">
