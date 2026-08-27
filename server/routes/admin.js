@@ -690,6 +690,7 @@ router.post('/clients/:id/generate-mealplan', requireAuth, async (req, res, next
       dietaryPreference: profile.dietaryPreference,
       cuisineBackground: profile.cuisineBackground,
       trainingSchedule: profile.trainingSchedule,
+      location: profile.location,
       startingPoint,
     });
     await profile.save();
