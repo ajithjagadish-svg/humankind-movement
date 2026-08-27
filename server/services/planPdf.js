@@ -46,6 +46,7 @@ const CATEGORY_COLORS = {
   carb: { text: '#1565c0', bg: '#e3f2fd', label: 'Carb last' },
   other: { text: MUTED, bg: '#f1efe9', label: 'Other' },
 };
+const BATCH_COOK_COLOR = '#00695c';
 
 // A logo this small is the single most common note we get back on drafts -
 // it needs to read at a glance, not be found on inspection. 72pt (1 inch)
@@ -95,12 +96,39 @@ function sectionHeading(doc, text, minRoom = 50) {
   doc.font('Helvetica').fontSize(10.5).fillColor(INK);
 }
 
-function targetRow(doc, label, value) {
-  const y = doc.y;
+// Bordered stat cards spanning the full page width, 3 per row - replaces a
+// fixed label-column-then-value-column layout that left a wide dead gap
+// down the middle of the page whenever a label was short (e.g. "Fat"),
+// which is what several rounds of "empty space on the left" turned out to
+// actually be - not a margin or orientation problem, this table's own
+// column layout.
+function drawStatGrid(doc, stats) {
   const margin = doc.page.margins.left;
-  doc.font('Helvetica').fontSize(10).fillColor(MUTED).text(label, margin, y, { continued: false, width: 200 });
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(INK).text(value, margin + 200, y, { width: doc.page.width - margin * 2 - 200 });
-  doc.moveDown(0.35);
+  const contentWidth = doc.page.width - margin * 2;
+  const columns = 3;
+  const gap = 10;
+  const boxWidth = (contentWidth - gap * (columns - 1)) / columns;
+  const boxHeight = 58;
+  const startY = doc.y;
+
+  stats.forEach((stat, i) => {
+    const col = i % columns;
+    const row = Math.floor(i / columns);
+    const x = margin + col * (boxWidth + gap);
+    const y = startY + row * (boxHeight + gap);
+
+    doc.roundedRect(x, y, boxWidth, boxHeight, 6).fillAndStroke('#ffffff', '#e5e0d8');
+    doc.font('Helvetica-Bold').fontSize(15).fillColor(INK).text(stat.value, x + 12, y + 10, { width: boxWidth - 24 });
+    doc.font('Helvetica').fontSize(8.3).fillColor(MUTED).text(stat.label, x + 12, y + 32, { width: boxWidth - 24 });
+  });
+
+  const rows = Math.ceil(stats.length / columns);
+  // Each box was drawn with an explicit (x, width) - pdfkit keeps the last
+  // one as the active flow bounds, so unpositioned .text() calls after this
+  // (every bullet/paragraph on the rest of the page) would otherwise wrap
+  // at the last box's ~150pt width instead of the full page - reset both.
+  doc.x = margin;
+  doc.y = startY + rows * (boxHeight + gap);
 }
 
 function bulletList(doc, items) {
@@ -131,6 +159,7 @@ const EAT_ORDER_RULES = [
   { rule: 'Protein next - keeps you fuller for longer and protects muscle while eating in a deficit or surplus.', evidence: null },
   { rule: 'Fat after that - in moderation, alongside protein.', evidence: 'Fat is also the carrier for fat-soluble vitamins D and the omega-3s - see Drinks and Supplements below.' },
   { rule: 'Carbohydrate last - eaten this way, the same plate produces a gentler blood sugar response.', evidence: 'In prediabetes, this order cut the glucose peak by over 40% (Shukla et al., Diabetes Obesity & Metabolism 2019). In a 16-week trial, 94% of participants found it easy to sustain (Shukla et al., Nutrients 2023).' },
+  { rule: 'A squeeze of lemon on every meal - except dairy or curd dishes, where it curdles.', evidence: 'The same vitamin C mechanism already at work for iron-rich meals (see Drinks and Supplements) - most meals here carry some plant-based iron, so this is that same habit extended as a simple daily default.' },
 ];
 
 const CHRONO_RULES = [
@@ -138,6 +167,7 @@ const CHRONO_RULES = [
   { rule: 'Finish eating by 8pm where possible, inside a 10-12 hour eating window.', evidence: 'Dinner after 8pm was independently associated with higher HbA1c in type 2 diabetes (Sakai et al. 2018).' },
   { rule: 'Protein every 3-4 hours across 4-5 meals, not one large lunch and a token dinner.', evidence: 'ISSN 2017 position stand; roughly 0.4 g/kg protein per meal (Schoenfeld & Aragon 2018).' },
   { rule: 'A short walk (10-15 minutes) within 30 minutes of your two largest meals measurably helps blood sugar control.', evidence: 'Walking as soon as possible after a meal beats the same walk delayed or taken before eating (systematic review, Sports Medicine 2023).' },
+  { rule: 'A # next to a dish in the weekly plan means it is a batch-cook option: make extra at lunch and reuse a smaller portion at dinner instead of cooking a fresh vegetable - same eat-order role, similar macros, one less thing to cook. Always optional - cook fresh instead any day you would rather have the variety.', evidence: null },
 ];
 
 const DRINK_SUPPLEMENT_RULES = [
@@ -217,6 +247,10 @@ function drawItemRow(doc, x, y, row) {
     const value = typeof raw === 'number' ? String(raw) : raw || '';
     if (col.key === 'eatOrder') {
       doc.font('Helvetica-Bold').fontSize(7.8).fillColor(cat.text).text(value, cx + 5, y + 4, { width: col.width - 9 });
+    } else if (col.key === 'note' && value.includes('#')) {
+      // Batch-cook tag - colored so it reads as a marker pointing back to the
+      // one-time explanation in Timing and Rhythm, not another paragraph to read.
+      doc.font('Helvetica-Bold').fontSize(7.8).fillColor(BATCH_COOK_COLOR).text(value, cx + 4, y + 4, { width: col.width - 8 });
     } else {
       doc.font('Helvetica').fontSize(7.8).fillColor(INK).text(value, cx + 4, y + 4, { width: col.width - 8, align: col.align || 'left' });
     }
@@ -316,12 +350,15 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   );
 
   sectionHeading(doc, 'Your Starting Point');
-  targetRow(doc, 'Daily calorie target', `${startingPoint.calorieTarget} kcal`);
-  targetRow(doc, 'Protein', `${startingPoint.proteinTarget} g/day  (about ${startingPoint.proteinPerMeal} g per meal, across 4+ meals)`);
-  targetRow(doc, 'Fat', `${startingPoint.fatTarget} g/day`);
-  targetRow(doc, 'Carbohydrate', `${startingPoint.carbTarget} g/day`);
-  targetRow(doc, 'Fiber', `${startingPoint.fiberTarget} g/day`);
-  doc.moveDown(0.4);
+  drawStatGrid(doc, [
+    { value: `${startingPoint.calorieTarget} kcal`, label: 'Daily calorie target' },
+    { value: `${startingPoint.proteinTarget} g`, label: 'Protein / day' },
+    { value: `${startingPoint.proteinPerMeal} g`, label: 'Protein / meal (4+ meals)' },
+    { value: `${startingPoint.fatTarget} g`, label: 'Fat / day' },
+    { value: `${startingPoint.carbTarget} g`, label: 'Carbohydrate / day' },
+    { value: `${startingPoint.fiberTarget} g`, label: 'Fiber / day' },
+  ]);
+  doc.moveDown(0.6);
   doc.font('Helvetica').fontSize(9.5).fillColor(MUTED).text(
     `Goal: ${profile.goal}  ·  Activity level: ${profile.activityLevel}` +
     (profile.trainingSchedule ? `  ·  Training: ${profile.trainingSchedule}` : '') +
@@ -335,6 +372,11 @@ function generatePlanPdf({ profile, startingPoint, goalLock }, res) {
   bulletList(doc, CHRONO_RULES);
 
   sectionHeading(doc, 'Drinks and Supplements');
+  doc.font('Helvetica-Oblique').fontSize(9.5).fillColor(MUTED).text(
+    'Everything below is a general guideline, not a prescription - the specific doses, timing, and even whether a supplement makes sense for you at all should be confirmed with blood work and a doctor, not assumed from this page. This section does not assume a diagnosed deficiency unless stated.',
+    { paragraphGap: 8 }
+  );
+  doc.font('Helvetica').fontSize(10.5).fillColor(INK);
   bulletList(doc, DRINK_SUPPLEMENT_RULES);
 
   const sunlightText = (profile.sunlightNotes || '').trim() || 'Your coach will add sun-exposure timing specific to where you live here.';
