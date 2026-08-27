@@ -37,6 +37,17 @@
 
     <% if (error) { %><div class="error"><%= error %></div><% } %>
 
+    <% if (dietaryFlags && dietaryFlags.length) { %>
+      <div class="error" style="border-color:#c9a227; background:#fdf6e3; color:#6b5a00;">
+        <strong>Dietary check flagged <%= dietaryFlags.length %> item<%= dietaryFlags.length > 1 ? 's' : '' %> in the weekly plan against "<%= profile.dietaryPreference %>":</strong>
+        <ul style="margin:0.5em 0 0; padding-left:1.2em;">
+          <% dietaryFlags.forEach(function(f) { %>
+            <li><%= f.day %> <%= f.meal %> - <%= f.dish %> - <%= f.issue %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
     <div class="card">
       <p class="client-meta" style="font-size:0.85rem; color:#6b6862; margin:0 0 0.6em;">
         <%= startingPoint.age %> yrs &middot; <%= profile.heightCm %> cm &middot; <%= profile.currentWeightKg %> kg &middot; <%= profile.location || 'location not set' %>

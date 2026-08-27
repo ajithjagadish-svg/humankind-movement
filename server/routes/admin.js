@@ -20,6 +20,7 @@ const nutritionTargets = require('../services/nutritionTargets');
 const { generatePlanPdf } = require('../services/planPdf');
 const { generateSunlightGuidance } = require('../services/sunlightGuidance');
 const { generateMealPlanDraft } = require('../services/mealPlanGen');
+const { checkDietaryCompliance } = require('../services/dietaryCompliance');
 
 const router = express.Router();
 
@@ -533,14 +534,16 @@ router.get('/clients/:id', requireAuth, async (req, res, next) => {
   });
   const goalLock = nutritionTargets.lockStatus(profile.goalSetAt);
   const activityLock = nutritionTargets.lockStatus(profile.activityLevelSetAt);
+  const dietaryFlags = checkDietaryCompliance(profile.weeklyPlanTable, profile.dietaryPreference);
 
-  res.render('admin/client-profile', { profile, startingPoint, goalLock, activityLock, nutritionTargets, error: req.query.error || null });
+  res.render('admin/client-profile', { profile, startingPoint, goalLock, activityLock, nutritionTargets, dietaryFlags, error: req.query.error || null });
 });
 
 router.get('/clients/:id/edit', requireAuth, async (req, res, next) => {
   const profile = await ClientProfile.findById(req.params.id).lean();
   if (!profile) return next();
-  res.render('admin/client-profile-form', { profile, fromIntake: null, error: req.query.error || null, success: req.query.success || null, nutritionTargets });
+  const dietaryFlags = checkDietaryCompliance(profile.weeklyPlanTable, profile.dietaryPreference);
+  res.render('admin/client-profile-form', { profile, fromIntake: null, error: req.query.error || null, success: req.query.success || null, dietaryFlags, nutritionTargets });
 });
 
 router.post('/clients/:id/edit', requireAuth, async (req, res, next) => {
