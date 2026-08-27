@@ -160,6 +160,7 @@ const EAT_ORDER_RULES = [
   { rule: 'Fat after that - in moderation, alongside protein.', evidence: 'Fat is also the carrier for fat-soluble vitamins D and the omega-3s - see Drinks and Supplements below.' },
   { rule: 'Carbohydrate last - eaten this way, the same plate produces a gentler blood sugar response.', evidence: 'In prediabetes, this order cut the glucose peak by over 40% (Shukla et al., Diabetes Obesity & Metabolism 2019). In a 16-week trial, 94% of participants found it easy to sustain (Shukla et al., Nutrients 2023).' },
   { rule: 'A squeeze of lemon on every meal - except dairy or curd dishes, where it curdles.', evidence: 'The same vitamin C mechanism already at work for iron-rich meals (see Drinks and Supplements) - most meals here carry some plant-based iron, so this is that same habit extended as a simple daily default.' },
+  { rule: 'A small side of fermented vegetable (kimchi) at dinner, alongside the curd and fermented batters already through the week.', evidence: 'A high-fermented-food diet steadily raised gut microbiome diversity and lowered inflammatory markers over 17 weeks, an effect a high-fiber diet alone did not produce (Wastyk et al., Cell 2021).' },
 ];
 
 const CHRONO_RULES = [
