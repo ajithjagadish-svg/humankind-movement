@@ -1,16 +1,19 @@
 <div class="form-card" style="max-width:480px;">
-  <h3 style="margin-top:0;">Get notified: new <%= categoryLabel %> posts</h3>
-  <p class="note">One email whenever we publish something new here. No spam.</p>
+  <h3 style="margin-top:0;">Subscribe to <%= categoryLabel %></h3>
+  <p class="note">
+    An email when we publish something new on <%= categoryLabel.toLowerCase() %><% if (typeof cadenceLabel !== 'undefined' && cadenceLabel) { %>, <%= cadenceLabel %><% } %>.
+    Nothing else - no spam, unsubscribe any time.
+  </p>
 
   <form class="contact-form" action="/api/blog-subscribe" method="POST" data-ajax-form data-ga-event="blog_subscribe">
     <input type="hidden" name="category" value="<%= categoryKey %>">
     <div class="field">
-      <label for="sub-email-<%= categoryKey %>">Email</label>
-      <input type="email" id="sub-email-<%= categoryKey %>" name="email" autocomplete="email" required>
+      <label for="sub-email-<%= categoryKey %>">Email address</label>
+      <input type="email" id="sub-email-<%= categoryKey %>" name="email" autocomplete="email" placeholder="you@example.com" required>
     </div>
 
     <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <button type="submit" class="btn">Notify Me</button>
+    <button type="submit" class="btn">Subscribe</button>
     <p class="form-status err" role="alert"></p>
     <p class="form-status ok" role="status">Check your inbox to confirm.</p>
   </form>
