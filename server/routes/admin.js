@@ -10,6 +10,7 @@ const EngagementLead = require('../models/EngagementLead');
 const SocialPost = require('../models/SocialPost');
 const PublishQueueItem = require('../models/PublishQueueItem');
 const ClientProfile = require('../models/ClientProfile');
+const Subscriber = require('../models/Subscriber');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
 const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary, fetchGA4TimeSeries } = require('../services/ga4');
@@ -21,6 +22,7 @@ const { generatePlanPdf } = require('../services/planPdf');
 const { generateSunlightGuidance } = require('../services/sunlightGuidance');
 const { generateMealPlanDraft } = require('../services/mealPlanGen');
 const { checkDietaryCompliance } = require('../services/dietaryCompliance');
+const { notifySubscribers } = require('../services/blogSubscriptions');
 
 const router = express.Router();
 
@@ -167,6 +169,7 @@ async function createOrUpdatePost(body, existing, contentIdeaId) {
 
   const slug = (body.slug && body.slug.trim()) || slugify(body.title);
   const status = body.status === 'published' ? 'published' : 'draft';
+  const isFreshPublish = status === 'published' && !(existing && existing.publishedAt);
 
   const data = {
     slug,
@@ -212,6 +215,14 @@ async function createOrUpdatePost(body, existing, contentIdeaId) {
   if (linkedIdea && linkedIdea.status !== status) {
     linkedIdea.status = status === 'published' ? 'published' : 'drafting';
     await linkedIdea.save();
+  }
+
+  // Category subscribers only hear about this once, at the moment it first
+  // goes live - not on every later edit to an already-published post.
+  if (isFreshPublish) {
+    notifySubscribers(savedPost).catch((err) => {
+      console.error('notifySubscribers failed:', err.message);
+    });
   }
 }
 
@@ -439,12 +450,19 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
 // --- Submissions (contact + intake forms) ---
 
 router.get('/submissions', requireAuth, async (req, res) => {
-  const [contacts, intakes, ebookLeads] = await Promise.all([
+  const [contacts, intakes, ebookLeads, subscribers] = await Promise.all([
     ContactSubmission.find().sort({ createdAt: -1 }).lean(),
     IntakeSubmission.find().sort({ createdAt: -1 }).lean(),
     EbookLead.find().sort({ createdAt: -1 }).lean(),
+    Subscriber.find().sort({ createdAt: -1 }).lean(),
   ]);
-  res.render('admin/submissions', { contacts, intakes, ebookLeads });
+  const categoryLabelByKey = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.label]));
+  res.render('admin/submissions', { contacts, intakes, ebookLeads, subscribers, categoryLabelByKey });
+});
+
+router.post('/submissions/subscribers/:id/delete', requireAuth, async (req, res) => {
+  await Subscriber.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/submissions');
 });
 
 router.post('/submissions/ebook-leads/:id/status', requireAuth, async (req, res) => {

@@ -1,8 +1,11 @@
 const express = require('express');
+const crypto = require('crypto');
 const ContactSubmission = require('../models/ContactSubmission');
 const IntakeSubmission = require('../models/IntakeSubmission');
 const EbookLead = require('../models/EbookLead');
-const { sendResourceEmail } = require('../services/mailer');
+const Subscriber = require('../models/Subscriber');
+const CATEGORIES = require('../config/categories');
+const { sendResourceEmail, sendSubscriptionConfirmEmail } = require('../services/mailer');
 
 const router = express.Router();
 
@@ -114,6 +117,46 @@ router.post('/ebook-signup', async (req, res) => {
   if (resourceSlug) {
     sendResourceEmail({ to: email.trim(), resourceSlug }).catch((err) => {
       console.error('sendResourceEmail failed:', err.message);
+    });
+  }
+
+  res.json({ ok: true });
+});
+
+router.post('/blog-subscribe', async (req, res) => {
+  const { email, category, _gotcha } = req.body;
+
+  if (_gotcha) return res.json({ ok: true });
+
+  const cat = CATEGORIES.find((c) => c.key === category);
+  if (!email || !cat) {
+    return res.status(400).json({ error: 'Please share your email and pick a topic.' });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  let subscriber = await Subscriber.findOne({ email: normalizedEmail });
+
+  if (!subscriber) {
+    subscriber = await Subscriber.create({
+      email: normalizedEmail,
+      categories: [cat.key],
+      status: 'pending',
+      confirmToken: crypto.randomBytes(24).toString('hex'),
+      unsubscribeToken: crypto.randomBytes(24).toString('hex'),
+    });
+  } else {
+    if (!subscriber.categories.includes(cat.key)) subscriber.categories.push(cat.key);
+    if (subscriber.status === 'unsubscribed') {
+      subscriber.status = 'pending';
+      subscriber.confirmToken = crypto.randomBytes(24).toString('hex');
+    }
+    await subscriber.save();
+  }
+
+  if (subscriber.status === 'pending') {
+    const confirmUrl = `https://humankindmovement.in/blog/subscribe/confirm/${subscriber.confirmToken}`;
+    sendSubscriptionConfirmEmail({ to: normalizedEmail, categoryLabel: cat.label, confirmUrl }).catch((err) => {
+      console.error('sendSubscriptionConfirmEmail failed:', err.message);
     });
   }
 

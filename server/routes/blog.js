@@ -1,5 +1,6 @@
 const express = require('express');
 const BlogPost = require('../models/BlogPost');
+const Subscriber = require('../models/Subscriber');
 const CATEGORY_ORDER = require('../config/categories');
 
 const router = express.Router();
@@ -10,12 +11,34 @@ router.get('/', async (req, res) => {
   const posts = await BlogPost.find({ status: 'published' }).sort({ publishedAt: -1 }).lean();
 
   const categories = CATEGORY_ORDER.map((cat, i) => ({
+    key: cat.key,
     label: cat.label,
     bg: BG_BY_INDEX[i % BG_BY_INDEX.length],
     posts: posts.filter((p) => p.category === cat.key),
   })).filter((cat) => cat.posts.length > 0);
 
   res.render('blog/index', { categories });
+});
+
+router.get('/subscribe/confirm/:token', async (req, res) => {
+  const subscriber = await Subscriber.findOne({ confirmToken: req.params.token });
+  if (!subscriber) return res.render('blog/subscribe-result', { outcome: 'invalid' });
+
+  subscriber.status = 'confirmed';
+  subscriber.confirmedAt = new Date();
+  await subscriber.save();
+
+  res.render('blog/subscribe-result', { outcome: 'confirmed' });
+});
+
+router.get('/subscribe/unsubscribe/:token', async (req, res) => {
+  const subscriber = await Subscriber.findOne({ unsubscribeToken: req.params.token });
+  if (!subscriber) return res.render('blog/subscribe-result', { outcome: 'invalid' });
+
+  subscriber.status = 'unsubscribed';
+  await subscriber.save();
+
+  res.render('blog/subscribe-result', { outcome: 'unsubscribed' });
 });
 
 // Pre-migration posts were served at "/blog/:slug.html" and Google still has

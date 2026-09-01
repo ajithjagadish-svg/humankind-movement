@@ -36,6 +36,9 @@
             </div>
           <% }) %>
         </div>
+        <div style="margin-top:2em;">
+          <%- include('../partials/blog-subscribe-widget', { categoryKey: cat.key, categoryLabel: cat.label }) %>
+        </div>
       </div>
     </section>
   <% }) %>

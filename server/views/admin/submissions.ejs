@@ -10,6 +10,9 @@
   .badge.new { background: #fdecea; color: #b3261e; }
   .badge.read, .badge.reviewed { background: #f1efe9; color: #6b6862; }
   .badge.archived { background: #f1efe9; color: #6b6862; }
+  .badge.pending { background: #fdf6e3; color: #6b5a00; }
+  .badge.confirmed { background: #e6f4ea; color: #1e6b3c; }
+  .badge.unsubscribed { background: #f1efe9; color: #6b6862; }
   section + section { margin-top: 32px; }
 </style>
 </head>
@@ -118,6 +121,43 @@
                   </form>
                   &middot;
                   <form method="POST" action="/admin/submissions/ebook-leads/<%= l._id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this signup?');">
+                    <button type="submit" class="btn-ghost" style="border:none; background:none; padding:0; font-size:0.85rem; text-decoration:underline; cursor:pointer; color:#b3261e;">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="row">
+        <h1 style="font-size:1.2rem; margin:0;">Blog subscribers (<%= subscribers.length %>)</h1>
+      </div>
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Topics</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (subscribers.length === 0) { %>
+              <tr><td colspan="5" class="note">No blog subscribers yet.</td></tr>
+            <% } %>
+            <% subscribers.forEach(function(s) { %>
+              <tr>
+                <td><%= s.email %></td>
+                <td><%= s.categories.map(function(k) { return categoryLabelByKey[k] || k; }).join(', ') %></td>
+                <td><%= s.createdAt.toISOString().slice(0,10) %></td>
+                <td><span class="badge <%= s.status %>"><%= s.status %></span></td>
+                <td>
+                  <form method="POST" action="/admin/submissions/subscribers/<%= s._id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this subscriber?');">
                     <button type="submit" class="btn-ghost" style="border:none; background:none; padding:0; font-size:0.85rem; text-decoration:underline; cursor:pointer; color:#b3261e;">Delete</button>
                   </form>
                 </td>
