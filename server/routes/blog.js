@@ -61,6 +61,15 @@ router.get('/subscribe/unsubscribe/:token', async (req, res) => {
   res.render('blog/subscribe-result', { outcome: 'unsubscribed' });
 });
 
+router.get('/topics/:key', async (req, res, next) => {
+  const cat = CATEGORY_ORDER.find((c) => c.key === req.params.key);
+  if (!cat) return next();
+
+  const posts = await BlogPost.find({ category: cat.key, status: 'published' }).sort({ publishedAt: -1 }).lean();
+
+  res.render('blog/category', { category: cat, posts, cadenceLabel: cadenceLabel(posts) });
+});
+
 // Pre-migration posts were served at "/blog/:slug.html" and Google still has
 // several of those indexed - without this, they 404 outright instead of
 // consolidating onto the clean-URL canonical (see GSC Page Indexing:

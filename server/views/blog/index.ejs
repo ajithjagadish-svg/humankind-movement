@@ -36,7 +36,8 @@
             </div>
           <% }) %>
         </div>
-        <div style="margin-top:2em;">
+        <p style="margin-top:1.4em;"><a class="link-arrow" href="/blog/topics/<%= cat.key %>">See all <%= cat.label %> posts <span class="arrow">→</span></a></p>
+        <div style="margin-top:1.4em;">
           <%- include('../partials/blog-subscribe-widget', { categoryKey: cat.key, categoryLabel: cat.label, cadenceLabel: cat.cadenceLabel }) %>
         </div>
       </div>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<%- include('../partials/head', {
+  title: category.label + ' | Humankind Movement Blog',
+  description: category.description,
+  canonicalPath: '/blog/topics/' + category.key
+}) %>
+</head>
+<body>
+
+<%- include('../partials/header') %>
+
+<main>
+
+  <section class="hero bg-tint">
+    <div class="container-narrow">
+      <span class="kicker">Journal</span>
+      <h1><%= category.label %></h1>
+      <p class="lede"><%= category.description %></p>
+    </div>
+  </section>
+
+  <section class="bg-white">
+    <div class="container">
+      <% if (posts.length === 0) { %>
+        <p class="note">No posts here yet - check back soon.</p>
+      <% } else { %>
+        <div class="grid-3" style="text-align:left;">
+          <% posts.forEach(function(post) { %>
+            <div class="feature-card">
+              <span class="note"><%= post.publishedAt.toISOString().slice(0,10) %> · <%= post.readMins %> min read</span>
+              <h3 style="margin-top:0.5em;"><a href="/blog/<%= post.slug %>"><%= post.title %></a></h3>
+              <p><%= post.meta %></p>
+              <p><a class="link-arrow" href="/blog/<%= post.slug %>">Read the post <span class="arrow">→</span></a></p>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <div style="margin-top:2.4em;">
+        <%- include('../partials/blog-subscribe-widget', { categoryKey: category.key, categoryLabel: category.label, cadenceLabel: cadenceLabel }) %>
+      </div>
+
+      <p style="margin-top:2.2em;"><a class="link-arrow" href="/blog">← All Journal topics <span class="arrow"></span></a></p>
+    </div>
+  </section>
+
+</main>
+
+<%- include('../partials/footer') %>
+</body>
+</html>
