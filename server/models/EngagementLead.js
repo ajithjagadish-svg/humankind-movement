@@ -10,7 +10,7 @@ const QuestionSchema = new mongoose.Schema(
 
 const EngagementLeadSchema = new mongoose.Schema(
   {
-    platform: { type: String, enum: ['linkedin', 'reddit', 'instagram'], required: true, index: true },
+    platform: { type: String, enum: ['linkedin', 'reddit', 'instagram', 'threads'], required: true, index: true },
     topic: {
       type: String,
       enum: ['aches-pains-rehab', 'postpartum', 'neurodivergent', 'movement-biomechanics', 'corporate-wellness'],

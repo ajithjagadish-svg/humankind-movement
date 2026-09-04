@@ -95,6 +95,59 @@
       </div>
     <% } %>
 
+    <% if (configured.searchConsole && (rankingOpportunities.closeToPageOne.length || rankingOpportunities.highImpressionsLowCtr.length)) { %>
+      <div class="card" style="margin-bottom:20px;">
+        <h2 style="font-size:1rem; margin:0 0 0.2em;">Ranking Opportunities</h2>
+        <p class="note" style="margin:0 0 1em;">Two slices of the same Search Console numbers in the table below, pulled out because they're the clearest "do this next" signals in the data.</p>
+
+        <% if (rankingOpportunities.closeToPageOne.length) { %>
+          <h3 style="font-size:0.9rem; margin:0 0 0.3em;">Close to page 1 (position 8&ndash;20)</h3>
+          <p class="note" style="margin:0 0 0.8em;">Already ranking on page 2 or the bottom of page 1&mdash; closer to a page-1 spot than a brand-new post would be. Try folding the exact query into the title/H1, or adding a section the current top results have that this page is missing.</p>
+          <div style="overflow-x:auto; margin-bottom:1.4em;">
+            <table>
+              <thead>
+                <tr><th>Title</th><th>Avg. position</th><th>Impressions</th><th>Clicks</th><th>CTR</th></tr>
+              </thead>
+              <tbody>
+                <% rankingOpportunities.closeToPageOne.forEach(function(post) { %>
+                  <tr>
+                    <td><a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a></td>
+                    <td><%= post.analytics.searchAvgPosition.toFixed(1) %></td>
+                    <td><%= post.analytics.searchImpressions %></td>
+                    <td><%= post.analytics.searchClicks %></td>
+                    <td><%= (post.analytics.searchCtr * 100).toFixed(1) %>%</td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+
+        <% if (rankingOpportunities.highImpressionsLowCtr.length) { %>
+          <h3 style="font-size:0.9rem; margin:0 0 0.3em;">Getting seen, not clicked (CTR under 2%)</h3>
+          <p class="note" style="margin:0 0 0.8em;">Google is already showing these for real searches with meaningful volume &mdash; people just aren't clicking. Usually a title/meta rewrite around the actual query fixes this faster than writing something new.</p>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr><th>Title</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Avg. position</th></tr>
+              </thead>
+              <tbody>
+                <% rankingOpportunities.highImpressionsLowCtr.forEach(function(post) { %>
+                  <tr>
+                    <td><a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a></td>
+                    <td><%= post.analytics.searchImpressions %></td>
+                    <td><%= post.analytics.searchClicks %></td>
+                    <td><%= (post.analytics.searchCtr * 100).toFixed(1) %>%</td>
+                    <td><%= post.analytics.searchAvgPosition.toFixed(1) %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
     <div class="card" style="margin-bottom:20px;">
       <h2 style="font-size:1rem; margin:0 0 0.6em;">Free Guide (Postpartum Recovery)</h2>
       <p style="display:flex; gap:28px; flex-wrap:wrap; margin:0;">

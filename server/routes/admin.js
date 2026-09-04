@@ -393,6 +393,23 @@ function getAccountSummary(socialPosts) {
   }));
 }
 
+// Two actionable slices of the same Search Console data as the big table
+// below, surfaced separately so they don't get lost in a 50-row list:
+// - posts already on page 2 (closest to a page-1 win, no new content needed)
+// - posts Google already shows for real searches but nobody clicks (usually
+//   a title/meta problem, not a content problem)
+function getRankingOpportunities(posts) {
+  const closeToPageOne = posts
+    .filter((p) => p.analytics.searchImpressions > 0 && p.analytics.searchAvgPosition >= 8 && p.analytics.searchAvgPosition <= 20)
+    .sort((a, b) => a.analytics.searchAvgPosition - b.analytics.searchAvgPosition);
+
+  const highImpressionsLowCtr = posts
+    .filter((p) => p.analytics.searchImpressions > 20 && p.analytics.searchCtr < 0.02)
+    .sort((a, b) => b.analytics.searchImpressions - a.analytics.searchImpressions);
+
+  return { closeToPageOne, highImpressionsLowCtr };
+}
+
 router.get('/analytics', requireAuth, async (req, res) => {
   const configured = { ga4: ga4Configured(), searchConsole: searchConsoleConfigured() };
   const posts = await BlogPost.find({ status: 'published' }).sort({ 'analytics.searchImpressions': -1 }).lean();
@@ -402,7 +419,8 @@ router.get('/analytics', requireAuth, async (req, res) => {
   const socialPosts = await SocialPost.find().sort({ publishedAt: -1 }).lean();
   const socialPostsWithContext = getSocialPostsWithContext(socialPosts, timeSeries);
   const accountSummary = getAccountSummary(socialPosts);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, accountSummary, refreshError: null, refreshedAt: null });
+  const rankingOpportunities = configured.searchConsole ? getRankingOpportunities(posts) : { closeToPageOne: [], highImpressionsLowCtr: [] };
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, accountSummary, rankingOpportunities, refreshError: null, refreshedAt: null });
 });
 
 router.post('/analytics/refresh', requireAuth, async (req, res) => {
@@ -444,7 +462,8 @@ router.post('/analytics/refresh', requireAuth, async (req, res) => {
   const socialPosts = await SocialPost.find().sort({ publishedAt: -1 }).lean();
   const socialPostsWithContext = getSocialPostsWithContext(socialPosts, timeSeries);
   const accountSummary = getAccountSummary(socialPosts);
-  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, accountSummary, refreshError, refreshedAt: new Date() });
+  const rankingOpportunities = configured.searchConsole ? getRankingOpportunities(posts) : { closeToPageOne: [], highImpressionsLowCtr: [] };
+  res.render('admin/analytics', { posts, configured, guideStats, conversions, conversionError, timeSeries, socialPostsWithContext, accountSummary, rankingOpportunities, refreshError, refreshedAt: new Date() });
 });
 
 // --- Submissions (contact + intake forms) ---
