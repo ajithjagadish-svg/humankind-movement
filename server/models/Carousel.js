@@ -18,6 +18,10 @@ const SlideSchema = new mongoose.Schema(
     variant: { type: String, enum: ['default', 'dark', 'cta'], default: 'default' },
     ctaBtn: { type: String, default: '' },
     bgStyle: { type: String, enum: ['none', 'orb', 'lines'], default: 'none' },
+    // Site-relative path (e.g. "/assets/img/vijay-portrait.jpg"). When set,
+    // renders as a circular portrait above the headline - used for team-intro
+    // slides. Overrides bullets/chatBubbles layout, not eyebrow/headline/sub.
+    photo: { type: String, default: '' },
   },
   { _id: false }
 );
