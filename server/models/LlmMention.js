@@ -13,7 +13,10 @@ const LlmMentionSchema = new mongoose.Schema(
     promptKey: { type: String, required: true, index: true }, // stable id, see config/llmTrackerPrompts.js
     promptText: { type: String, required: true },
     pillar: { type: String, required: true }, // which service area this prompt targets
-    responseText: { type: String, required: true },
+    // Not required: an error row (API call failed - see `error`) legitimately
+    // has no response text, and that row still needs to save successfully so
+    // one provider's outage doesn't interrupt the rest of the check run.
+    responseText: { type: String, default: '' },
     mentioned: { type: Boolean, required: true, index: true },
     citedUrls: [{ type: String }], // any humankindmovement.in URLs found in the response/citations
     error: { type: String, default: '' }, // set if the API call itself failed - responseText will be empty

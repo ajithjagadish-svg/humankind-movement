@@ -49,16 +49,24 @@ async function main() {
         console.log(mentioned ? `MENTIONED${citedUrls.length ? ' (cited: ' + citedUrls.join(', ') + ')' : ''}` : 'not mentioned');
         rows.push({ provider: provider.name, key, mentioned, citedUrls });
       } catch (err) {
-        await LlmMention.create({
-          provider: provider.name,
-          promptKey: key,
-          promptText: prompt,
-          pillar,
-          responseText: '',
-          mentioned: false,
-          citedUrls: [],
-          error: err.message,
-        });
+        // Belt-and-suspenders: this save should always succeed now that
+        // responseText isn't required, but one bad row still must never take
+        // down the rest of the run - a provider outage shouldn't cost the
+        // other providers'/prompts' results too.
+        try {
+          await LlmMention.create({
+            provider: provider.name,
+            promptKey: key,
+            promptText: prompt,
+            pillar,
+            responseText: '',
+            mentioned: false,
+            citedUrls: [],
+            error: err.message,
+          });
+        } catch (saveErr) {
+          console.log(`  (also failed to save the error row: ${saveErr.message})`);
+        }
         console.log(`ERROR: ${err.message}`);
         rows.push({ provider: provider.name, key, mentioned: false, error: err.message });
       }

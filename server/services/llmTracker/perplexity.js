@@ -1,31 +1,26 @@
-// Perplexity is inherently web-search-grounded (that's the whole product),
-// so a plain chat-completion call already reflects what a real user asking
-// Perplexity would see - no special "search mode" flag needed.
+// Perplexity retired the old Sonar /chat/completions endpoint in favor of
+// the Agent API (/v1/responses) - see
+// https://docs.perplexity.ai/docs/agent-api/migrate-from-sonar/overview.
+// "fast" is the cheapest preset (maps to the old plain "sonar" model) and,
+// like the old Sonar models, is inherently web-search-grounded - no special
+// search-mode flag needed, it always searches.
 const { wasMentioned, extractCitedUrls } = require('./shared');
 
-const MODEL = 'sonar'; // Perplexity's standard search-grounded model as of writing - check
-// https://docs.perplexity.ai/guides/model-cards if this ever 400s with an unknown-model error.
+const PRESET = 'fast'; // cheapest/fastest preset - check
+// https://docs.perplexity.ai/docs/agent-api/migrate-from-sonar/overview if this ever errors on an unknown preset.
 
 function perplexityConfigured() {
   return Boolean(process.env.PERPLEXITY_API_KEY);
 }
 
 async function askPerplexity(promptText) {
-  const res = await fetch('https://api.perplexity.ai/chat/completions', {
+  const res = await fetch('https://api.perplexity.ai/v1/responses', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: 'user', content: promptText }],
-      // Explicit "low" rather than leaving this to Perplexity's default -
-      // it's the cheapest search-context tier ($5/1k requests vs $8 or $12
-      // for medium/high) and a short, direct question doesn't need a wider
-      // search pull anyway.
-      web_search_options: { search_context_size: 'low' },
-    }),
+    body: JSON.stringify({ preset: PRESET, input: promptText }),
   });
 
   if (!res.ok) {
@@ -33,8 +28,16 @@ async function askPerplexity(promptText) {
   }
 
   const data = await res.json();
-  const responseText = data.choices?.[0]?.message?.content || '';
-  const citations = data.citations || [];
+  const output = data.output || [];
+
+  const messageItem = output.find((item) => item.type === 'message');
+  const responseText = (messageItem?.content || [])
+    .filter((c) => c.type === 'output_text')
+    .map((c) => c.text)
+    .join('\n');
+
+  const searchResultsItem = output.find((item) => item.type === 'search_results');
+  const citations = (searchResultsItem?.results || []).map((r) => r.url).filter(Boolean);
 
   return {
     responseText,
