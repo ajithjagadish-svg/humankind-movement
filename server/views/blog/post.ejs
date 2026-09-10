@@ -8,6 +8,11 @@ const __prefix = __lang === 'en' ? '' : '/' + __lang;
 const __hreflangs = typeof hreflangs !== 'undefined' ? hreflangs : [];
 const __otherLocales = typeof otherLocales !== 'undefined' ? otherLocales : [];
 const LOCALE_NAMES = { en: 'English', es: 'Español', fr: 'Français' };
+// Live-served posts are always status:'published' with a real publishedAt
+// (server/routes/blog.js filters on status:'published'), so this only
+// matters when previewing a draft directly (e.g. before publishing a new
+// translation) - falls back to now rather than crashing on a null date.
+const __publishedAt = post.publishedAt || new Date();
 %>
 <!DOCTYPE html>
 <html lang="<%= __lang %>">
@@ -20,7 +25,7 @@ const LOCALE_NAMES = { en: 'English', es: 'Español', fr: 'Français' };
   hreflangs: __hreflangs,
   ogType: 'article',
   ogImage: post.heroImage || undefined,
-  articlePublishedTime: post.publishedAt.toISOString(),
+  articlePublishedTime: __publishedAt.toISOString(),
   articleSection: post.categoryLabel,
   jsonLd: {
     '@context': 'https://schema.org',
@@ -45,8 +50,8 @@ const LOCALE_NAMES = { en: 'English', es: 'Español', fr: 'Français' };
       name: 'Humankind Movement',
       logo: { '@type': 'ImageObject', url: 'https://humankindmovement.in/assets/img/logo.png' }
     },
-    datePublished: post.publishedAt.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
+    datePublished: __publishedAt.toISOString(),
+    dateModified: (post.updatedAt || __publishedAt).toISOString(),
     mainEntityOfPage: 'https://humankindmovement.in' + __prefix + '/blog/' + post.slug
   }
 }) %>
@@ -91,8 +96,8 @@ const LOCALE_NAMES = { en: 'English', es: 'Español', fr: 'Français' };
         </div>
         <div>
           <h3 style="margin-bottom:0.25em;">Ajith Jagadish</h3>
-          <p>Certified Human Biomechanics Specialist and the coach behind Humankind Movement, working with postpartum, neurodivergent, and general population clients.</p>
-          <p><a class="link-arrow" href="<%= __prefix %>/about">Read more about Ajith <span class="arrow">→</span></a></p>
+          <p><%= __t.authorBio %></p>
+          <p><a class="link-arrow" href="<%= __prefix %>/about"><%= __t.readMoreAboutAjith %> <span class="arrow">→</span></a></p>
         </div>
       </div>
 
