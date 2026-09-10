@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { submitUrls } = require('../services/indexNow');
+const { urlInspectionConfigured, inspectUrl } = require('../services/urlInspection');
 
 const BlogPostSchema = new mongoose.Schema(
   {
@@ -53,7 +55,34 @@ BlogPostSchema.pre('save', function (next) {
       return next(new Error(`meta is ${len} characters - outside the site's 120-150 char SEO standard (hkm-blog-seo-aeo-geo-standard)`));
     }
   }
+  // Stashed here (rather than recomputed in post('save')) because isModified()
+  // reflects paths changed in *this* save call - by the time post('save')
+  // fires the document is already persisted, but $locals survives the
+  // round-trip since it's a plain in-memory property, not a schema path.
+  this.$locals.justPublished = this.isModified('status') && this.status === 'published';
   next();
+});
+
+// Fire-and-forget on the moment a post actually goes live (new post created
+// already published, or an existing draft flipped to published) - never on
+// an unrelated save (e.g. the analytics-refresh job touching pageviews).
+// Real, working effect: IndexNow tells Bing/Yandex to crawl it now (see
+// services/indexNow.js for why Google's equivalent isn't used). The
+// urlInspection call is read-only visibility, not a request to index -
+// logged so a slow/never-indexed post is at least noticeable, not silent.
+BlogPostSchema.post('save', function (doc) {
+  if (!doc.$locals.justPublished) return;
+
+  const url = `/blog/${doc.slug}`;
+  submitUrls([url])
+    .then((result) => console.log(`[indexNow] submitted ${url}:`, result.ok ? 'ok' : result))
+    .catch((err) => console.log(`[indexNow] submit failed for ${url}:`, err.message));
+
+  if (urlInspectionConfigured()) {
+    inspectUrl(`https://humankindmovement.in${url}`)
+      .then((status) => console.log(`[urlInspection] ${url}:`, status && status.coverageState))
+      .catch((err) => console.log(`[urlInspection] ${url} check failed:`, err.message));
+  }
 });
 
 module.exports = mongoose.model('BlogPost', BlogPostSchema);

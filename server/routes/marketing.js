@@ -6,6 +6,7 @@ const express = require('express');
 const path = require('path');
 const BlogPost = require('../models/BlogPost');
 const { trackPageView } = require('../services/pageViews');
+const { indexNowKey } = require('../services/indexNow');
 
 // Strict routing matters here: LANGS.forEach below registers both "/es"
 // (redirect to "/es/") and "/es/" (serve index) - without strict mode
@@ -236,6 +237,13 @@ router.get('/sitemap.xml', async (req, res) => {
     '\n</urlset>\n';
 
   res.type('application/xml').send(xml);
+});
+
+// IndexNow ownership-proof file - see server/services/indexNow.js. The key
+// itself is not secret; this route just has to serve it as plain text at
+// /<key>.txt for Bing/Yandex to trust submissions signed with it.
+router.get(`/${indexNowKey()}.txt`, (req, res) => {
+  res.type('text/plain').send(indexNowKey());
 });
 
 router.use('/assets', express.static(path.join(REPO_ROOT, 'assets')));
