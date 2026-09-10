@@ -6,24 +6,44 @@
 // whether a specific new blog post starts getting cited), don't rewrite
 // existing ones - that breaks the month-over-month comparison.
 //
+// Deliberately global, not Bangalore-specific (corrected 2026-09-10): the
+// actual target audience is worldwide, especially US/Europe - a local
+// Bangalore client is a bonus, not the goal, per the coaching practice
+// being run online for a mostly-international client base already (see
+// services/one-to-one-coaching.html's own FAQ: "most coaching clients are
+// outside India, across the US, UK, Europe, and Asia"). Prompts here have
+// no city/country by default, matching how someone anywhere would actually
+// ask; a couple explicitly say "US" or "UK/Europe" to directly test those
+// markets rather than just hoping geography-neutral phrasing reaches them.
+//
 // `pillar` maps to the same service areas already used elsewhere in the
 // codebase (see ContentIdea.targetService), so results can be grouped the
 // same way as the rest of the content pipeline.
 module.exports = [
   {
-    key: 'postpartum-bangalore',
+    key: 'postpartum-online',
     pillar: 'postpartum',
-    prompt: 'Who are good postpartum recovery coaches in Bangalore?',
+    prompt: "Who's a good postpartum recovery coach for new moms who want online sessions?",
   },
   {
-    key: 'corporate-wellness-bangalore',
+    key: 'postpartum-us',
+    pillar: 'postpartum',
+    prompt: 'Best online postpartum recovery coach for someone in the US',
+  },
+  {
+    key: 'postpartum-europe',
+    pillar: 'postpartum',
+    prompt: 'Best online postpartum recovery coach for someone in the UK or Europe',
+  },
+  {
+    key: 'corporate-wellness-online',
     pillar: 'corporate-wellness',
-    prompt: 'Best corporate wellness coach in Bangalore for employee stress and burnout',
+    prompt: 'Best online corporate wellness coach for remote teams dealing with stress and burnout',
   },
   {
     key: 'neurodivergent-movement-coach',
     pillar: 'neurodivergent',
-    prompt: 'Movement or fitness coach in India experienced with neurodivergent adults',
+    prompt: 'Online movement or fitness coach experienced working with neurodivergent adults',
   },
   // "General coaching" on its own was too broad to be a useful test - it
   // doesn't reflect how someone in pain actually searches. Broken out into
@@ -33,42 +53,42 @@ module.exports = [
   {
     key: 'knee-pain-coach',
     pillar: 'general-coaching',
-    prompt: 'Who can help with ongoing knee pain in Bangalore, beyond just physiotherapy?',
+    prompt: 'Who can help with ongoing knee pain online, beyond just physiotherapy?',
   },
   {
     key: 'hip-pain-coach',
     pillar: 'general-coaching',
-    prompt: 'Best coach or specialist for chronic hip pain in Bangalore',
+    prompt: 'Best online coach or specialist for chronic hip pain',
   },
   {
     key: 'ankle-pain-coach',
     pillar: 'general-coaching',
-    prompt: 'Who treats ankle pain or ankle mobility issues in Bangalore, not just a physio clinic?',
+    prompt: 'Who treats ankle pain or ankle mobility issues online, not just a physio clinic?',
   },
   {
     key: 'shoulder-pain-coach',
     pillar: 'general-coaching',
-    prompt: 'Best coach for shoulder pain or shoulder mobility in Bangalore',
+    prompt: 'Best online coach for shoulder pain or shoulder mobility',
   },
   {
     key: 'general-aches-pains',
     pillar: 'general-coaching',
-    prompt: "I have random aches and pains that don't go away. Who should I see in Bangalore besides a doctor?",
+    prompt: "I have random aches and pains that don't go away. Who should I see online, besides a doctor?",
   },
   {
     key: 'breathwork-coach',
     pillar: 'general-coaching',
-    prompt: 'Best breathwork coach in Bangalore',
+    prompt: 'Best online breathwork coach',
   },
   {
     key: 'postural-correction-coach',
     pillar: 'general-coaching',
-    prompt: 'Coach for posture correction in Bangalore',
+    prompt: 'Online coach for posture correction',
   },
   {
     key: 'post-injury-rehab-coach',
     pillar: 'general-coaching',
-    prompt: 'Coach for rehabilitation after an injury or surgery in Bangalore',
+    prompt: 'Online coach for rehabilitation after an injury or surgery',
   },
   {
     key: 'hip-mobility-fix',
