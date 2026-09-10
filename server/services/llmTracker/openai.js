@@ -8,6 +8,14 @@ const { wasMentioned, extractCitedUrls } = require('./shared');
 const MODEL = 'gpt-4o'; // must support the web_search tool - check
 // https://platform.openai.com/docs/guides/tools-web-search if this ever errors on an unsupported model.
 
+// OpenAI's Responses API doesn't return a cost field (unlike Perplexity),
+// only token counts - so this is computed from published rates, checked
+// live against developers.openai.com/api/docs/pricing on 2026-09-10.
+// Re-check that page if MODEL or these rates ever change.
+const RATE_INPUT_PER_TOKEN = 2.5 / 1_000_000;
+const RATE_OUTPUT_PER_TOKEN = 10 / 1_000_000;
+const RATE_WEB_SEARCH_PER_CALL = 10 / 1000;
+
 function openaiConfigured() {
   return Boolean(process.env.OPENAI_API_KEY);
 }
@@ -47,10 +55,18 @@ async function askOpenAI(promptText) {
     .filter((a) => a.type === 'url_citation')
     .map((a) => a.url);
 
+  const inputTokens = data.usage?.input_tokens || 0;
+  const outputTokens = data.usage?.output_tokens || 0;
+  const usedWebSearch = (data.output || []).some((item) => item.type === 'web_search_call');
+  const costUsd =
+    inputTokens * RATE_INPUT_PER_TOKEN + outputTokens * RATE_OUTPUT_PER_TOKEN + (usedWebSearch ? RATE_WEB_SEARCH_PER_CALL : 0);
+
   return {
     responseText,
     mentioned: wasMentioned(responseText),
     citedUrls: extractCitedUrls(responseText, citations),
+    costUsd,
+    costIsEstimate: true,
   };
 }
 

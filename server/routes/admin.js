@@ -1057,6 +1057,33 @@ router.get('/llm-brand', requireAuth, async (req, res) => {
   const totalChecks = mentions.length;
   const mentionedCount = mentions.filter((m) => m.mentioned).length;
 
+  // All-time spend by provider, not capped at the 500-row `mentions` limit
+  // above (that limit is just for the per-prompt view; spend should reflect
+  // every check ever run). None of the three providers expose a "remaining
+  // balance" via any documented API (checked 2026-09-10 - see
+  // services/llmTracker/*.js), so this only tracks money already spent, not
+  // what's left; billingUrl links to where that actually gets checked.
+  const spendAgg = await LlmMention.aggregate([
+    { $match: { costUsd: { $ne: null } } },
+    { $group: { _id: '$provider', total: { $sum: '$costUsd' }, isEstimate: { $max: { $cond: ['$costIsEstimate', 1, 0] } }, calls: { $sum: 1 } } },
+  ]);
+  const PROVIDER_BILLING = {
+    perplexity: 'https://www.perplexity.ai/account/api/billing',
+    openai: 'https://platform.openai.com/settings/organization/billing/overview',
+    gemini: 'https://aistudio.google.com/usage',
+  };
+  const spendByProvider = ['perplexity', 'openai', 'gemini'].map((name) => {
+    const agg = spendAgg.find((a) => a._id === name);
+    return {
+      name,
+      total: agg ? agg.total : 0,
+      isEstimate: agg ? Boolean(agg.isEstimate) : false,
+      calls: agg ? agg.calls : 0,
+      billingUrl: PROVIDER_BILLING[name],
+    };
+  });
+  const totalSpend = spendByProvider.reduce((sum, p) => sum + p.total, 0);
+
   res.render('admin/llm-brand', {
     active: 'llm-brand',
     byPrompt,
@@ -1064,6 +1091,8 @@ router.get('/llm-brand', requireAuth, async (req, res) => {
     totalChecks,
     mentionedCount,
     hasAnyData: mentions.length > 0,
+    spendByProvider,
+    totalSpend,
   });
 });
 

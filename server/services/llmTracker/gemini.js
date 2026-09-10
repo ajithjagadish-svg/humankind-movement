@@ -11,6 +11,15 @@ const MODEL = 'gemini-3.6-flash'; // must support googleSearch grounding - check
 // actually calling the API on 2026-09-10. This family moves fast - if this
 // 404s again, the error message itself names the current replacement model.
 
+// Rates checked live against ai.google.dev/gemini-api/docs/pricing on
+// 2026-09-10 (promotional pricing through end of 2026 - recheck after
+// 2027-01-01). Search grounding itself isn't priced in here: Gemini 3.x
+// gets 5,000 free grounded requests/month shared across the family, and
+// this tracker's ~13/month is nowhere near that, so the realistic marginal
+// cost of grounding is $0 - only token cost is estimated.
+const RATE_INPUT_PER_TOKEN = 0.75 / 1_000_000;
+const RATE_OUTPUT_PER_TOKEN = 3.75 / 1_000_000;
+
 function geminiConfigured() {
   return Boolean(process.env.GEMINI_API_KEY);
 }
@@ -39,10 +48,16 @@ async function askGemini(promptText) {
     .map((c) => c.web?.uri)
     .filter(Boolean);
 
+  const inputTokens = data.usageMetadata?.promptTokenCount || 0;
+  const outputTokens = data.usageMetadata?.candidatesTokenCount || 0;
+  const costUsd = inputTokens * RATE_INPUT_PER_TOKEN + outputTokens * RATE_OUTPUT_PER_TOKEN;
+
   return {
     responseText,
     mentioned: wasMentioned(responseText),
     citedUrls: extractCitedUrls(responseText, citations),
+    costUsd,
+    costIsEstimate: true,
   };
 }
 

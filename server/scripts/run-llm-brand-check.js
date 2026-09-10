@@ -36,7 +36,7 @@ async function main() {
     for (const { key, pillar, prompt } of PROMPTS) {
       process.stdout.write(`[${provider.name}] ${key}... `);
       try {
-        const { responseText, mentioned, citedUrls } = await provider.ask(prompt);
+        const { responseText, mentioned, citedUrls, costUsd, costIsEstimate } = await provider.ask(prompt);
         await LlmMention.create({
           provider: provider.name,
           promptKey: key,
@@ -45,9 +45,12 @@ async function main() {
           responseText,
           mentioned,
           citedUrls,
+          costUsd: typeof costUsd === 'number' ? costUsd : null,
+          costIsEstimate: costIsEstimate !== false,
         });
-        console.log(mentioned ? `MENTIONED${citedUrls.length ? ' (cited: ' + citedUrls.join(', ') + ')' : ''}` : 'not mentioned');
-        rows.push({ provider: provider.name, key, mentioned, citedUrls });
+        const costNote = typeof costUsd === 'number' ? ` [${costIsEstimate ? '~' : ''}$${costUsd.toFixed(4)}]` : '';
+        console.log((mentioned ? `MENTIONED${citedUrls.length ? ' (cited: ' + citedUrls.join(', ') + ')' : ''}` : 'not mentioned') + costNote);
+        rows.push({ provider: provider.name, key, mentioned, citedUrls, costUsd });
       } catch (err) {
         // Belt-and-suspenders: this save should always succeed now that
         // responseText isn't required, but one bad row still must never take
@@ -74,7 +77,9 @@ async function main() {
   }
 
   const mentionedCount = rows.filter((r) => r.mentioned).length;
-  console.log(`\nDone. ${mentionedCount}/${rows.length} checks mentioned Humankind Movement.`);
+  const totalCost = rows.reduce((sum, r) => sum + (typeof r.costUsd === 'number' ? r.costUsd : 0), 0);
+  console.log(`\nDone. ${mentionedCount}/${rows.length} checks mentioned Humankind Movement. This run cost ~$${totalCost.toFixed(4)}.`);
+  console.log('Remaining account balance isn\'t available via API for any of these three providers - check each provider\'s own billing page for that.');
 
   await disconnectDB();
   process.exit(0);

@@ -26,6 +26,14 @@
   .response-toggle { font-size: 0.8rem; cursor: pointer; color: #6b6862; margin-top: 0.4em; }
   .response-text { display: none; margin-top: 0.5em; font-size: 0.85rem; white-space: pre-wrap; background: #faf8f4; border-radius: 6px; padding: 10px; max-height: 240px; overflow-y: auto; }
   .response-text.open { display: block; }
+  .spend-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+  .spend-total { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.2em; }
+  .spend-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 0.8em; }
+  .spend-cell { flex: 1; min-width: 200px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; }
+  .spend-cell .provider-name { font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3em; }
+  .spend-cell .amount { font-size: 1.1rem; font-weight: 700; }
+  .spend-cell a { font-size: 0.78rem; }
+  .cost-tag { font-size: 0.75rem; color: #9a968d; margin-top: 0.3em; }
 </style>
 </head>
 <body>
@@ -49,6 +57,23 @@
       <p class="note" style="font-size:0.85rem; color:#6b6862;">
         Last check: <%= lastCheckedAt.toLocaleString() %> · <%= mentionedCount %>/<%= totalChecks %> checks (all time) mentioned Humankind Movement
       </p>
+
+      <div class="spend-card">
+        <p class="spend-total">$<%= totalSpend.toFixed(4) %> spent (all time)</p>
+        <p style="margin:0; font-size:0.82rem; color:#6b6862;">
+          None of the three providers expose remaining account balance through their API - only money already spent can be tracked here. Perplexity's figure is the real cost each call reported; ChatGPT and Gemini's are estimated from token counts against published rates (marked ~). Check the link on each card for the actual remaining balance.
+        </p>
+        <div class="spend-row">
+          <% spendByProvider.forEach(function(p) { %>
+            <div class="spend-cell">
+              <div class="provider-name"><%= p.name %></div>
+              <div class="amount"><%= p.isEstimate ? '~' : '' %>$<%= p.total.toFixed(4) %></div>
+              <div class="cost-tag"><%= p.calls %> call<%= p.calls === 1 ? '' : 's' %><%= p.calls ? (' · ' + (p.isEstimate ? 'estimated' : 'exact')) : '' %></div>
+              <p style="margin:0.5em 0 0;"><a href="<%= p.billingUrl %>" target="_blank" rel="noopener">Check remaining balance →</a></p>
+            </div>
+          <% }); %>
+        </div>
+      </div>
 
       <% byPrompt.forEach(function(p) { %>
         <div class="prompt-card">
@@ -76,6 +101,9 @@
                     <% } %>
                     <div class="response-toggle" onclick="this.nextElementSibling.classList.toggle('open')">View full response</div>
                     <div class="response-text"><%= row.responseText %></div>
+                  <% } %>
+                  <% if (typeof row.costUsd === 'number') { %>
+                    <div class="cost-tag"><%= row.costIsEstimate ? '~' : '' %>$<%= row.costUsd.toFixed(4) %></div>
                   <% } %>
                   <div class="checked-at"><%= row.checkedAt.toLocaleDateString() %></div>
                 </div>

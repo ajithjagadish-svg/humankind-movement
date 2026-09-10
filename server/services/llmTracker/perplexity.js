@@ -39,10 +39,16 @@ async function askPerplexity(promptText) {
   const searchResultsItem = output.find((item) => item.type === 'search_results');
   const citations = (searchResultsItem?.results || []).map((r) => r.url).filter(Boolean);
 
+  // Perplexity returns the real, exact cost of this specific call - no
+  // need to estimate from token counts like OpenAI/Gemini.
+  const costUsd = typeof data.usage?.cost?.total_cost === 'number' ? data.usage.cost.total_cost : null;
+
   return {
     responseText,
     mentioned: wasMentioned(responseText),
     citedUrls: extractCitedUrls(responseText, citations),
+    costUsd,
+    costIsEstimate: false,
   };
 }
 

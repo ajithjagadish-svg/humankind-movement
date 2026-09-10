@@ -20,6 +20,16 @@ const LlmMentionSchema = new mongoose.Schema(
     mentioned: { type: Boolean, required: true, index: true },
     citedUrls: [{ type: String }], // any humankindmovement.in URLs found in the response/citations
     error: { type: String, default: '' }, // set if the API call itself failed - responseText will be empty
+    // Cost of this one call in USD. Perplexity returns real, exact cost in
+    // its response - costIsEstimate is false for those. OpenAI doesn't
+    // return cost, only token counts, so its cost here is computed from
+    // published per-token/per-call rates (see services/llmTracker/openai.js)
+    // and costIsEstimate is true. Gemini likewise (when it succeeds).
+    // None of the three providers expose a "remaining account balance" via
+    // any documented API - that can only be checked on each provider's own
+    // billing dashboard, so this model deliberately doesn't try to track it.
+    costUsd: { type: Number, default: null },
+    costIsEstimate: { type: Boolean, default: true },
     checkedAt: { type: Date, required: true, default: Date.now, index: true },
   },
   { timestamps: true }
