@@ -40,6 +40,27 @@ function slugify(title) {
     .replace(/^-+|-+$/g, '');
 }
 
+// The site serves every marketing/blog page at a clean URL with no ".html"
+// extension (see server/routes/marketing.js) - a bodyHtml link containing
+// ".html" is therefore always a legacy/dead path, never a real page.
+// "/experiences" was retired in favor of the standalone /services/<slug>
+// pages, and its old anchor ids don't exist there - see
+// server/routes/marketing.js's SERVICE_PAGES for the current list.
+function checkInternalLinks(bodyHtml, topic) {
+  const hrefRe = /href="([^"]+)"/g;
+  let m;
+  while ((m = hrefRe.exec(bodyHtml))) {
+    const href = m[1];
+    if (/^https?:\/\//i.test(href) || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
+    if (href.includes('.html')) {
+      throw new Error(`draftPost for "${topic}" links to "${href}", but the site serves clean URLs with no .html extension - that page doesn't exist and will 404. Use an absolute path like /services/postpartum-support instead.`);
+    }
+    if (href.startsWith('/experiences')) {
+      throw new Error(`draftPost for "${topic}" links to "${href}", but /experiences was retired and its anchors no longer exist. Use one of: /services/one-to-one-coaching, /services/postpartum-support, /services/neurodivergent-coaching, /services/workshops, /services/corporate-wellbeing.`);
+    }
+  }
+}
+
 function validate(idea) {
   if (!idea.topic || !idea.rationale) {
     throw new Error(`Every idea needs a topic and rationale. Got: ${JSON.stringify(idea)}`);
@@ -58,6 +79,7 @@ function validate(idea) {
     if (!CATEGORIES.find((c) => c.key === category)) {
       throw new Error(`draftPost for "${idea.topic}" has invalid category "${category}". Must be one of: ${CATEGORIES.map((c) => c.key).join(', ')}`);
     }
+    checkInternalLinks(bodyHtml, idea.topic);
   }
 }
 
