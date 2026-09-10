@@ -23,6 +23,8 @@ const { generateSunlightGuidance } = require('../services/sunlightGuidance');
 const { generateMealPlanDraft } = require('../services/mealPlanGen');
 const { checkDietaryCompliance } = require('../services/dietaryCompliance');
 const { notifySubscribers } = require('../services/blogSubscriptions');
+const LlmMention = require('../models/LlmMention');
+const LLM_TRACKER_PROMPTS = require('../config/llmTrackerPrompts');
 
 const router = express.Router();
 
@@ -1021,6 +1023,48 @@ router.post('/queue/:id/platform/:platformId/status', requireAuth, async (req, r
 router.post('/queue/:id/delete', requireAuth, async (req, res) => {
   await PublishQueueItem.findByIdAndDelete(req.params.id);
   res.redirect('/admin/queue');
+});
+
+// --- LLM Brand Tracker ---
+// Shows, per prompt, the most recent check from each provider and a simple
+// mentioned/not-mentioned history so a trend is visible without a chart
+// library. Populated by `npm run check-llm-brand` (server/scripts/
+// run-llm-brand-check.js) - there's no "run now" button here on purpose,
+// same reasoning as the engagement queue: nothing server-side can drive a
+// browser or hold live API keys for a scheduled job on this host, so this
+// stays a manually- or externally-triggered check, not a live dashboard.
+router.get('/llm-brand', requireAuth, async (req, res) => {
+  const mentions = await LlmMention.find().sort({ checkedAt: -1 }).limit(500).lean();
+
+  const byPrompt = LLM_TRACKER_PROMPTS.map(({ key, pillar, prompt }) => {
+    const rows = mentions.filter((m) => m.promptKey === key);
+    const latestByProvider = {};
+    for (const row of rows) {
+      if (!latestByProvider[row.provider] || row.checkedAt > latestByProvider[row.provider].checkedAt) {
+        latestByProvider[row.provider] = row;
+      }
+    }
+    return {
+      key,
+      pillar,
+      prompt,
+      providers: ['perplexity', 'openai', 'gemini'].map((name) => latestByProvider[name] || null),
+      history: rows.slice(0, 12), // most recent checks across all providers, for the trend column
+    };
+  });
+
+  const lastCheckedAt = mentions.length ? mentions[0].checkedAt : null;
+  const totalChecks = mentions.length;
+  const mentionedCount = mentions.filter((m) => m.mentioned).length;
+
+  res.render('admin/llm-brand', {
+    active: 'llm-brand',
+    byPrompt,
+    lastCheckedAt,
+    totalChecks,
+    mentionedCount,
+    hasAnyData: mentions.length > 0,
+  });
 });
 
 module.exports = router;

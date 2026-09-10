@@ -13,7 +13,8 @@
     "add-engagement-leads": "node server/scripts/add-engagement-leads.js",
     "add-social-posts": "node server/scripts/add-social-posts.js",
     "pagespeed": "node server/scripts/pagespeed-check.js",
-    "check-blog-links": "node server/scripts/check-blog-internal-links.js"
+    "check-blog-links": "node server/scripts/check-blog-internal-links.js",
+    "check-llm-brand": "node server/scripts/run-llm-brand-check.js"
   },
   "engines": {
     "node": ">=18"

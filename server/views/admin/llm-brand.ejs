@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>LLM Brand Tracker | Humankind Movement Admin</title>
+<%- include('../partials/admin-styles') %>
+<style>
+  .prompt-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .prompt-card h3 { margin: 0 0 0.2em; font-size: 1rem; }
+  .prompt-meta { font-size: 0.82rem; color: #6b6862; margin: 0 0 1em; }
+  .provider-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 0.6em; }
+  .provider-cell { flex: 1; min-width: 220px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .provider-cell .provider-name { font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4em; }
+  .badge.mentioned-yes { background: #e6f4ea; color: #1e7b34; }
+  .badge.mentioned-no { background: #f1efe9; color: #6b6862; }
+  .badge.mentioned-error { background: #fdecea; color: #b3261e; }
+  .provider-cell .cited { font-size: 0.8rem; margin-top: 0.5em; word-break: break-all; }
+  .provider-cell .checked-at { font-size: 0.75rem; color: #9a968d; margin-top: 0.5em; }
+  .provider-cell.no-data { color: #9a968d; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
+  .history-dots { display: flex; gap: 4px; margin-top: 0.8em; }
+  .history-dot { width: 10px; height: 10px; border-radius: 50%; background: #e3e0d8; }
+  .history-dot.hit { background: #2e9e4f; }
+  .history-dot.error { background: #c0392b; }
+  .response-toggle { font-size: 0.8rem; cursor: pointer; color: #6b6862; margin-top: 0.4em; }
+  .response-text { display: none; margin-top: 0.5em; font-size: 0.85rem; white-space: pre-wrap; background: #faf8f4; border-radius: 6px; padding: 10px; max-height: 240px; overflow-y: auto; }
+  .response-text.open { display: block; }
+</style>
+</head>
+<body>
+  <%- include('../partials/admin-nav', { active: 'llm-brand' }) %>
+  <main>
+    <div class="row">
+      <h1 style="font-size:1.2rem; margin:0;">LLM Brand Tracker</h1>
+    </div>
+
+    <p class="note" style="margin-top:-14px; margin-bottom:20px; font-size:0.85rem; color:#6b6862;">
+      Tracks whether Humankind Movement / Ajith Jagadish actually gets mentioned or cited when asked a set of fixed, realistic questions on Perplexity, ChatGPT, and Gemini. Populated by <code>npm run check-llm-brand</code> - there's no "run now" button here since it needs API keys and real spend per run; run it monthly (or whenever you want a fresh read).
+    </p>
+
+    <% if (!hasAnyData) { %>
+      <div class="prompt-card">
+        <p style="margin:0;">No checks have been run yet. From the project root, run:</p>
+        <pre style="background:#faf8f4; padding:10px; border-radius:6px; margin-top:0.6em;">npm run check-llm-brand</pre>
+        <p style="margin:0.6em 0 0; font-size:0.85rem; color:#6b6862;">Needs at least one of PERPLEXITY_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY set in .env - providers without a key are skipped automatically.</p>
+      </div>
+    <% } else { %>
+      <p class="note" style="font-size:0.85rem; color:#6b6862;">
+        Last check: <%= lastCheckedAt.toLocaleString() %> · <%= mentionedCount %>/<%= totalChecks %> checks (all time) mentioned Humankind Movement
+      </p>
+
+      <% byPrompt.forEach(function(p) { %>
+        <div class="prompt-card">
+          <h3>"<%= p.prompt %>"</h3>
+          <p class="prompt-meta">
+            <span class="badge topic"><%= p.pillar %></span>
+            <code style="font-size:0.75rem;"><%= p.key %></code>
+          </p>
+
+          <div class="provider-row">
+            <% p.providers.forEach(function(row, i) { %>
+              <% const providerName = ['Perplexity', 'ChatGPT', 'Gemini'][i]; %>
+              <% if (!row) { %>
+                <div class="provider-cell no-data"><%= providerName %>: no data</div>
+              <% } else { %>
+                <div class="provider-cell">
+                  <div class="provider-name"><%= providerName %></div>
+                  <% if (row.error) { %>
+                    <span class="badge mentioned-error">Error</span>
+                    <div class="cited"><%= row.error %></div>
+                  <% } else { %>
+                    <span class="badge <%= row.mentioned ? 'mentioned-yes' : 'mentioned-no' %>"><%= row.mentioned ? 'Mentioned' : 'Not mentioned' %></span>
+                    <% if (row.citedUrls && row.citedUrls.length) { %>
+                      <div class="cited">Cited: <%= row.citedUrls.join(', ') %></div>
+                    <% } %>
+                    <div class="response-toggle" onclick="this.nextElementSibling.classList.toggle('open')">View full response</div>
+                    <div class="response-text"><%= row.responseText %></div>
+                  <% } %>
+                  <div class="checked-at"><%= row.checkedAt.toLocaleDateString() %></div>
+                </div>
+              <% } %>
+            <% }); %>
+          </div>
+
+          <div class="history-dots" title="Most recent checks across all providers, oldest to newest">
+            <% p.history.slice().reverse().forEach(function(h) { %>
+              <div class="history-dot <%= h.error ? 'error' : (h.mentioned ? 'hit' : '') %>" title="<%= h.provider %> · <%= h.checkedAt.toLocaleDateString() %> · <%= h.error ? 'error' : (h.mentioned ? 'mentioned' : 'not mentioned') %>"></div>
+            <% }); %>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </main>
+</body>
+</html>
