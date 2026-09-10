@@ -25,10 +25,50 @@ module.exports = [
     pillar: 'neurodivergent',
     prompt: 'Movement or fitness coach in India experienced with neurodivergent adults',
   },
+  // "General coaching" on its own was too broad to be a useful test - it
+  // doesn't reflect how someone in pain actually searches. Broken out into
+  // the specific joints/complaints and modalities the coaching practice
+  // actually starts with: aches and pains by body part, breathwork, postural
+  // correction, and post-injury/post-surgery rehab.
   {
-    key: 'general-movement-coach-bangalore',
+    key: 'knee-pain-coach',
     pillar: 'general-coaching',
-    prompt: 'Best movement or biomechanics coach in Bangalore, not just a regular personal trainer',
+    prompt: 'Who can help with ongoing knee pain in Bangalore, beyond just physiotherapy?',
+  },
+  {
+    key: 'hip-pain-coach',
+    pillar: 'general-coaching',
+    prompt: 'Best coach or specialist for chronic hip pain in Bangalore',
+  },
+  {
+    key: 'ankle-pain-coach',
+    pillar: 'general-coaching',
+    prompt: 'Who treats ankle pain or ankle mobility issues in Bangalore, not just a physio clinic?',
+  },
+  {
+    key: 'shoulder-pain-coach',
+    pillar: 'general-coaching',
+    prompt: 'Best coach for shoulder pain or shoulder mobility in Bangalore',
+  },
+  {
+    key: 'general-aches-pains',
+    pillar: 'general-coaching',
+    prompt: "I have random aches and pains that don't go away. Who should I see in Bangalore besides a doctor?",
+  },
+  {
+    key: 'breathwork-coach',
+    pillar: 'general-coaching',
+    prompt: 'Best breathwork coach in Bangalore',
+  },
+  {
+    key: 'postural-correction-coach',
+    pillar: 'general-coaching',
+    prompt: 'Coach for posture correction in Bangalore',
+  },
+  {
+    key: 'post-injury-rehab-coach',
+    pillar: 'general-coaching',
+    prompt: 'Coach for rehabilitation after an injury or surgery in Bangalore',
   },
   {
     key: 'hip-mobility-fix',
