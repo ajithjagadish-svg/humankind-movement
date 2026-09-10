@@ -1,21 +1,40 @@
+<% const __lang = typeof lang !== 'undefined' ? lang : 'en'; %>
 <div class="form-card" style="max-width:480px;">
-  <h3 style="margin-top:0;">Subscribe to <%= categoryLabel %></h3>
+  <h3 style="margin-top:0;">
+    <% if (__lang === 'es') { %>Suscríbete a <%= categoryLabel %>
+    <% } else if (__lang === 'fr') { %>Abonnez-vous à <%= categoryLabel %>
+    <% } else { %>Subscribe to <%= categoryLabel %>
+    <% } %>
+  </h3>
   <p class="note">
-    An email when we publish something new on <%= categoryLabel.toLowerCase() %><% if (typeof cadenceLabel !== 'undefined' && cadenceLabel) { %>, <%= cadenceLabel %><% } %>.
-    Nothing else - no spam, unsubscribe any time.
+    <% if (__lang === 'es') { %>
+      Un correo cuando publiquemos algo nuevo sobre <%= categoryLabel.toLowerCase() %><% if (typeof cadenceLabel !== 'undefined' && cadenceLabel) { %>, <%= cadenceLabel %><% } %>.
+      Nada más, sin spam, cancela cuando quieras.
+    <% } else if (__lang === 'fr') { %>
+      Un e-mail quand nous publions quelque chose de nouveau sur <%= categoryLabel.toLowerCase() %><% if (typeof cadenceLabel !== 'undefined' && cadenceLabel) { %>, <%= cadenceLabel %><% } %>.
+      Rien d'autre, pas de spam, désabonnement à tout moment.
+    <% } else { %>
+      An email when we publish something new on <%= categoryLabel.toLowerCase() %><% if (typeof cadenceLabel !== 'undefined' && cadenceLabel) { %>, <%= cadenceLabel %><% } %>.
+      Nothing else - no spam, unsubscribe any time.
+    <% } %>
   </p>
 
   <form class="contact-form" action="/api/blog-subscribe" method="POST" data-ajax-form data-ga-event="blog_subscribe">
     <input type="hidden" name="category" value="<%= categoryKey %>">
     <div class="field">
-      <label for="sub-email-<%= categoryKey %>">Email address</label>
+      <label for="sub-email-<%= categoryKey %>"><% if (__lang === 'es') { %>Correo electrónico<% } else if (__lang === 'fr') { %>Adresse e-mail<% } else { %>Email address<% } %></label>
       <input type="email" id="sub-email-<%= categoryKey %>" name="email" autocomplete="email" placeholder="you@example.com" required>
     </div>
 
     <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <button type="submit" class="btn">Subscribe</button>
+    <button type="submit" class="btn"><% if (__lang === 'es') { %>Suscribirse<% } else if (__lang === 'fr') { %>S'abonner<% } else { %>Subscribe<% } %></button>
     <p class="form-status err" role="alert"></p>
-    <p class="form-status ok" role="status">Check your inbox to confirm.</p>
+    <p class="form-status ok" role="status"><% if (__lang === 'es') { %>Revisa tu bandeja de entrada para confirmar.<% } else if (__lang === 'fr') { %>Vérifiez votre boîte de réception pour confirmer.<% } else { %>Check your inbox to confirm.<% } %></p>
   </form>
-  <p class="note" style="margin-top:1em; margin-bottom:0;">Prefer reading on Substack instead? <a href="https://ajithjagadish.substack.com" target="_blank" rel="noopener">Follow along there →</a></p>
+  <p class="note" style="margin-top:1em; margin-bottom:0;">
+    <% if (__lang === 'es') { %>¿Prefieres leer en Substack? <a href="https://ajithjagadish.substack.com" target="_blank" rel="noopener">Síguenos allí →</a>
+    <% } else if (__lang === 'fr') { %>Vous préférez lire sur Substack ? <a href="https://ajithjagadish.substack.com" target="_blank" rel="noopener">Suivez-nous là-bas →</a>
+    <% } else { %>Prefer reading on Substack instead? <a href="https://ajithjagadish.substack.com" target="_blank" rel="noopener">Follow along there →</a>
+    <% } %>
+  </p>
 </div>

@@ -5,6 +5,14 @@ const { urlInspectionConfigured, inspectUrl } = require('../services/urlInspecti
 const BlogPostSchema = new mongoose.Schema(
   {
     slug: { type: String, required: true, unique: true, index: true, trim: true },
+    // 'en' is the default and the only locale for every post before
+    // 2026-09-10. A translation is its own document (own slug, own
+    // analytics) rather than a field on the English post - translationOf
+    // links it back to the canonical English post so hreflang and "also
+    // available in" links can find each other. Query BlogPost.find({
+    // translationOf: englishPost._id }) to get all translations of a post.
+    locale: { type: String, enum: ['en', 'es', 'fr'], default: 'en', required: true, index: true },
+    translationOf: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogPost', default: null },
     title: { type: String, required: true },
     meta: { type: String, required: true }, // meta description / card blurb
     keyword: { type: String, default: '' }, // SEO focus keyword
@@ -73,7 +81,7 @@ BlogPostSchema.pre('save', function (next) {
 BlogPostSchema.post('save', function (doc) {
   if (!doc.$locals.justPublished) return;
 
-  const url = `/blog/${doc.slug}`;
+  const url = doc.locale === 'en' ? `/blog/${doc.slug}` : `/${doc.locale}/blog/${doc.slug}`;
   submitUrls([url])
     .then((result) => console.log(`[indexNow] submitted ${url}:`, result.ok ? 'ok' : result))
     .catch((err) => console.log(`[indexNow] submit failed for ${url}:`, err.message));

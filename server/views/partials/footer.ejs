@@ -1,9 +1,16 @@
+<%
+// See header.ejs for why this can't call require() - `t` must come from
+// the route handler. Fallback below degrades to English if `t` is missing.
+const __lang = typeof lang !== 'undefined' ? lang : 'en';
+const __t = (typeof t !== 'undefined' ? t : { footer: { tagline: 'Health before success. Awareness before action.', explore: 'Explore', contact: 'Contact', sendMessage: 'Send a message →', builtAlongside: 'Built alongside, not above.' } }).footer;
+const __prefix = __lang === 'en' ? '' : '/' + __lang;
+%>
 <footer class="site">
   <div class="container">
     <div class="footer-grid">
       <div>
         <img src="/assets/img/logo-footer.png" alt="Humankind Movement | Ajith Jagadish" class="footer-logo-full" width="192" height="178" loading="lazy">
-        <p class="note">Health before success. Awareness before action.</p>
+        <p class="note"><%= __t.tagline %></p>
         <a class="footer-social" href="https://www.instagram.com/humankind_movement/" target="_blank" rel="noopener" aria-label="Humankind Movement on Instagram">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor"/></svg>
         </a>
@@ -18,23 +25,23 @@
         </a>
       </div>
       <div>
-        <h3>Explore</h3>
+        <h3><%= __t.explore %></h3>
         <ul>
-          <li><a href="/philosophy">Philosophy</a></li>
-          <li><a href="/the-method">The Method</a></li>
-          <li><a href="/who-we-serve">Who We Serve</a></li>
-          <li><a href="/services">Services</a></li>
-          <li><a href="/blog">Journal</a></li>
+          <li><a href="<%= __prefix %>/philosophy">Philosophy</a></li>
+          <li><a href="<%= __prefix %>/the-method">The Method</a></li>
+          <li><a href="<%= __prefix %>/who-we-serve">Who We Serve</a></li>
+          <li><a href="<%= __prefix %>/services">Services</a></li>
+          <li><a href="<%= __prefix %>/blog">Journal</a></li>
         </ul>
       </div>
       <div>
-        <h3>Contact</h3>
-        <ul><li><a href="/contact">Send a message →</a></li></ul>
+        <h3><%= __t.contact %></h3>
+        <ul><li><a href="<%= __prefix %>/contact"><%= __t.sendMessage %></a></li></ul>
       </div>
     </div>
     <div class="footer-bottom">
       <span>© <span id="year"></span> Humankind Movement</span>
-      <span>Built alongside, not above.</span>
+      <span><%= __t.builtAlongside %></span>
     </div>
   </div>
 </footer>

@@ -24,6 +24,10 @@
 <meta name="description" content="<%= description %>">
 <% if (typeof keyword !== 'undefined' && keyword) { %><meta name="keywords" content="<%= keyword %>"><% } %>
 <link rel="canonical" href="https://humankindmovement.in<%= canonicalPath %>">
+<% if (typeof hreflangs !== 'undefined' && hreflangs && hreflangs.length) { %>
+<% hreflangs.forEach(function(h) { %><link rel="alternate" hreflang="<%= h.lang %>" href="https://humankindmovement.in<%= h.path %>">
+<% }) %><link rel="alternate" hreflang="x-default" href="https://humankindmovement.in<%= (hreflangs.find(function(h){return h.lang==='en';}) || {}).path || canonicalPath %>">
+<% } %>
 <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>">
 <meta property="og:title" content="<%= title %>">
 <meta property="og:description" content="<%= description %>">

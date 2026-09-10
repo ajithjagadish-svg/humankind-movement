@@ -206,34 +206,44 @@ function sitemapUrlTag({ loc, lastmod, changefreq, priority }) {
 }
 
 router.get('/sitemap.xml', async (req, res) => {
-  const posts = await BlogPost.find({ status: 'published' }).select('slug updatedAt').lean();
+  // Locale-aware: locale:'en' posts stay at /blog/<slug> (unchanged), a
+  // translation's locale prefixes its URL (/es/blog/<slug>), matching the
+  // routes createBlogRouter registers in app.js.
+  const posts = await BlogPost.find({ status: 'published' }).select('slug updatedAt locale').lean();
 
-  const postTags = posts.map((post) =>
-    sitemapUrlTag({
-      loc: `/blog/${post.slug}`,
+  const postTags = posts.map((post) => {
+    const prefix = post.locale && post.locale !== 'en' ? `/${post.locale}` : '';
+    return sitemapUrlTag({
+      loc: `${prefix}/blog/${post.slug}`,
       lastmod: post.updatedAt.toISOString().slice(0, 10),
       changefreq: 'monthly',
       priority: '0.6',
-    })
-  );
-
-  // /blog itself changes whenever any post does - derive its lastmod from
-  // the most recently updated post instead of hand-maintaining it alongside
-  // the other static pages, so it never goes stale.
-  const blogListingLastmod = posts.length
-    ? posts.reduce((max, p) => (p.updatedAt > max ? p.updatedAt : max), posts[0].updatedAt).toISOString().slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
-  const blogListingTag = sitemapUrlTag({
-    loc: '/blog',
-    lastmod: blogListingLastmod,
-    changefreq: 'weekly',
-    priority: '0.9',
+    });
   });
+
+  // Each locale's /blog listing changes whenever any post in THAT locale
+  // does - a translation going live shouldn't bump the English listing's
+  // lastmod (and vice versa), so this groups posts by locale first.
+  const postsByLocale = posts.reduce((acc, p) => {
+    const loc = p.locale || 'en';
+    (acc[loc] = acc[loc] || []).push(p);
+    return acc;
+  }, {});
+  const blogListingTags = Object.entries(postsByLocale).map(([locale, localePosts]) => {
+    const lastmod = localePosts.reduce((max, p) => (p.updatedAt > max ? p.updatedAt : max), localePosts[0].updatedAt).toISOString().slice(0, 10);
+    const prefix = locale !== 'en' ? `/${locale}` : '';
+    return sitemapUrlTag({ loc: `${prefix}/blog`, lastmod, changefreq: 'weekly', priority: '0.9' });
+  });
+  // English /blog listing must still appear even with zero English posts
+  // (never happens in practice, but matches prior behavior exactly).
+  if (!postsByLocale.en) {
+    blogListingTags.unshift(sitemapUrlTag({ loc: '/blog', lastmod: new Date().toISOString().slice(0, 10), changefreq: 'weekly', priority: '0.9' }));
+  }
 
   const xml =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), blogListingTag, ...postTags].join('\n') +
+    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), ...blogListingTags, ...postTags].join('\n') +
     '\n</urlset>\n';
 
   res.type('application/xml').send(xml);

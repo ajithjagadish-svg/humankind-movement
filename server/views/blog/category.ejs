@@ -1,21 +1,29 @@
+<%
+// `t` is resolved in server/routes/blog.js and passed via res.render() -
+// EJS can't call require() itself (see partials/header.ejs).
+const __lang = typeof lang !== 'undefined' ? lang : 'en';
+const __tFull = typeof t !== 'undefined' ? t : {};
+const __t = __tFull.blog || {};
+const __prefix = __lang === 'en' ? '' : '/' + __lang;
+%>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%= __lang %>">
 <head>
 <%- include('../partials/head', {
   title: category.label + ' | Humankind Movement Blog',
   description: category.description,
-  canonicalPath: '/blog/topics/' + category.key
+  canonicalPath: __prefix + '/blog/topics/' + category.key
 }) %>
 </head>
 <body>
 
-<%- include('../partials/header') %>
+<%- include('../partials/header', { lang: __lang, t: __tFull }) %>
 
 <main>
 
   <section class="hero bg-tint">
     <div class="container-narrow">
-      <span class="kicker">Journal</span>
+      <span class="kicker"><%= __t.journalKicker %></span>
       <h1><%= category.label %></h1>
       <p class="lede"><%= category.description %></p>
     </div>
@@ -24,30 +32,30 @@
   <section class="bg-white">
     <div class="container">
       <% if (posts.length === 0) { %>
-        <p class="note">No posts here yet - check back soon.</p>
+        <p class="note"><%= __t.noPostsYet %></p>
       <% } else { %>
         <div class="grid-3" style="text-align:left;">
           <% posts.forEach(function(post) { %>
             <div class="feature-card">
-              <span class="note"><%= post.publishedAt.toISOString().slice(0,10) %> · <%= post.readMins %> min read</span>
-              <h3 style="margin-top:0.5em;"><a href="/blog/<%= post.slug %>"><%= post.title %></a></h3>
+              <span class="note"><%= post.publishedAt.toISOString().slice(0,10) %> · <%= post.readMins %> <%= __t.minRead %></span>
+              <h3 style="margin-top:0.5em;"><a href="<%= __prefix %>/blog/<%= post.slug %>"><%= post.title %></a></h3>
               <p><%= post.meta %></p>
-              <p><a class="link-arrow" href="/blog/<%= post.slug %>">Read the post <span class="arrow">→</span></a></p>
+              <p><a class="link-arrow" href="<%= __prefix %>/blog/<%= post.slug %>"><%= __t.readThePost %> <span class="arrow">→</span></a></p>
             </div>
           <% }) %>
         </div>
       <% } %>
 
       <div style="margin-top:2.4em;">
-        <%- include('../partials/blog-subscribe-widget', { categoryKey: category.key, categoryLabel: category.label, cadenceLabel: cadenceLabel }) %>
+        <%- include('../partials/blog-subscribe-widget', { categoryKey: category.key, categoryLabel: category.label, cadenceLabel: cadenceLabel, lang: __lang }) %>
       </div>
 
-      <p style="margin-top:2.2em;"><a class="link-arrow" href="/blog">← All Journal topics <span class="arrow"></span></a></p>
+      <p style="margin-top:2.2em;"><a class="link-arrow" href="<%= __prefix %>/blog"><%= __t.allTopics %> <span class="arrow"></span></a></p>
     </div>
   </section>
 
 </main>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { lang: __lang, t: __tFull }) %>
 </body>
 </html>

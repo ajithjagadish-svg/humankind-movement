@@ -1,40 +1,55 @@
+<%
+// EJS templates can't call require() (confirmed 2026-09-10: it throws
+// "require is not defined" both in ejs.renderFile and via Express's view
+// engine, since the compiled template function isn't run in a Node module
+// scope). So `t`, the fully resolved config/i18n.js strings object for the
+// current request's locale, must be computed in the ROUTE HANDLER (a real
+// .js file, where require works) and passed into res.render()/include() -
+// never resolved here. The inline object below is only a defensive
+// fallback for the (currently nonexistent) case of a page including this
+// partial without passing `t`, so it degrades to English instead of
+// crashing.
+const __lang = typeof lang !== 'undefined' ? lang : 'en';
+const __t = (typeof t !== 'undefined' ? t : { nav: { home: 'Home', philosophy: 'Philosophy', method: 'The Method', whoWeServe: 'Who We Serve', services: 'Services', journal: 'Journal', team: 'Team', contact: 'Contact' } }).nav;
+const __prefix = __lang === 'en' ? '' : '/' + __lang;
+%>
 <header class="site">
   <div class="container nav-row">
-    <a class="brand" href="/">
+    <a class="brand" href="<%= __prefix %>/">
       <img src="/assets/img/icon-mark.png" alt="Humankind Movement mark" width="204" height="204">
       <span class="brand-word">HUMANKIND<small>MOVEMENT</small></span>
     </a>
     <button class="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
     <nav class="primary">
       <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/philosophy">Philosophy</a></li>
-        <li><a href="/the-method">The Method</a></li>
-        <li><a href="/who-we-serve">Who We Serve</a></li>
+        <li><a href="<%= __prefix %>/"><%= __t.home %></a></li>
+        <li><a href="<%= __prefix %>/philosophy"><%= __t.philosophy %></a></li>
+        <li><a href="<%= __prefix %>/the-method"><%= __t.method %></a></li>
+        <li><a href="<%= __prefix %>/who-we-serve"><%= __t.whoWeServe %></a></li>
         <li class="has-dropdown">
-          <a href="/services">Services</a>
+          <a href="<%= __prefix %>/services"><%= __t.services %></a>
           <ul class="dropdown-menu">
-            <li><a href="/services/one-to-one-coaching">One-to-One &amp; Group Coaching</a></li>
-            <li><a href="/services/postpartum-support">Postpartum Support</a></li>
-            <li><a href="/services/neurodivergent-coaching">Neurodivergent Coaching</a></li>
-            <li><a href="/services/workshops">Workshops</a></li>
-            <li><a href="/services/corporate-wellbeing">Corporate Wellbeing</a></li>
+            <li><a href="<%= __prefix %>/services/one-to-one-coaching">One-to-One &amp; Group Coaching</a></li>
+            <li><a href="<%= __prefix %>/services/postpartum-support">Postpartum Support</a></li>
+            <li><a href="<%= __prefix %>/services/neurodivergent-coaching">Neurodivergent Coaching</a></li>
+            <li><a href="<%= __prefix %>/services/workshops">Workshops</a></li>
+            <li><a href="<%= __prefix %>/services/corporate-wellbeing">Corporate Wellbeing</a></li>
           </ul>
         </li>
         <li class="has-dropdown">
-          <a href="/blog" aria-current="page">Journal</a>
+          <a href="<%= __prefix %>/blog" aria-current="page"><%= __t.journal %></a>
           <ul class="dropdown-menu">
-            <li><a href="/blog/topics/philosophy">Philosophy</a></li>
-            <li><a href="/blog/topics/movement">Movement</a></li>
-            <li><a href="/blog/topics/sleep">Sleep &amp; Recovery</a></li>
-            <li><a href="/blog/topics/food">Food &amp; Nourishment</a></li>
-            <li><a href="/blog/topics/nervous-system">Time Alone &amp; Nervous System</a></li>
-            <li><a href="/blog/topics/postpartum">Postpartum Recovery</a></li>
-            <li><a href="/blog/topics/neurodivergent">Neurodivergent Coaching</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/philosophy">Philosophy</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/movement">Movement</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/sleep">Sleep &amp; Recovery</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/food">Food &amp; Nourishment</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/nervous-system">Time Alone &amp; Nervous System</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/postpartum">Postpartum Recovery</a></li>
+            <li><a href="<%= __prefix %>/blog/topics/neurodivergent">Neurodivergent Coaching</a></li>
           </ul>
         </li>
-        <li><a href="/about">Team</a></li>
-        <li><a href="/contact">Contact</a></li>
+        <li><a href="<%= __prefix %>/about"><%= __t.team %></a></li>
+        <li><a href="<%= __prefix %>/contact"><%= __t.contact %></a></li>
       </ul>
     </nav>
   </div>
