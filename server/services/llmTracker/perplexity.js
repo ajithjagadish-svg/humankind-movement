@@ -20,6 +20,11 @@ async function askPerplexity(promptText) {
     body: JSON.stringify({
       model: MODEL,
       messages: [{ role: 'user', content: promptText }],
+      // Explicit "low" rather than leaving this to Perplexity's default -
+      // it's the cheapest search-context tier ($5/1k requests vs $8 or $12
+      // for medium/high) and a short, direct question doesn't need a wider
+      // search pull anyway.
+      web_search_options: { search_context_size: 'low' },
     }),
   });
 

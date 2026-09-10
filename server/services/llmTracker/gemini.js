@@ -4,8 +4,10 @@
 // surface (Google doesn't offer AI Overviews itself as a public API).
 const { wasMentioned, extractCitedUrls } = require('./shared');
 
-const MODEL = 'gemini-2.0-flash'; // must support googleSearch grounding - check
-// https://ai.google.dev/gemini-api/docs/grounding if this ever errors on an unsupported model.
+const MODEL = 'gemini-2.5-flash'; // must support googleSearch grounding - check
+// https://ai.google.dev/gemini-api/docs/grounding if this ever errors on an unsupported model
+// (2.0-flash was the original choice here but is already behind the current
+// 2.5/3.x model families as of Sep 2026 - worth rechecking periodically).
 
 function geminiConfigured() {
   return Boolean(process.env.GEMINI_API_KEY);
