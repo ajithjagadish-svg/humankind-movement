@@ -88,6 +88,11 @@ const __publishedAt = post.publishedAt || new Date();
 
   <section class="bg-white">
     <div class="container-narrow">
+      <% if (__lang !== 'en' && post.translationOf) { %>
+        <div class="callout" style="margin-bottom:2em;">
+          <p class="note"><%= __t.translatedNotice %></p>
+        </div>
+      <% } %>
       <article><%- post.bodyHtml %></article>
 
       <div class="about-flex" style="margin-top:2.6em; padding-top:2em; border-top:1px solid var(--line);">

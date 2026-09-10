@@ -50,6 +50,7 @@ const STRINGS = {
       noPostsYet: 'No posts here yet - check back soon.',
       allTopics: '← All Journal topics',
       journalKicker: 'Journal',
+      translatedNotice: 'This post was translated with AI assistance from the original English version. If anything reads oddly, the English version is the most accurate.',
     },
   },
   es: {
@@ -93,6 +94,7 @@ const STRINGS = {
       noPostsYet: 'Todavía no hay artículos aquí, vuelve pronto.',
       allTopics: '← Todos los temas del Diario',
       journalKicker: 'Diario',
+      translatedNotice: 'Este artículo se tradujo con ayuda de inteligencia artificial a partir del original en inglés. Si algo suena raro, el inglés es la versión más exacta.',
     },
   },
   fr: {
@@ -136,6 +138,7 @@ const STRINGS = {
       noPostsYet: "Aucun article ici pour l'instant, revenez bientôt.",
       allTopics: '← Tous les sujets du Journal',
       journalKicker: 'Journal',
+      translatedNotice: "Cet article a été traduit avec l'aide de l'intelligence artificielle à partir de l'original en anglais. Si une phrase semble étrange, la version anglaise est la plus fiable.",
     },
   },
 };
