@@ -20,6 +20,16 @@ const BlogPost = require('../models/BlogPost');
 const BASE = 'https://humankindmovement.in';
 const HREF_RE = /href="([^"]+)"/g;
 
+// Paths retired in a past site restructure that still 301-redirect to their
+// replacement (a "successful" HTTP status) - the plain status check below
+// would silently pass these, so they're flagged explicitly instead. See
+// the /experiences -> /services restructure that caused this exact bug.
+const RETIRED_PATH_PREFIXES = ['/experiences'];
+
+function isRetired(href) {
+  return RETIRED_PATH_PREFIXES.some((prefix) => href === prefix || href.startsWith(prefix + '/') || href.startsWith(prefix + '#') || href.startsWith(prefix + '?'));
+}
+
 function isInternal(href) {
   if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
   if (/^https?:\/\//i.test(href)) return href.startsWith(BASE);
@@ -61,6 +71,10 @@ async function main() {
       const resolved = resolve(href);
       if (resolved.relative) {
         problems.push({ slug: post.slug, status: post.status, href, issue: 'relative path - bodyHtml links must be absolute (e.g. /services/postpartum-support)' });
+        continue;
+      }
+      if (isRetired(href)) {
+        problems.push({ slug: post.slug, status: post.status, href, issue: 'retired path - redirects but should point at its new canonical URL directly' });
         continue;
       }
 
