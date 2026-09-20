@@ -6,10 +6,14 @@
 // (provider, prompt) so results are comparable month over month.
 //
 // Usage: node server/scripts/run-llm-brand-check.js
+//        node server/scripts/run-llm-brand-check.js --only=brand   # just prompts whose pillar or key matches (cheap spot-check)
 require('dotenv').config();
 const { connectDB, disconnectDB } = require('../config/db');
 const LlmMention = require('../models/LlmMention');
-const PROMPTS = require('../config/llmTrackerPrompts');
+const ALL_PROMPTS = require('../config/llmTrackerPrompts');
+const onlyArg = process.argv.find((a) => a.startsWith('--only='));
+const ONLY = onlyArg ? onlyArg.split('=')[1] : null;
+const PROMPTS = ONLY ? ALL_PROMPTS.filter((p) => p.pillar === ONLY || p.key.startsWith(ONLY)) : ALL_PROMPTS;
 const { perplexityConfigured, askPerplexity } = require('../services/llmTracker/perplexity');
 const { openaiConfigured, askOpenAI } = require('../services/llmTracker/openai');
 const { geminiConfigured, askGemini } = require('../services/llmTracker/gemini');
