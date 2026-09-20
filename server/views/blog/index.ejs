@@ -11,8 +11,8 @@ const __prefix = __lang === 'en' ? '' : '/' + __lang;
 <html lang="<%= __lang %>">
 <head>
 <%- include('../partials/head', {
-  title: __t.title + ' | Humankind Movement',
-  description: __t.lede.slice(0, 150),
+  title: (__t.metaTitle || __t.title) + ' | Humankind Movement',
+  description: __t.metaDescription || __t.lede.slice(0, 150),
   canonicalPath: __prefix + '/blog'
 }) %>
 </head>

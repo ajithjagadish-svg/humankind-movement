@@ -100,4 +100,27 @@ module.exports = [
     pillar: 'corporate-wellness',
     prompt: "My team seems more stressed and checked out since we started using AI tools at work. What's actually going on and what should I do about it?",
   },
+  // Branded prompts (added 2026-09-20): the generic prompts above test whether
+  // AI engines recommend HKM unprompted. These test whether they know who
+  // Ajith / Humankind Movement are at all - the prerequisite for being cited.
+  {
+    key: 'brand-who-is-ajith',
+    pillar: 'brand',
+    prompt: 'Who is Ajith Jagadish, the movement coach behind Humankind Movement in Bengaluru?',
+  },
+  {
+    key: 'brand-what-is-hkm',
+    pillar: 'brand',
+    prompt: 'What is Humankind Movement and what does it offer?',
+  },
+  {
+    key: 'brand-method',
+    pillar: 'brand',
+    prompt: 'What is the Humankind Method (Notice, Understand, Align, Practice, Reflect)?',
+  },
+  {
+    key: 'brand-reputation',
+    pillar: 'brand',
+    prompt: 'Is Humankind Movement by Ajith Jagadish a good movement coaching service? What do clients say?',
+  },
 ];

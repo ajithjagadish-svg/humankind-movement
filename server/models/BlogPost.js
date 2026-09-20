@@ -23,6 +23,13 @@ const BlogPostSchema = new mongoose.Schema(
     readMins: { type: Number, default: 2 },
     status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
     publishedAt: { type: Date },
+    // Set only when title/meta/body actually change on an existing post (see
+    // pre-save below). Used for Article dateModified and sitemap lastmod:
+    // Mongoose's updatedAt is bumped by every save, including the analytics
+    // refresh job, so it made every post look freshly edited. Unset means
+    // "never edited since publishing" - readers of this field fall back to
+    // publishedAt.
+    contentModifiedAt: { type: Date },
     analytics: {
       // GA4 - traffic and engagement
       pageviews: { type: Number, default: 0 },
@@ -51,6 +58,9 @@ BlogPostSchema.index({ status: 1, publishedAt: -1 });
 // on every one of those saves and broken the refresh for the ~37 existing
 // posts (out of 77) that predate this rule and fall outside the range.
 BlogPostSchema.pre('save', function (next) {
+  if (!this.isNew && (this.isModified('title') || this.isModified('meta') || this.isModified('bodyHtml'))) {
+    this.contentModifiedAt = new Date();
+  }
   if (this.isModified('title')) {
     const len = (this.title || '').length;
     if (len < 45 || len > 70) {

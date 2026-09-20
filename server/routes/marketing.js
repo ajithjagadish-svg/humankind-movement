@@ -7,6 +7,7 @@ const path = require('path');
 const BlogPost = require('../models/BlogPost');
 const { trackPageView } = require('../services/pageViews');
 const { indexNowKey } = require('../services/indexNow');
+const CATEGORIES = require('../config/categories');
 
 // Strict routing matters here: LANGS.forEach below registers both "/es"
 // (redirect to "/es/") and "/es/" (serve index) - without strict mode
@@ -29,7 +30,7 @@ const REPO_ROOT = path.join(__dirname, '..', '..');
 // services/*.html, and '/experiences' (plus the es/fr equivalents) is
 // handled explicitly below as a redirect to the new /services hub, not a
 // served file.
-const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact', 'intake', 'postpartum-recovery-guide'];
+const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact', 'intake', 'postpartum-recovery-guide', 'movement-coaching-bengaluru'];
 const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact'];
 const LANGS = ['es', 'fr'];
 
@@ -156,47 +157,53 @@ router.get('/robots.txt', (req, res) => {
   res.sendFile(path.join(REPO_ROOT, 'robots.txt'));
 });
 
+// Plain-text site summary for AI assistants and answer engines.
+router.get('/llms.txt', (req, res) => {
+  res.type('text/plain').sendFile(path.join(REPO_ROOT, 'llms.txt'));
+});
+
 // Static core pages - lastmod must be updated by hand whenever a page's
 // content changes (verified 2026-08-18: these had drifted to a month stale,
 // including on /contact right after its FAQ was rewritten - there is no
 // automated signal here, so treat "did I touch a static page today" as a
 // prompt to also bump its line below).
 const SITEMAP_STATIC_PAGES = [
-  { loc: '/', lastmod: '2026-08-18', changefreq: 'weekly', priority: '1.0' },
-  { loc: '/philosophy', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/services', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/services/one-to-one-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/services/postpartum-support', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/services/neurodivergent-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/services/workshops', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/services/corporate-wellbeing', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.8' },
-  { loc: '/postpartum-recovery-guide', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.8' },
-  { loc: '/es/', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/', lastmod: '2026-09-20', changefreq: 'weekly', priority: '1.0' },
+  { loc: '/philosophy', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/about', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/the-method', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/who-we-serve', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/services', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/services/one-to-one-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/postpartum-support', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/neurodivergent-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/workshops', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/corporate-wellbeing', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/contact', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/postpartum-recovery-guide', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/movement-coaching-bengaluru', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/es/', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
   { loc: '/es/philosophy', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/philosophy', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/the-method', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/who-we-serve', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/services', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/services', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/es/services/one-to-one-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/fr/services/one-to-one-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/es/services/postpartum-support', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/fr/services/postpartum-support', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/es/services/neurodivergent-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/fr/services/neurodivergent-coaching', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/es/services/workshops', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/fr/services/workshops', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/es/services/corporate-wellbeing', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/fr/services/corporate-wellbeing', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.65' },
-  { loc: '/es/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
-  { loc: '/fr/about', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/the-method', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/the-method', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/who-we-serve', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/who-we-serve', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/services', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/services', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/es/services/one-to-one-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/one-to-one-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/postpartum-support', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/postpartum-support', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/neurodivergent-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/neurodivergent-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/workshops', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/workshops', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/services/corporate-wellbeing', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/fr/services/corporate-wellbeing', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.65' },
+  { loc: '/es/about', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
+  { loc: '/fr/about', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
   { loc: '/es/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/contact', lastmod: '2026-08-18', changefreq: 'monthly', priority: '0.7' },
 ];
@@ -209,13 +216,18 @@ router.get('/sitemap.xml', async (req, res) => {
   // Locale-aware: locale:'en' posts stay at /blog/<slug> (unchanged), a
   // translation's locale prefixes its URL (/es/blog/<slug>), matching the
   // routes createBlogRouter registers in app.js.
-  const posts = await BlogPost.find({ status: 'published' }).select('slug updatedAt locale').lean();
+  const posts = await BlogPost.find({ status: 'published' }).select('slug updatedAt contentModifiedAt publishedAt locale category').lean();
+  // updatedAt is bumped by every save (including the analytics refresh job),
+  // which made every URL look edited on the same day. contentModifiedAt is
+  // set only on a real title/meta/body edit; publishedAt is the honest
+  // fallback for a post that has never been edited.
+  const modifiedAt = (post) => post.contentModifiedAt || post.publishedAt || post.updatedAt;
 
   const postTags = posts.map((post) => {
     const prefix = post.locale && post.locale !== 'en' ? `/${post.locale}` : '';
     return sitemapUrlTag({
       loc: `${prefix}/blog/${post.slug}`,
-      lastmod: post.updatedAt.toISOString().slice(0, 10),
+      lastmod: modifiedAt(post).toISOString().slice(0, 10),
       changefreq: 'monthly',
       priority: '0.6',
     });
@@ -230,7 +242,7 @@ router.get('/sitemap.xml', async (req, res) => {
     return acc;
   }, {});
   const blogListingTags = Object.entries(postsByLocale).map(([locale, localePosts]) => {
-    const lastmod = localePosts.reduce((max, p) => (p.updatedAt > max ? p.updatedAt : max), localePosts[0].updatedAt).toISOString().slice(0, 10);
+    const lastmod = localePosts.reduce((max, p) => (modifiedAt(p) > max ? modifiedAt(p) : max), modifiedAt(localePosts[0])).toISOString().slice(0, 10);
     const prefix = locale !== 'en' ? `/${locale}` : '';
     return sitemapUrlTag({ loc: `${prefix}/blog`, lastmod, changefreq: 'weekly', priority: '0.9' });
   });
@@ -240,10 +252,17 @@ router.get('/sitemap.xml', async (req, res) => {
     blogListingTags.unshift(sitemapUrlTag({ loc: '/blog', lastmod: new Date().toISOString().slice(0, 10), changefreq: 'weekly', priority: '0.9' }));
   }
 
+  const topicTags = CATEGORIES.map((cat) => {
+    const catPosts = (postsByLocale.en || []).filter((p) => p.category === cat.key);
+    if (!catPosts.length) return null;
+    const lastmod = catPosts.reduce((max, p) => (modifiedAt(p) > max ? modifiedAt(p) : max), modifiedAt(catPosts[0])).toISOString().slice(0, 10);
+    return sitemapUrlTag({ loc: '/blog/topics/' + cat.key, lastmod, changefreq: 'weekly', priority: '0.8' });
+  }).filter(Boolean);
+
   const xml =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), ...blogListingTags, ...postTags].join('\n') +
+    [...SITEMAP_STATIC_PAGES.map(sitemapUrlTag), ...blogListingTags, ...topicTags, ...postTags].join('\n') +
     '\n</urlset>\n';
 
   res.type('application/xml').send(xml);
@@ -256,6 +275,13 @@ router.get(`/${indexNowKey()}.txt`, (req, res) => {
   res.type('text/plain').send(indexNowKey());
 });
 
-router.use('/assets', express.static(path.join(REPO_ROOT, 'assets')));
+// Files aren't fingerprinted, so keep CSS/JS short-lived (a deploy shows up
+// within an hour) and let images, fonts and video be cached for a week.
+router.use('/assets', express.static(path.join(REPO_ROOT, 'assets'), {
+  setHeaders(res, filePath) {
+    if (/\.(png|jpe?g|webp|svg|ico|gif|woff2?|mp4|webm)$/i.test(filePath)) res.set('Cache-Control', 'public, max-age=604800');
+    else res.set('Cache-Control', 'public, max-age=3600');
+  },
+}));
 
 module.exports = router;

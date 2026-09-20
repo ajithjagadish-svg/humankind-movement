@@ -13,6 +13,19 @@ const LOCALE_NAMES = { en: 'English', es: 'Español', fr: 'Français' };
 // matters when previewing a draft directly (e.g. before publishing a new
 // translation) - falls back to now rather than crashing on a null date.
 const __publishedAt = post.publishedAt || new Date();
+// contentModifiedAt is only set on a real title/meta/body edit; updatedAt is
+// bumped by every save (including the analytics refresh) so it can't be used.
+const __modifiedAt = post.contentModifiedAt || __publishedAt;
+const __isUpdated = (__modifiedAt - __publishedAt) > 86400000;
+const __day = (d) => new Date(d).toISOString().slice(0, 10);
+const __site = 'https://humankindmovement.in';
+const __url = __site + __prefix + '/blog/' + post.slug;
+const __ogImage = typeof ogImage !== 'undefined' ? ogImage : '/assets/img/ajith-hero.jpg';
+const __words = post.bodyHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+const __nav = __tFull.nav || {};
+const __blogLabel = __nav.journal || 'Blog';
+const __serviceKey = typeof serviceKey !== 'undefined' ? serviceKey : 'one-to-one-coaching';
+const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
 %>
 <!DOCTYPE html>
 <html lang="<%= __lang %>">
@@ -24,36 +37,55 @@ const __publishedAt = post.publishedAt || new Date();
   canonicalPath: __prefix + '/blog/' + post.slug,
   hreflangs: __hreflangs,
   ogType: 'article',
-  ogImage: post.heroImage || undefined,
+  ogImage: post.heroImage || __ogImage,
   articlePublishedTime: __publishedAt.toISOString(),
   articleSection: post.categoryLabel,
-  jsonLd: {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
-    description: post.meta,
-    inLanguage: __lang,
-    author: {
-      '@type': 'Person',
-      name: 'Ajith Jagadish',
-      jobTitle: 'Health & Wellness Coach, Certified Human Biomechanics Specialist',
-      url: 'https://humankindmovement.in/about',
-      image: 'https://humankindmovement.in/assets/img/ajith-portrait.jpg',
-      sameAs: [
-        'https://www.linkedin.com/in/ajithjagadish/',
-        'https://www.instagram.com/humankind_movement/',
-        'https://share.google/1DfDVbxb1PKiajEfN'
+  jsonLd: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: post.title,
+      description: post.meta,
+      inLanguage: __lang,
+      image: [__site + (post.heroImage || __ogImage)],
+      keywords: post.keyword || undefined,
+      articleSection: post.categoryLabel,
+      wordCount: __words,
+      author: {
+        '@type': 'Person',
+        '@id': __site + '/#ajith',
+        name: 'Ajith Jagadish',
+        jobTitle: 'Health & Wellness Coach, Certified Human Biomechanics Specialist',
+        url: __site + '/about',
+        image: __site + '/assets/img/ajith-portrait.jpg',
+        sameAs: [
+          'https://www.linkedin.com/in/ajithjagadish/',
+          'https://www.instagram.com/humankind_movement/',
+          'https://share.google/1DfDVbxb1PKiajEfN'
+        ]
+      },
+      publisher: {
+        '@type': 'Organization',
+        '@id': __site + '/#organization',
+        name: 'Humankind Movement',
+        url: __site + '/',
+        logo: { '@type': 'ImageObject', url: __site + '/assets/img/logo.png' }
+      },
+      datePublished: __publishedAt.toISOString(),
+      dateModified: __modifiedAt.toISOString(),
+      mainEntityOfPage: { '@type': 'WebPage', '@id': __url }
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: __nav.home || 'Home', item: __site + (__prefix || '/') },
+        { '@type': 'ListItem', position: 2, name: __blogLabel, item: __site + __prefix + '/blog' },
+        { '@type': 'ListItem', position: 3, name: post.categoryLabel, item: __site + __prefix + '/blog/topics/' + post.category },
+        { '@type': 'ListItem', position: 4, name: post.title, item: __url }
       ]
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'Humankind Movement',
-      logo: { '@type': 'ImageObject', url: 'https://humankindmovement.in/assets/img/logo.png' }
-    },
-    datePublished: __publishedAt.toISOString(),
-    dateModified: (post.updatedAt || __publishedAt).toISOString(),
-    mainEntityOfPage: 'https://humankindmovement.in' + __prefix + '/blog/' + post.slug
-  }
+    }
+  ]
 }) %>
 </head>
 <body>
@@ -64,9 +96,14 @@ const __publishedAt = post.publishedAt || new Date();
 
   <section class="hero bg-tint">
     <div class="container-narrow">
+      <nav class="note center" aria-label="Breadcrumb" style="margin-bottom:0.8em;">
+        <a href="<%= __prefix %>/"><%= __nav.home || 'Home' %></a> ›
+        <a href="<%= __prefix %>/blog"><%= __blogLabel %></a> ›
+        <a href="<%= __prefix %>/blog/topics/<%= post.category %>"><%= post.categoryLabel %></a>
+      </nav>
       <span class="kicker"><%= post.categoryLabel %></span>
       <h1><%= post.title %></h1>
-      <p class="note center"><%= __t.by %> <a href="<%= __prefix %>/about">Ajith Jagadish</a> · <%= post.readMins %> <%= __t.minRead %></p>
+      <p class="note center"><%= __t.by %> <a href="<%= __prefix %>/about">Ajith Jagadish</a> · <%= post.readMins %> <%= __t.minRead %> · <%= __t.publishedOn %> <time datetime="<%= __day(__publishedAt) %>"><%= __day(__publishedAt) %></time><% if (__isUpdated) { %> · <%= __t.updatedOn %> <time datetime="<%= __day(__modifiedAt) %>"><%= __day(__modifiedAt) %></time><% } %></p>
       <% if (__otherLocales.length) { %>
         <p class="note center" style="margin-top:0.4em;">
           <%= __t.alsoAvailableIn %>:
@@ -93,7 +130,18 @@ const __publishedAt = post.publishedAt || new Date();
           <p class="note"><%= __t.translatedNotice %></p>
         </div>
       <% } %>
+      <div class="callout" style="margin-bottom:2em;"><p><strong><%= __t.inShort %>:</strong> <%= post.meta %></p></div>
       <article><%- post.bodyHtml %></article>
+
+      <p class="note" style="margin-top:2.2em;"><%= __t.disclaimer %></p>
+
+      <% if (__serviceLabel) { %>
+        <div class="callout" style="margin-top:2em;">
+          <span class="kicker"><%= __t.ctaKicker %></span>
+          <p><%= __t.ctaText %></p>
+          <p><a class="link-arrow" href="<%= __prefix %>/services/<%= __serviceKey %>"><%= __serviceLabel %> <span class="arrow">→</span></a></p>
+        </div>
+      <% } %>
 
       <div class="about-flex" style="margin-top:2.6em; padding-top:2em; border-top:1px solid var(--line);">
         <div class="portrait">
@@ -127,7 +175,10 @@ const __publishedAt = post.publishedAt || new Date();
             </div>
           <% }) %>
         </div>
-        <p style="margin-top:1.4em;"><a class="link-arrow" href="<%= __prefix %>/blog"><%= __t.seeAllPosts %> <span class="arrow">→</span></a></p>
+        <% if (typeof otherTopicPost !== 'undefined' && otherTopicPost) { %>
+          <p style="margin-top:1.4em;"><span class="note"><%= __t.moreOtherTopic %> (<%= otherTopicPost.categoryLabel %>):</span> <a href="<%= __prefix %>/blog/<%= otherTopicPost.slug %>"><%= otherTopicPost.title %></a></p>
+        <% } %>
+        <p style="margin-top:1.4em;"><a class="link-arrow" href="<%= __prefix %>/blog/topics/<%= post.category %>"><%= __t.seeAll %> <%= post.categoryLabel %> <%= __t.posts %> <span class="arrow">→</span></a> &nbsp; <a class="link-arrow" href="<%= __prefix %>/blog"><%= __t.seeAllPosts %> <span class="arrow">→</span></a></p>
       </div>
     </section>
   <% } %>

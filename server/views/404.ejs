@@ -1,0 +1,42 @@
+<%
+// Rendered by the catch-all in server/app.js. `t` and `lang` are resolved
+// there (EJS can't require() - see partials/header.ejs).
+const __lang = typeof lang !== 'undefined' ? lang : 'en';
+const __tFull = typeof t !== 'undefined' ? t : {};
+const __t = __tFull.blog || {};
+const __nav = __tFull.nav || {};
+const __prefix = __lang === 'en' ? '' : '/' + __lang;
+%>
+<!DOCTYPE html>
+<html lang="<%= __lang %>">
+<head>
+<%- include('partials/head', {
+  title: (__t.notFoundTitle || 'Page not found') + ' | Humankind Movement',
+  description: __t.notFoundLede || 'The page you were looking for could not be found.',
+  canonicalPath: '/404'
+}) %>
+<meta name="robots" content="noindex">
+</head>
+<body>
+
+<%- include('partials/header', { lang: __lang, t: __tFull }) %>
+
+<main>
+  <section class="hero bg-tint">
+    <div class="container-narrow">
+      <span class="kicker">404</span>
+      <h1><%= __t.notFoundTitle %></h1>
+      <p class="lede"><%= __t.notFoundLede %></p>
+      <div class="cta-row" style="justify-content:center;">
+        <a class="btn" href="<%= __prefix %>/"><%= __nav.home %></a>
+        <a class="btn btn-ghost" href="<%= __prefix %>/services"><%= __nav.services %></a>
+        <a class="btn btn-ghost" href="<%= __prefix %>/blog"><%= __nav.journal %></a>
+        <a class="btn btn-ghost" href="<%= __prefix %>/contact"><%= __nav.contact %></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer', { lang: __lang, t: __tFull }) %>
+</body>
+</html>

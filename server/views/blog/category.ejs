@@ -5,14 +5,48 @@ const __lang = typeof lang !== 'undefined' ? lang : 'en';
 const __tFull = typeof t !== 'undefined' ? t : {};
 const __t = __tFull.blog || {};
 const __prefix = __lang === 'en' ? '' : '/' + __lang;
+const __site = 'https://humankindmovement.in';
+const __nav = __tFull.nav || {};
+const __blogLabel = __nav.journal || 'Blog';
+const __hubUrl = __site + __prefix + '/blog/topics/' + category.key;
+const __serviceLabel = (__t.serviceLinks || {})[category.service];
+const __others = typeof otherCategories !== 'undefined' ? otherCategories : [];
 %>
 <!DOCTYPE html>
 <html lang="<%= __lang %>">
 <head>
 <%- include('../partials/head', {
   title: category.label + ' | Humankind Movement Blog',
-  description: category.description,
-  canonicalPath: __prefix + '/blog/topics/' + category.key
+  description: category.metaDescription || category.description,
+  canonicalPath: __prefix + '/blog/topics/' + category.key,
+  jsonLd: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: category.label,
+      description: category.metaDescription || category.description,
+      url: __hubUrl,
+      inLanguage: __lang,
+      isPartOf: { '@type': 'Blog', name: 'Humankind Movement Blog', url: __site + __prefix + '/blog' },
+      publisher: { '@id': __site + '/#organization' },
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: posts.length,
+        itemListElement: posts.map(function(post, i) {
+          return { '@type': 'ListItem', position: i + 1, url: __site + __prefix + '/blog/' + post.slug, name: post.title };
+        })
+      }
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: __nav.home || 'Home', item: __site + (__prefix || '/') },
+        { '@type': 'ListItem', position: 2, name: __blogLabel, item: __site + __prefix + '/blog' },
+        { '@type': 'ListItem', position: 3, name: category.label, item: __hubUrl }
+      ]
+    }
+  ]
 }) %>
 </head>
 <body>
@@ -23,9 +57,14 @@ const __prefix = __lang === 'en' ? '' : '/' + __lang;
 
   <section class="hero bg-tint">
     <div class="container-narrow">
+      <nav class="note center" aria-label="Breadcrumb" style="margin-bottom:0.8em;">
+        <a href="<%= __prefix %>/"><%= __nav.home || 'Home' %></a> ›
+        <a href="<%= __prefix %>/blog"><%= __blogLabel %></a>
+      </nav>
       <span class="kicker"><%= __t.journalKicker %></span>
       <h1><%= category.label %></h1>
       <p class="lede"><%= category.description %></p>
+      <% if (__lang === 'en' && category.intro) { category.intro.forEach(function(para) { %><p><%- para %></p><% }) } %>
     </div>
   </section>
 
@@ -44,6 +83,20 @@ const __prefix = __lang === 'en' ? '' : '/' + __lang;
             </div>
           <% }) %>
         </div>
+      <% } %>
+
+      <% if (__serviceLabel) { %>
+        <div class="callout" style="margin-top:2.4em;">
+          <span class="kicker"><%= __t.ctaKicker %></span>
+          <p><%= __t.ctaText %></p>
+          <p><a class="link-arrow" href="<%= __prefix %>/services/<%= category.service %>"><%= __serviceLabel %> <span class="arrow">→</span></a></p>
+        </div>
+      <% } %>
+
+      <% if (__lang === 'en' && __others.length) { %>
+        <p class="note" style="margin-top:2em;">Other topics:
+          <% __others.forEach(function(o, i) { %><a href="<%= __prefix %>/blog/topics/<%= o.key %>"><%= o.label %></a><%= i < __others.length - 1 ? ' · ' : '' %><% }) %>
+        </p>
       <% } %>
 
       <div style="margin-top:2.4em;">
