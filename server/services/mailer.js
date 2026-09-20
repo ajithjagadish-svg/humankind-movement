@@ -112,7 +112,8 @@ async function sendNewPostNotification({ to, post, unsubscribeUrl }) {
     return;
   }
 
-  const postUrl = `https://humankindmovement.in/blog/${post.slug}`;
+  // UTM tags so GA4 counts clicks from this email as Email, not Direct.
+  const postUrl = `https://humankindmovement.in/blog/${post.slug}?utm_source=newsletter&utm_medium=email&utm_campaign=new_post`;
 
   const res = await fetch(BREVO_API_URL, {
     method: 'POST',
