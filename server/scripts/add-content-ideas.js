@@ -9,6 +9,11 @@
 // 'draft', for Ajith to review and publish himself from /admin/posts).
 //
 // Usage: node server/scripts/add-content-ideas.js path/to/ideas.json
+//        node server/scripts/add-content-ideas.js path/to/ideas.json --check-only   (lint only, writes nothing)
+//
+// Every draftPost is linted against the site's standing content rules before
+// anything is written (see lintDraft below). Errors abort the whole import;
+// warnings are printed and the import continues.
 //
 // Idea shape:
 // {
@@ -61,6 +66,82 @@ function checkInternalLinks(bodyHtml, topic) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Content lint. These are Ajith's standing rules for every blog draft (voice,
+// plain language, SEO/AEO/GEO checklist). Enforced here so a weekly run cannot
+// slip past them by forgetting the instructions. Errors abort the import;
+// warnings are printed for review.
+// ---------------------------------------------------------------------------
+const stripTags = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const countWords = (text) => text.split(/\s+/).filter(Boolean).length;
+
+function lintDraft(idea) {
+  const errors = [];
+  const warnings = [];
+  const { title, meta, keyword, bodyHtml } = idea.draftPost;
+  const text = stripTags(bodyHtml);
+  const main = stripTags(bodyHtml.split('<div class="footnotes">')[0]);
+
+  if (title.length < 45 || title.length > 70) errors.push(`title is ${title.length} chars, must be 45-70`);
+  if (meta.length < 120 || meta.length > 150) errors.push(`meta is ${meta.length} chars, must be 120-150`);
+  if (/[—–]/.test(`${title} ${meta} ${bodyHtml}`)) errors.push('contains an em dash or en dash (site-wide rule: use commas or split the sentence)');
+
+  if (keyword) {
+    const t = title.toLowerCase();
+    const missing = keyword.toLowerCase().split(/\s+/).filter((w) => !t.includes(w.replace(/s$/, '')));
+    if (missing.length) errors.push(`keyword "${keyword}" is not in the title (missing: ${missing.join(', ')})`);
+  } else {
+    warnings.push('no keyword set');
+  }
+
+  // Voice: collective "we", never first-person singular. Quoted text (a reader's own question) is exempt.
+  const unquoted = main.replace(/"[^"]*"|“[^”]*”/g, ' ');
+  const fp = unquoted.match(/\b(?:I|I'm|I've|I'd|I'll|my|My|me|Me|mine)\b/g);
+  if (fp) errors.push(`first-person singular found (${[...new Set(fp)].join(', ')}); use "we" (Ajith's rule, 2026-09-14)`);
+
+  // Weakness framing is never allowed about a body; plain "weak" (e.g. "weak evidence") is only a warning.
+  if (/\bweak(?:er|ness|ened)?\b[^.]{0,30}\b(?:core|back|pelvic|floor|glutes?|hips?|abs|abdominal|muscles?|body)\b/i.test(main)
+      || /\b(?:core|back|pelvic floor|glutes?|hips?|abs|muscles?)\b[^.]{0,20}\b(?:is|are|was|were)\s+weak/i.test(main)) {
+    errors.push('weakness language about a body ("weak core/back/pelvic floor"); frame root cause as coordination, starting with the breath');
+  } else if (/\bweak/i.test(main)) {
+    warnings.push('the word "weak" appears; make sure it is not describing a body or a person');
+  }
+  if (/kegel/i.test(main)) warnings.push('mentions Kegels; must never imply we prescribe them (breath first, then coordination)');
+
+  // SEO / AEO / GEO structure
+  if ((bodyHtml.match(/<h2>/g) || []).length < 2) errors.push('needs at least 2 <h2> subheadings');
+  if (!/<sup class="fn">/.test(bodyHtml) || !/<div class="footnotes">/.test(bodyHtml)) errors.push('needs an inline footnote (<sup class="fn">) and a <div class="footnotes"> block citing the primary source');
+  if (!/href="\/services\/[a-z-]+"/.test(bodyHtml)) errors.push('needs one link to a /services/<slug> page');
+  if (!/href="\/blog\/(?!topics)[a-z0-9-]+"/.test(bodyHtml)) errors.push('needs one link to a related PUBLISHED blog post (/blog/<slug>), see Step 3 of the task');
+
+  // Length target is 400-700 including citation lines; allow a little slack.
+  const total = countWords(text);
+  if (total > 750) errors.push(`${total} words including citations; target is about 700 (max 750)`);
+  if (total < 500) errors.push(`${total} words including citations; target is 500-700 (min 500, the audit counts posts under 500 words as thin)`);
+
+  // Plain language: warnings, because judgment is needed.
+  const jargon = main.match(/\b(?:pooled|meta-analys[ie]s|randomi[sz]ed|cohort|risk of bias|statistically|cross-sectional|intra-abdominal|inter-recti|doming|significant(?:ly)?)\b/gi);
+  if (jargon) warnings.push(`possible jargon a 10 year old would trip on: ${[...new Set(jargon.map((j) => j.toLowerCase()))].join(', ')}`);
+  const longSentences = main.split(/(?<=[.?!])\s+/).filter((sent) => countWords(sent) > 28);
+  if (longSentences.length) warnings.push(`${longSentences.length} sentence(s) over 28 words, split them: "${longSentences[0].slice(0, 70)}..."`);
+
+  return { errors, warnings };
+}
+
+// Every draft must link to a related post that actually exists and is published.
+async function checkRelatedPostLinks(ideas) {
+  const problems = [];
+  for (const idea of ideas) {
+    if (!idea.draftPost) continue;
+    const slugs = [...idea.draftPost.bodyHtml.matchAll(/href="\/blog\/(?!topics)([a-z0-9-]+)"/g)].map((m) => m[1]);
+    for (const slug of slugs) {
+      const found = await BlogPost.findOne({ slug, status: 'published', locale: 'en' }).select('_id').lean();
+      if (!found) problems.push(`"${idea.draftPost.title}" links to /blog/${slug}, which is not a published English post`);
+    }
+  }
+  return problems;
+}
+
 function validate(idea) {
   if (!idea.topic || !idea.rationale) {
     throw new Error(`Every idea needs a topic and rationale. Got: ${JSON.stringify(idea)}`);
@@ -80,11 +161,17 @@ function validate(idea) {
       throw new Error(`draftPost for "${idea.topic}" has invalid category "${category}". Must be one of: ${CATEGORIES.map((c) => c.key).join(', ')}`);
     }
     checkInternalLinks(bodyHtml, idea.topic);
+    const { errors, warnings } = lintDraft(idea);
+    warnings.forEach((w) => console.warn(`WARNING [${title}]: ${w}`));
+    if (errors.length) {
+      throw new Error(`Content lint failed for "${title}":\n  - ${errors.join('\n  - ')}\nFix the draft and re-run. Nothing was written.`);
+    }
   }
 }
 
 async function main() {
-  const filePath = process.argv[2];
+  const filePath = process.argv.slice(2).find((a) => !a.startsWith('--'));
+  const checkOnly = process.argv.includes('--check-only');
   if (!filePath) {
     console.error('Usage: node server/scripts/add-content-ideas.js path/to/ideas.json');
     process.exit(1);
@@ -97,6 +184,17 @@ async function main() {
   ideas.forEach(validate);
 
   await connectDB();
+
+  const linkProblems = await checkRelatedPostLinks(ideas);
+  if (linkProblems.length) {
+    await disconnectDB();
+    throw new Error(`Related-post link check failed:\n  - ${linkProblems.join('\n  - ')}\nNothing was written.`);
+  }
+  if (checkOnly) {
+    console.log(`Lint passed for ${ideas.length} idea(s). --check-only, nothing written.`);
+    await disconnectDB();
+    process.exit(0);
+  }
 
   let ideasCreated = 0;
   let ideasSkipped = 0;
