@@ -13,6 +13,13 @@ const path = require('path');
 const puppeteer = require('puppeteer-core');
 
 const OUT_DIR = path.join(__dirname, '..', '..', 'assets', 'img', 'stories');
+// Ajith posts these manually from his own machine, not from the repo checkout,
+// so every render also gets copied here (2026-09-22). Desktop path only exists
+// on his Mac - copy is best-effort and never fails the render itself.
+const DESKTOP_DIR = path.join(
+  process.env.HOME || '',
+  'Desktop', 'Mind, Body and Soul Work', 'Social Media', 'stories-quote-cards'
+);
 const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const FORCE = process.argv.includes('--force');
 const onlyArg = process.argv.find((a) => a.startsWith('--only='));
@@ -157,7 +164,14 @@ function card(q) {
   await page.setViewport({ width: 1080, height: 1920, deviceScaleFactor: 1 });
   for (const { q } of todo) {
     await page.setContent(card(q), { waitUntil: 'load' });
-    await page.screenshot({ path: path.join(OUT_DIR, q.slug + '.png') });
+    const outPath = path.join(OUT_DIR, q.slug + '.png');
+    await page.screenshot({ path: outPath });
+    try {
+      fs.mkdirSync(DESKTOP_DIR, { recursive: true });
+      fs.copyFileSync(outPath, path.join(DESKTOP_DIR, q.slug + '.png'));
+    } catch (e) {
+      console.warn(`  (could not copy ${q.slug} to Desktop: ${e.message})`);
+    }
     console.log('rendered', q.slug);
   }
   await browser.close();
