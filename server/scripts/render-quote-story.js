@@ -128,6 +128,64 @@ const QUOTES = [
     source: 'ajith',
     where: 'Blog: what-17-trials-say-about-exercise-and-executive-function-in-autism (published, verified via DB 2026-09-22)',
   },
+  // --- Added 2026-09-22: Ajith asked for the series to read warmer and more
+  // motivational/supportive, not clinical or cautionary. These are all still
+  // his own already-published hl lines, re-screened for tone (not new content,
+  // not deleting anything above - he said he may still use some of those).
+  {
+    slug: 'timeline-to-discover',
+    text: 'The timeline is not something to follow, it is something to discover.',
+    source: 'ajith',
+    where: 'Blog: return-to-exercise-timeline (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'relationship-built-through-repetition',
+    text: 'A relationship with yourself, like any relationship, is built through repetition, not revelation.',
+    source: 'ajith',
+    where: 'Blog: building-a-relationship-with-yourself (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'goal-not-to-forget-injury',
+    text: 'The goal is not to forget the injury happened. It is to stop letting it write the whole program.',
+    source: 'ajith',
+    where: 'Blog: training-around-an-injury (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'doing-less-more-slowly',
+    text: 'Doing less, more slowly, is not a lesser version of training. For a lot of people, it is the first version that actually asks anything of them.',
+    source: 'ajith',
+    where: 'Blog: case-for-slower-reps (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'food-awareness-paying-attention',
+    text: 'Food awareness means paying attention before you decide, not obeying a decision someone else already made for you.',
+    source: 'ajith',
+    where: 'Blog: food-awareness-not-food-rules (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'recovery-not-a-deadline',
+    text: 'Recovery here is not a deadline, it is several different processes moving at different speeds in the same body.',
+    source: 'ajith',
+    where: 'Blog: a-new-guide-finally-answers-when-to-return-to-running-after-birth (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'gap-doesnt-mean-nothing-improving',
+    text: "A gap that doesn't change doesn't mean nothing is improving.",
+    source: 'ajith',
+    where: 'Blog: do-hypopressive-exercises-help-diastasis-recti-a-2026-trial (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'building-environment-before-born',
+    text: "It's part of the environment you're building for someone else before they're even born.",
+    source: 'ajith',
+    where: 'Blog: moving-through-pregnancy-shapes-more-than-your-own-recovery (published, verified via DB 2026-09-22)',
+  },
+  {
+    slug: 'body-mind-same-timeline',
+    text: 'The body and the mind are not on separate timelines here. They are the same timeline.',
+    source: 'ajith',
+    where: 'Blog: postpartum-recovery-is-pelvic-floor-and-mental-health-not-a-body-to-get-back (published, verified via DB 2026-09-22)',
+  },
 ];
 
 function card(q) {
