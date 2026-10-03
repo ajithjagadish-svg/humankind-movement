@@ -29,7 +29,7 @@ body{{width:1080px;height:{H}px;background:#141311;font-family:"Helvetica Neue",
 <div class="cred">Represented India as a national and international athlete &middot; Human Biomechanics course, Pinnacle Performance</div>
 <div class="sec">My intro</div>
 <div class="q"><div class="n">1</div><div><h3>Name &amp; business</h3><p>Ajith Jagadish, Humankind Movement. <span>Movement coaching, Bengaluru + online.</span></p></div></div>
-<div class="q"><div class="n">2</div><div><h3>What I sell &amp; who buys</h3><p>Coaching and workshops. <span>Bought by individuals, families, and teams (corporate and community wellbeing).</span></p></div></div>
+<div class="q"><div class="n">2</div><div><h3>What I sell &amp; who buys</h3><p>Coaching and workshops <span>for individuals, families and teams, including corporate and community wellbeing.</span></p></div></div>
 <div class="q"><div class="n">3</div><div><h3>Intro I'd love</h3><p>HR / People leads and founders <span>who want their teams to move, sleep and recover better.</span></p></div></div>
 </div>
 <div class="foot"><span><b>Health before success.</b></span><span>humankindmovement.in</span></div>
