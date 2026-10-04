@@ -197,6 +197,7 @@ const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
         </a>
         <a class="btn btn-ghost" href="<%= __prefix %>/contact"><%= __t.getInTouch %></a>
       </div>
+      <% if (__t.bookIntroCallNote) { %><p class="price-note"><%= __t.bookIntroCallNote %></p><% } %>
     </div>
   </section>
 
