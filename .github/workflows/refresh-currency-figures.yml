@@ -2,6 +2,9 @@
 # Runs on the 1st and 16th of each month. Most runs change nothing. The update script refuses to
 # touch anything unless every safety check passes (see server/scripts/update-fx-display.js), so on
 # any problem the site just keeps its last good figures and GitHub emails about the failed run.
+# After publishing, the live site is checked. If a page serves the new figures but is broken, the
+# commit is reverted automatically (once). If the deploy is merely slow or missing, nothing is
+# reverted and the run fails so you get an email.
 # To pause it: Actions tab > "Refresh currency figures" > Disable workflow.
 name: Refresh currency figures
 
@@ -25,7 +28,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,6 +45,7 @@ jobs:
         run: node server/scripts/update-fx-display.js --message-file "$RUNNER_TEMP/fx-commit.txt" ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }}
 
       - name: Publish if anything changed
+        id: publish
         run: |
           set -euo pipefail
           if [ -z "$(git status --porcelain)" ]; then
@@ -59,9 +63,36 @@ jobs:
           git commit -F "$RUNNER_TEMP/fx-commit.txt"
           for attempt in 1 2 3; do
             if git pull --rebase origin main && git push origin HEAD:main; then
+              echo "published=true" >> "$GITHUB_OUTPUT"
+              echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             sleep 5
           done
           echo "Could not push after 3 attempts."
+          exit 1
+
+      - name: Check the live site serves the new figures and is healthy
+        id: verify
+        if: steps.publish.outputs.published == 'true'
+        run: |
+          set +e
+          node server/scripts/verify-live-site.js --base https://humankindmovement.in --max-minutes 15 --interval-seconds 30
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Undo the update if it broke a live page
+        if: steps.verify.outputs.code == '3'
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          git revert --no-edit "${{ steps.publish.outputs.sha }}"
+          git push origin HEAD:main
+          echo "A live page was broken after the update, so the update was reverted."
+          exit 1
+
+      - name: Fail loudly if the deploy never showed up
+        if: steps.verify.outputs.code == '4'
+        run: |
+          echo "The new figures were published to GitHub but the live site did not show them within 15 minutes (deploy slow, failed, or not triggered). Nothing was reverted. Check the DigitalOcean deploy."
           exit 1

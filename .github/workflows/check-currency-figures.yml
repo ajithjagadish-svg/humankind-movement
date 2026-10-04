@@ -1,0 +1,31 @@
+# Runs on every pull request and every push to main. Catches, at edit time, any change that would
+# stop the currency refresh from working: edited price wording, broken FAQ JSON-LD, a removed
+# click-tracking attribute (the admin Analytics tab depends on it), or a new unmanaged
+# rupee-with-conversion mention. No network access, takes a few seconds.
+name: Currency figures check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Page structure check
+        run: node server/scripts/update-fx-display.js --check-only
+
+      - name: Self-test
+        run: node --test server/scripts/update-fx-display.test.js
