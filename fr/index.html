@@ -75,6 +75,79 @@
   "description": "Humankind Movement est la philosophie derrière le coaching d'Ajith Jagadish. La santé avant la réussite, la conscience avant l'action."
 }
 </script>
+<style>
+  .faq-list { max-width: 68ch; }
+  .faq-item { border-bottom: 1px solid var(--line); padding: 18px 0; }
+  .faq-item summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+";
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .faq-item[open] summary::after { content: "\2212"; }
+  .faq-item p { margin: 0.7em 0 0; color: var(--ink-soft); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "inLanguage": "fr",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Quel type de coaching propose Humankind Movement ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Coaching individuel et collectif pour le bien-être général, la mobilité et la récupération après blessure ; coaching de récupération pré et post-partum ; programmes de bien-être pour entreprises et communautés ; coaching de mouvement pour personnes neurotypiques et neurodivergentes de tous âges ; et conférences ou ateliers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le coaching est-il proposé en ligne, ou uniquement en présentiel ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La majeure partie du coaching se déroule en ligne pour des personnes du monde entier, aux côtés de programmes dédiés aux entreprises et aux communautés. Le coaching en présentiel est également disponible de façon limitée pour les personnes basées à Bangalore, selon disponibilité — contactez-nous et indiquez votre localisation pour savoir ce qui est possible."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Aidez-vous pour les douleurs comme celles du cou, de l'épaule, du dos, du genou ou du pied ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Le coaching de mouvement qui prend en charge les douleurs courantes, notamment au cou, à l'épaule, au dos, au genou et au pied, fait partie du coaching individuel et collectif général, construit autour de vos schémas de mouvement et de votre force spécifiques. C'est du coaching, pas un substitut à un diagnostic médical ou à des soins de kinésithérapie, une véritable évaluation clinique reste donc la première étape en cas de douleur aiguë ou peu claire."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte le coaching ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le tarif dépend du format et du type de séance, allant de l'appel d'introduction à ₹1 000 jusqu'à environ ₹3 250 pour une évaluation en présentiel. Les séances en ligne, en groupe ou en individuel, sont moins chères qu'en présentiel, et la récupération post-partum est également disponible sous forme de forfait prépayé à tarif réduit. Contactez-nous en décrivant votre situation pour connaître le tarif exact."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Y a-t-il un appel d'introduction payant, et combien coûte-t-il ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui. Un appel d'introduction de 20 minutes coûte ₹1 000, une courte conversation payante pour comprendre votre situation et confirmer le bon point de départ avant de vous engager dans le coaching. Contactez-nous via le formulaire pour convenir d'un horaire."
+      }
+    }
+  ]
+}
+</script>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -273,6 +346,34 @@
           Réserver l'Appel d'Introduction — ₹1 000
         </a>
         <a class="btn btn-ghost" href="contact">Prendre contact</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white" id="faq">
+    <div class="container">
+      <h2>Questions fréquentes</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Quel type de coaching propose Humankind Movement ?</summary>
+          <p>Coaching individuel et collectif pour le bien-être général, la mobilité et la récupération après blessure ; coaching de récupération pré et post-partum ; programmes de bien-être pour entreprises et communautés ; coaching de mouvement pour personnes neurotypiques et neurodivergentes de tous âges ; et conférences ou ateliers.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Le coaching est-il proposé en ligne, ou uniquement en présentiel ?</summary>
+          <p>La majeure partie du coaching se déroule en ligne pour des personnes du monde entier, aux côtés de programmes dédiés aux entreprises et aux communautés. Le coaching en présentiel est également disponible de façon limitée pour les personnes basées à Bangalore, selon disponibilité — contactez-nous et indiquez votre localisation pour savoir ce qui est possible.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Aidez-vous pour les douleurs comme celles du cou, de l'épaule, du dos, du genou ou du pied ?</summary>
+          <p>Oui. Le coaching de mouvement qui prend en charge les douleurs courantes, notamment au cou, à l'épaule, au dos, au genou et au pied, fait partie du coaching individuel et collectif général, construit autour de vos schémas de mouvement et de votre force spécifiques. C'est du coaching, pas un substitut à un diagnostic médical ou à des soins de kinésithérapie, une véritable évaluation clinique reste donc la première étape en cas de douleur aiguë ou peu claire.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Combien coûte le coaching ?</summary>
+          <p>Le tarif dépend du format et du type de séance, allant de l'appel d'introduction à ₹1 000 jusqu'à environ ₹3 250 pour une évaluation en présentiel. Les séances en ligne, en groupe ou en individuel, sont moins chères qu'en présentiel, et la récupération post-partum est également disponible sous forme de forfait prépayé à tarif réduit. Contactez-nous en décrivant votre situation pour connaître le tarif exact.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Y a-t-il un appel d'introduction payant, et combien coûte-t-il ?</summary>
+          <p>Oui. Un appel d'introduction de 20 minutes coûte ₹1 000, une courte conversation payante pour comprendre votre situation et confirmer le bon point de départ avant de vous engager dans le coaching. Contactez-nous via le formulaire pour convenir d'un horaire.</p>
+        </details>
       </div>
     </div>
   </section>
