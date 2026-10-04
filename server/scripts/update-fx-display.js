@@ -2,7 +2,9 @@
 /*
  * Keeps the dollar / pound / euro figures shown next to rupee prices current.
  *
- *   node server/scripts/update-fx-display.js [--dry-run] [--root DIR] [--rates-file FILE] [--message-file FILE]
+ *   node server/scripts/update-fx-display.js [--dry-run] [--check-only] [--root DIR] [--rates-file FILE] [--message-file FILE]
+ *
+ *   --check-only  structure checks only (no network, nothing written); used on every pull request
  *
  * Fail-safe by design: every check runs in memory first and nothing is written unless all of
  * them pass. On any problem it exits with code 2 and leaves every file untouched, so the site
@@ -15,6 +17,7 @@ const SANITY_INR_PER_USD = [70, 130];
 const SOURCE_AGREEMENT_TOLERANCE = 0.02;
 const KEEP_IF_WITHIN = 0.65;
 const MAX_STEP_CHANGE = 0.25;
+const MAX_MOVE_FROM_ANCHOR = 0.10;
 const CURRENCIES = ['USD', 'GBP', 'EUR'];
 const SYMBOL = { USD: '$', GBP: '£', EUR: '€' };
 
@@ -103,6 +106,14 @@ function countManaged(files, amounts) {
   }
 }
 
+function checkTracking(files) {
+  for (const [file, notes] of Object.entries(MANIFEST.note)) {
+    if (!file.endsWith('.html')) continue;
+    const tracked = (files[file].match(/data-ga-event="book_intro_call_click"/g) || []).length;
+    if (tracked !== notes) fail(`${file}: ${tracked} intro-call button(s) with click tracking but ${notes} dollar note(s). The admin Analytics tab counts intro-call clicks through data-ga-event="book_intro_call_click", so every button must keep it.`);
+  }
+}
+
 function findUnmanagedMentions(root, files, amounts) {
   const pats = patterns(amounts);
   const stray = [];
@@ -137,28 +148,47 @@ async function fetchJson(url) {
 }
 
 async function liveSources() {
-  const frank = await fetchJson('https://api.frankfurter.dev/v1/latest?base=INR&symbols=USD,GBP,EUR');
-  let fawaz;
-  try { fawaz = await fetchJson('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/inr.json'); }
-  catch (e) { fawaz = await fetchJson('https://latest.currency-api.pages.dev/v1/currencies/inr.json'); }
-  return [
-    { name: 'frankfurter (ECB)', rates: Object.fromEntries(CURRENCIES.map((c) => [c, frank.rates[c]])) },
-    { name: 'currency-api', rates: Object.fromEntries(CURRENCIES.map((c) => [c, fawaz.inr[c.toLowerCase()]])) },
+  const providers = [
+    ['frankfurter (ECB)', async () => {
+      const j = await fetchJson('https://api.frankfurter.dev/v1/latest?base=INR&symbols=USD,GBP,EUR');
+      return Object.fromEntries(CURRENCIES.map((c) => [c, j.rates[c]]));
+    }],
+    ['currency-api', async () => {
+      let j;
+      try { j = await fetchJson('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/inr.json'); }
+      catch (e) { j = await fetchJson('https://latest.currency-api.pages.dev/v1/currencies/inr.json'); }
+      return Object.fromEntries(CURRENCIES.map((c) => [c, j.inr[c.toLowerCase()]]));
+    }],
+    ['open.er-api', async () => {
+      const j = await fetchJson('https://open.er-api.com/v6/latest/INR');
+      return Object.fromEntries(CURRENCIES.map((c) => [c, j.rates[c]]));
+    }],
   ];
+  const out = [];
+  for (const [name, get] of providers) {
+    try { out.push({ name, rates: await get() }); } catch (e) { console.log(`source unavailable: ${name} (${e.message})`); }
+  }
+  return out;
 }
 
-function agreedRates(sources) {
-  if (!sources || sources.length < 2) fail('need two independent rate sources');
+function agreedRates(sources, anchorInrPerUsd) {
+  if (!sources || sources.length < 2) fail('fewer than two rate sources responded');
   const out = {};
   for (const c of CURRENCIES) {
-    const vals = sources.map((s) => s.rates[c]);
-    if (vals.some((v) => !(typeof v === 'number' && isFinite(v) && v > 0))) fail(`missing or invalid ${c} rate from a source`);
-    const [a, b] = vals;
-    if (Math.abs(a - b) / ((a + b) / 2) > SOURCE_AGREEMENT_TOLERANCE) fail(`rate sources disagree for ${c}: ${a} vs ${b}`);
-    out[c] = (a + b) / 2;
+    const vals = sources.map((s) => s.rates[c]).filter((v) => typeof v === 'number' && isFinite(v) && v > 0);
+    if (vals.length < 2) fail(`fewer than two valid ${c} rates`);
+    const agree = (a, b) => Math.abs(a - b) / ((a + b) / 2) <= SOURCE_AGREEMENT_TOLERANCE;
+    const keep = new Set();
+    for (let i = 0; i < vals.length; i++) for (let j = i + 1; j < vals.length; j++) if (agree(vals[i], vals[j])) { keep.add(i); keep.add(j); }
+    if (keep.size < 2) fail(`rate sources disagree for ${c}: ${vals.join(' vs ')}`);
+    const used = [...keep].map((i) => vals[i]);
+    out[c] = used.reduce((a, b) => a + b, 0) / used.length;
   }
   const inrPerUsd = 1 / out.USD;
   if (inrPerUsd < SANITY_INR_PER_USD[0] || inrPerUsd > SANITY_INR_PER_USD[1]) fail(`implausible rate: ${inrPerUsd.toFixed(2)} INR per USD`);
+  if (anchorInrPerUsd && Math.abs(inrPerUsd / anchorInrPerUsd - 1) > MAX_MOVE_FROM_ANCHOR) {
+    fail(`rate moved more than ${MAX_MOVE_FROM_ANCHOR * 100}% since the figures were last set (${anchorInrPerUsd} -> ${inrPerUsd.toFixed(2)} INR per USD); needs a human look`);
+  }
   return out;
 }
 
@@ -178,9 +208,10 @@ function nextDisplayed(current, rates, amounts) {
 }
 
 function parseArgs(argv) {
-  const a = { dryRun: false, root: path.resolve(__dirname, '../..'), ratesFile: null, messageFile: null };
+  const a = { dryRun: false, checkOnly: false, root: path.resolve(__dirname, '../..'), ratesFile: null, messageFile: null };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--dry-run') a.dryRun = true;
+    else if (argv[i] === '--check-only') a.checkOnly = true;
     else if (argv[i] === '--root') a.root = path.resolve(argv[++i]);
     else if (argv[i] === '--rates-file') a.ratesFile = argv[++i];
     else if (argv[i] === '--message-file') a.messageFile = argv[++i];
@@ -199,12 +230,14 @@ async function run(argv) {
   for (const f of new Set(Object.values(MANIFEST).flatMap((m) => Object.keys(m)))) files[f] = fs.readFileSync(path.join(args.root, f), 'utf8');
 
   countManaged(files, amounts);
+  checkTracking(files);
   const stray = findUnmanagedMentions(args.root, files, amounts);
   if (stray.length) fail('found rupee-with-conversion text the job does not manage (it would go stale):\n  ' + stray.join('\n  '));
   for (const [f, text] of Object.entries(files)) if (f.endsWith('.html')) checkStructuredData(f, text);
+  if (args.checkOnly) { console.log('RESULT: structure OK (figure counts, JSON-LD, FAQ text, no unmanaged conversions)'); return 0; }
 
   const sources = args.ratesFile ? JSON.parse(fs.readFileSync(args.ratesFile, 'utf8')).sources : await liveSources();
-  const rates = agreedRates(sources);
+  const rates = agreedRates(sources, cfg.anchorInrPerUsd);
   const next = nextDisplayed(cfg.displayed, rates, amounts);
 
   const summary = CURRENCIES.map((c) => `${c} ${fmtInr(amounts.low)}=${(amounts.low * rates[c]).toFixed(2)} ${fmtInr(amounts.high)}=${(amounts.high * rates[c]).toFixed(2)} shown ${cfg.displayed[c].join('/')}->${next[c].join('/')}`).join(' | ');
@@ -236,6 +269,7 @@ async function run(argv) {
 
   for (const [f, text] of Object.entries(updated)) if (text !== files[f]) fs.writeFileSync(path.join(args.root, f), text);
   cfg.displayed = next;
+  cfg.anchorInrPerUsd = Math.round((1 / rates.USD) * 100) / 100;
   cfg.lastChange = new Date().toISOString().slice(0, 10);
   fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + '\n');
   if (args.messageFile) fs.writeFileSync(args.messageFile, `Refresh currency figures next to rupee prices\n\n${summary.split(' | ').join('\n')}\n\nSources: ${sources.map((s) => s.name).join(' + ')} (agree within ${SOURCE_AGREEMENT_TOLERANCE * 100}%). All checks passed: figure counts, JSON-LD validity, FAQ text matches schema, changes limited to the figures.\n`);
@@ -249,4 +283,4 @@ if (require.main === module) {
     process.exit(2);
   });
 }
-module.exports = { run, patterns, agreedRates, nextDisplayed, MANIFEST };
+module.exports = { run, patterns, render, liveSources, cleanText, checkStructuredData, agreedRates, nextDisplayed, fmtInr, MANIFEST, CURRENCIES, Fail };
