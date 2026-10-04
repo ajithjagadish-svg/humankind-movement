@@ -22,6 +22,8 @@ const __site = 'https://humankindmovement.in';
 const __url = __site + __prefix + '/blog/' + post.slug;
 const __ogImage = typeof ogImage !== 'undefined' ? ogImage : '/assets/img/ajith-hero.jpg';
 const __words = post.bodyHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+// Only DOI links already in the post body become `citation`; nothing is added here.
+const __citations = Array.from(new Set((post.bodyHtml.match(/href="https?:\/\/(?:dx\.)?doi\.org\/[^"#\s]+"/g) || []).map((h) => h.slice(6, -1))));
 const __nav = __tFull.nav || {};
 const __blogLabel = __nav.journal || 'Blog';
 const __serviceKey = typeof serviceKey !== 'undefined' ? serviceKey : 'one-to-one-coaching';
@@ -31,7 +33,7 @@ const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
 <html lang="<%= __lang %>">
 <head>
 <%- include('../partials/head', {
-  title: post.title + ' | Humankind Movement Blog',
+  title: post.title + (post.title.length + 25 > 60 ? ' | Humankind Movement' : ' | Humankind Movement Blog'),
   description: post.meta,
   keyword: post.keyword,
   canonicalPath: __prefix + '/blog/' + post.slug,
@@ -43,7 +45,7 @@ const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
   jsonLd: [
     {
       '@context': 'https://schema.org',
-      '@type': 'Article',
+      '@type': ['Article', 'BlogPosting'],
       headline: post.title,
       description: post.meta,
       inLanguage: __lang,
@@ -51,6 +53,7 @@ const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
       keywords: post.keyword || undefined,
       articleSection: post.categoryLabel,
       wordCount: __words,
+      citation: __citations.length ? __citations.map((u) => ({ '@type': 'CreativeWork', url: u })) : undefined,
       author: {
         '@type': 'Person',
         '@id': __site + '/#ajith',
