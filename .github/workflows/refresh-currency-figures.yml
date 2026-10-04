@@ -1,0 +1,67 @@
+# Keeps the dollar/pound/euro figures next to rupee prices current, with no manual steps.
+# Runs on the 1st and 16th of each month. Most runs change nothing. The update script refuses to
+# touch anything unless every safety check passes (see server/scripts/update-fx-display.js), so on
+# any problem the site just keeps its last good figures and GitHub emails about the failed run.
+# To pause it: Actions tab > "Refresh currency figures" > Disable workflow.
+name: Refresh currency figures
+
+on:
+  schedule:
+    - cron: '17 3 1,16 * *'   # 03:17 UTC (08:47 IST)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Check only, do not change or publish anything'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fx-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Self-test (the update is skipped if the safety checks themselves fail)
+        run: node --test server/scripts/update-fx-display.test.js
+
+      - name: Check rates and refresh figures
+        run: node server/scripts/update-fx-display.js --message-file "$RUNNER_TEMP/fx-commit.txt" ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }}
+
+      - name: Publish if anything changed
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No figure changes needed."
+            exit 0
+          fi
+          ALLOWED='^(server/config/fx\.json|server/config/i18n\.js|(index|about|contact|the-method|who-we-serve|movement-coaching-bengaluru)\.html|services/(index|neurodivergent-coaching|one-to-one-coaching|postpartum-support)\.html)$'
+          if git diff --name-only | grep -Ev "$ALLOWED"; then
+            echo "Unexpected files changed; refusing to publish."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git commit -F "$RUNNER_TEMP/fx-commit.txt"
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Could not push after 3 attempts."
+          exit 1
