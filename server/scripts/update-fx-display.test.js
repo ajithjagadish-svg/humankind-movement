@@ -50,7 +50,7 @@ function setFigures(root, displayed, anchor = 96.3) {
 
 const read = (root, f) => fs.readFileSync(path.join(root, f), 'utf8');
 const snapshot = (root, files) => Object.fromEntries(files.map((f) => [f, read(root, f)]));
-const TRACKED = ['index.html', 'contact.html', 'about.html', 'services/index.html', 'server/config/i18n.js', 'server/config/fx.json'];
+const TRACKED = ['index.html', 'contact.html', 'about.html', 'services/index.html', 'es/index.html', 'fr/services/index.html', 'server/config/i18n.js', 'server/config/fx.json'];
 const edit = (root, file, fn) => fs.writeFileSync(path.join(root, file), fn(read(root, file)));
 
 function run(root, sources, extra = []) {
@@ -79,6 +79,10 @@ test('a real move updates every figure everywhere, resets the anchor, and a seco
   assert.match(idx, /roughly \$11&ndash;\$28 \/ £8&ndash;£22 \/ €10&ndash;€25/);
   assert.match(idx, /₹1,000 is about \$11 USD/);
   assert.match(read(root, 'server/config/i18n.js'), /₹1,000 is about \$11 USD/);
+  assert.match(read(root, 'es/index.html'), /₹1\.000 equivalen a unos 11 USD/);
+  assert.match(read(root, 'fr/about.html'), /₹1 000, soit environ 11 USD/);
+  assert.match(read(root, 'server/config/i18n.js'), /₹1\.000 equivalen a unos 11 USD/);
+  assert.match(read(root, 'server/config/i18n.js'), /₹1 000, soit environ 11 USD/);
   const cfg = JSON.parse(read(root, 'server/config/fx.json'));
   assert.deepStrictEqual(cfg.displayed, { USD: [11, 28], GBP: [8, 22], EUR: [10, 25] });
   assert.ok(Math.abs(cfg.anchorInrPerUsd - 87.99) < 0.1, 'anchor should move to the new rate');
@@ -246,3 +250,17 @@ test('watchdog: the latest scheduled run failed', () => assert.ok(watch({ runs: 
 test('watchdog: manual runs do not count as the schedule running', () => assert.ok(watch({ runs: [run1(1, 'success', 'workflow_dispatch')] }).some((m) => /no successful scheduled/.test(m))));
 test('watchdog: run history unreadable is flagged, not ignored', () => assert.ok(watch({ runs: null }).some((m) => /could not read the GitHub run history/.test(m))));
 test('watchdog: a page whose wording changed is flagged', () => assert.ok(watch({ liveHtml: '<p>no prices here</p>' }).some((m) => /no longer shows/.test(m))));
+
+test('a Spanish or French note that drifts out of its wording is caught by the structure check', () => {
+  for (const [file, from, to] of [['es/about.html', 'equivalen a unos', 'son aproximadamente'], ['fr/the-method.html', 'soit environ', 'environ']]) {
+    const root = copyRepo(); edit(root, file, (t) => t.replace(from, to));
+    const r = spawnSync(process.execPath, [SCRIPT, '--root', root, '--check-only'], { encoding: 'utf8' });
+    assert.strictEqual(r.status, 2, file); assert.match(r.stderr, /noteEs|noteFr/);
+  }
+});
+
+test('a stray "<n> USD" conversion next to a rupee price, in any language, is flagged as unmanaged', () => {
+  const root = copyRepo(); fs.writeFileSync(path.join(root, 'new-page.html'), '<p>El taller cuesta ₹500, unos 5 USD.</p>');
+  const r = spawnSync(process.execPath, [SCRIPT, '--root', root, '--check-only'], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 2); assert.match(r.stderr, /does not manage/);
+});

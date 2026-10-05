@@ -35,6 +35,8 @@ const shotsDir = process.argv.includes('--shots') ? path.resolve(process.argv[pr
   const base = 'http://localhost:' + server.address().port;
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
   const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(300000); // patient on purpose: a busy machine can take over a minute to log in
+  page.setDefaultTimeout(300000);
   await page.setViewport({ width: 1280, height: 900 });
   await page.goto(base + '/admin/login', { waitUntil: 'load' });
   await page.type('input[name=email]', email);
@@ -46,7 +48,7 @@ const shotsDir = process.argv.includes('--shots') ? path.resolve(process.argv[pr
     const errs = [];
     const onErr = (e) => errs.push(e.message); const onCon = (m) => { if (m.type() === 'error') errs.push(m.text()); };
     page.on('pageerror', onErr); page.on('console', onCon);
-    const res = await page.goto(base + tab, { waitUntil: 'load', timeout: 45000 });
+    const res = await page.goto(base + tab, { waitUntil: 'load', timeout: 300000 });
     await new Promise((r) => setTimeout(r, 400));
     const info = await page.evaluate(() => ({ h1: (document.querySelector('h1') || {}).innerText || '', text: document.body.innerText, hscroll: document.documentElement.scrollWidth > innerWidth }));
     const unexpected = errs.filter((e) => !/POSTHOG_PROJECT_TOKEN/.test(e));

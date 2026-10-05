@@ -22,6 +22,12 @@ const { MANIFEST, patterns, render, checkStructuredData, CURRENCIES } = require(
 const BLOG_PROBE = '/blog/knee-pain-on-stairs';
 
 function fileToUrl(file) {
+  const lang = file.match(/^(es|fr)\/(.+)$/);
+  if (lang) {
+    if (lang[2] === 'index.html') return '/' + lang[1];
+    if (lang[2] === 'services/index.html') return '/' + lang[1] + '/services';
+    return '/' + lang[1] + '/' + lang[2].replace(/\.html$/, '');
+  }
   if (file === 'index.html') return '/';
   if (file === 'services/index.html') return '/services';
   return '/' + file.replace(/\.html$/, '');

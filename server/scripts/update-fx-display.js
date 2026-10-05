@@ -36,6 +36,28 @@ const MANIFEST = {
     'services/one-to-one-coaching.html': 1, 'services/postpartum-support.html': 1,
     'server/config/i18n.js': 1,
   },
+  noteEs: {
+    'es/index.html': 2,
+    'es/about.html': 1,
+    'es/the-method.html': 1,
+    'es/who-we-serve.html': 1,
+    'es/services/index.html': 1,
+    'es/services/neurodivergent-coaching.html': 1,
+    'es/services/one-to-one-coaching.html': 1,
+    'es/services/postpartum-support.html': 1,
+    'server/config/i18n.js': 1,
+  },
+  noteFr: {
+    'fr/index.html': 2,
+    'fr/about.html': 1,
+    'fr/the-method.html': 1,
+    'fr/who-we-serve.html': 1,
+    'fr/services/index.html': 1,
+    'fr/services/neurodivergent-coaching.html': 1,
+    'fr/services/one-to-one-coaching.html': 1,
+    'fr/services/postpartum-support.html': 1,
+    'server/config/i18n.js': 1,
+  },
 };
 const CONFIG_FILE = 'server/config/fx.json';
 const SCAN_DIRS_SKIP = new Set(['node_modules', '.git', 'drafts', 'revenue-dashboard', '.claude', 'ebook-src', 'downloads']);
@@ -44,6 +66,9 @@ class Fail extends Error {}
 const fail = (m) => { throw new Fail(m); };
 
 const fmtInr = (n) => '₹' + n.toLocaleString('en-US');
+const group = (n, sep) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+const fmtInrEs = (n) => '₹' + group(n, '.');
+const fmtInrFr = (n) => '₹' + group(n, ' ');
 
 function patterns(amounts) {
   const low = fmtInr(amounts.low), high = fmtInr(amounts.high);
@@ -52,6 +77,8 @@ function patterns(amounts) {
     intro: new RegExp(esc(low) + ' \\(about \\$(\\d+)\\)', 'g'),
     range: new RegExp(esc(low) + ' to ' + esc(high) + ' per session \\(roughly \\$(\\d+)(–|&ndash;)\\$(\\d+) / £(\\d+)\\2£(\\d+) / €(\\d+)\\2€(\\d+)\\)', 'g'),
     note: new RegExp(esc(low) + ' is about \\$(\\d+) USD', 'g'),
+    noteEs: new RegExp(esc(fmtInrEs(amounts.low)) + ' equivalen a unos (\\d+) USD', 'g'),
+    noteFr: new RegExp(esc(fmtInrFr(amounts.low)) + ', soit environ (\\d+) USD', 'g'),
   };
 }
 
@@ -59,6 +86,8 @@ function render(kind, m, d, amounts) {
   const low = fmtInr(amounts.low), high = fmtInr(amounts.high);
   if (kind === 'intro') return `${low} (about $${d.USD[0]})`;
   if (kind === 'note') return `${low} is about $${d.USD[0]} USD`;
+  if (kind === 'noteEs') return `${fmtInrEs(amounts.low)} equivalen a unos ${d.USD[0]} USD`;
+  if (kind === 'noteFr') return `${fmtInrFr(amounts.low)}, soit environ ${d.USD[0]} USD`;
   const dash = m[2];
   return `${low} to ${high} per session (roughly $${d.USD[0]}${dash}$${d.USD[1]} / £${d.GBP[0]}${dash}£${d.GBP[1]} / €${d.EUR[0]}${dash}€${d.EUR[1]})`;
 }
@@ -107,8 +136,10 @@ function countManaged(files, amounts) {
 }
 
 function checkTracking(files) {
-  for (const [file, notes] of Object.entries(MANIFEST.note)) {
-    if (!file.endsWith('.html')) continue;
+  const html = new Set(Object.values(MANIFEST).flatMap((m) => Object.keys(m)).filter((f) => f.endsWith('.html')));
+  for (const file of html) {
+    const notes = ['note', 'noteEs', 'noteFr'].reduce((n, k) => n + (MANIFEST[k][file] || 0), 0);
+    if (!notes) continue;
     const tracked = (files[file].match(/data-ga-event="book_intro_call_click"/g) || []).length;
     if (tracked !== notes) fail(`${file}: ${tracked} intro-call button(s) with click tracking but ${notes} dollar note(s). The admin Analytics tab counts intro-call clicks through data-ga-event="book_intro_call_click", so every button must keep it.`);
   }
@@ -126,7 +157,7 @@ function findUnmanagedMentions(root, files, amounts) {
       else if (/\.(html|ejs|js)$/.test(e.name)) {
         let text = files[r] !== undefined ? files[r] : fs.readFileSync(abs, 'utf8');
         for (const k of Object.keys(pats)) text = text.replace(pats[k], ' ');
-        const m = text.match(/₹[\d,]+[^<"\n]{0,45}?[$£€]\d+/g);
+        const m = text.match(/₹[\d,]+[^<"\n]{0,45}?[$£€]\d+/g) || text.match(/₹[\d.,\s]+[^<"\n]{0,60}?\b\d+\s?USD\b/g);
         if (m) stray.push(`${r}: ${m[0].slice(0, 80)}`);
       }
     }
@@ -256,7 +287,7 @@ async function run(argv) {
     updated[file] = out;
   }
 
-  const mask = (s) => Object.keys(pats).reduce((acc, k) => acc.replace(pats[k], (m) => m.replace(/([$£€])\d+/g, '$1#')), s);
+  const mask = (s) => Object.keys(pats).reduce((acc, k) => acc.replace(pats[k], (m) => m.replace(/([$£€])\d+/g, '$1#').replace(/\d+ USD/g, '# USD')), s);
   for (const f of Object.keys(files)) {
     if (mask(files[f]) !== mask(updated[f])) fail(`${f}: changes went beyond the managed figures`);
     if (f.endsWith('.html')) checkStructuredData(f, updated[f]);
