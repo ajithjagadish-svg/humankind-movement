@@ -133,7 +133,9 @@ p.wide { max-width: none; }
 .link-arrow:hover .arrow { transform: translateX(3px); }
 
 .cta-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-.price-note { margin: 14px 0 0; font-size: 0.875rem; color: var(--muted); text-align: center; max-width: none; }
+.price-note { margin: 0; font-size: 0.875rem; color: var(--muted); text-align: center; max-width: none; }
+.btn-with-note { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.cta-row:has(.btn-with-note) { align-items: flex-start; }
 
 /* ---------- plus / cross divider, echoes the mark ---------- */
 
