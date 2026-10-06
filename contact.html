@@ -98,8 +98,24 @@
     "addressCountry": "IN"
   },
   "areaServed": [
-    "Bengaluru, India",
-    "Worldwide (online coaching)"
+    {
+      "@type": "City",
+      "name": "Bengaluru",
+      "alternateName": "Bangalore",
+      "containedInPlace": { "@type": "Country", "name": "India" }
+    },
+    "Worldwide (online coaching)",
+    { "@type": "Country", "name": "United States" },
+    { "@type": "Country", "name": "Canada" },
+    { "@type": "Country", "name": "Ireland" },
+    { "@type": "Country", "name": "France" },
+    { "@type": "Country", "name": "Spain" },
+    { "@type": "Country", "name": "Netherlands" },
+    { "@type": "Country", "name": "Belgium" },
+    { "@type": "Country", "name": "United Arab Emirates" },
+    { "@type": "Country", "name": "Bahrain" },
+    { "@type": "Country", "name": "Iraq" },
+    { "@type": "Country", "name": "Bangladesh" }
   ],
   "founder": {
     "@type": "Person",
@@ -110,7 +126,7 @@
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.9",
-    "reviewCount": "29"
+    "reviewCount": "30"
   },
   "sameAs": [
     "https://www.linkedin.com/in/ajithjagadish/",
@@ -192,7 +208,7 @@
       "name": "Is coaching available online, or only in person?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most coaching happens online for individuals across the globe, alongside dedicated programs for corporates and communities. In-person coaching is also available on a limited basis for clients based in Bangalore, subject to availability — get in touch and mention your location to check what's possible."
+        "text": "Most coaching happens online for individuals across the globe, alongside dedicated programs for corporates and communities. In-person coaching is also available on a limited basis for clients based in Bengaluru, subject to availability — get in touch and mention your location to check what's possible."
       }
     },
     {
@@ -240,7 +256,7 @@
       "name": "Are there reviews from past clients?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Humankind Movement has a 4.9★ average from 29 Google reviews."
+        "text": "Yes. Humankind Movement has a 4.9★ average from 30 Google reviews."
       }
     },
     {
@@ -256,7 +272,7 @@
       "name": "How much does coaching cost?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Online 1:1 coaching sessions typically range from ₹1,000 to ₹2,500 per session (roughly $10–$26 / £8–£20 / €9–€23), depending on session length and package. In-person sessions in Bengaluru are priced separately, up to around ₹3,000 for an assessment, and postpartum recovery is also available as a discounted prepaid package. The first conversation is always the ₹1,000 intro call, so you know the fit before committing to anything larger."
+        "text": "Online 1:1 coaching sessions typically range from ₹1,000 to ₹2,500 per session (roughly $10–$26 / £8–£20 / €9–€23), depending on session length and package. In-person sessions in Bengaluru are ₹3,000 per session, and postpartum recovery is also available as a discounted prepaid package. The first conversation is always the ₹1,000 intro call, so you know the fit before committing to anything larger."
       }
     },
     {
@@ -272,7 +288,7 @@
       "name": "Do you work with clients outside India, and across different time zones?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes, most coaching clients are outside India, across the US, UK, Europe, and Asia. Sessions are scheduled around what works for your time zone, not just IST, and coaching is entirely online for international clients, so location is not a barrier."
+        "text": "Yes. Coaching is entirely online for international clients, so location is not a barrier. We work with clients in the US, Canada, Ireland, France, Spain, the Netherlands, Belgium, the UAE (Dubai), Bahrain, Iraq, Bangladesh and India. Sessions are scheduled around what works for your time zone, not just IST."
       }
     },
     {
@@ -340,7 +356,7 @@
     <div class="container-narrow">
       <span class="kicker">Get in touch</span>
       <h1>Start a conversation</h1>
-      <p class="lede">Online coaching for individuals across the globe, one-to-one or in groups, plus in-person coaching for Bangalore-based clients (<a href="/movement-coaching-bengaluru">see how it works</a>). Programs for corporates and communities. Movement coaching for neurotypical and neurodivergent individuals of all ages. Share a little about <span class="hl">what you're looking for</span>, and the first conversation will start in the right place.</p>
+      <p class="lede">Online coaching for individuals across the globe, one-to-one or in groups, plus in-person coaching for Bengaluru-based clients (<a href="/movement-coaching-bengaluru">see how it works</a>). Programs for corporates and communities. Movement coaching for neurotypical and neurodivergent individuals of all ages. Share a little about <span class="hl">what you're looking for</span>, and the first conversation will start in the right place.</p>
     </div>
   </section>
 
@@ -348,7 +364,7 @@
     <div class="container grid-2">
       <div>
         <h2>Send a message</h2>
-        <p class="note">4.9★ average from 29 Google reviews. <a class="link-arrow" href="https://share.google/1DfDVbxb1PKiajEfN" target="_blank" rel="noopener">Read them <span class="arrow">→</span></a></p>
+        <p class="note">4.9★ average from 30 Google reviews. <a class="link-arrow" href="https://share.google/1DfDVbxb1PKiajEfN" target="_blank" rel="noopener">Read them <span class="arrow">→</span></a></p>
         <p class="note">Include what you're looking for (yourself, your organisation, or a neurodivergent individual), where you're based, and anything about your situation that would help the first conversation start in the right place.</p>
 
         <form class="contact-form" id="contact-form" action="/api/contact" method="POST" data-ajax-form data-ga-event="contact_submit">
@@ -369,7 +385,7 @@
             <select id="cf-topic" name="topic" required>
               <option value="" disabled selected>Choose one</option>
               <option value="1:1 coaching (myself)">1:1 coaching, for myself</option>
-              <option value="In-person coaching (Bangalore)">In-person coaching (Bangalore)</option>
+              <option value="In-person coaching (Bengaluru)">In-person coaching (Bengaluru)</option>
               <option value="Prepartum / postpartum recovery">Prepartum & postpartum recovery</option>
               <option value="Corporate / community program">Corporate or community wellness program</option>
               <option value="Neurodivergent coaching">Neurodivergent coaching</option>
@@ -395,7 +411,7 @@
         <h3>What to reach out about</h3>
         <ul class="list-quiet">
           <li>1:1 and group coaching for general wellbeing, mobility, injury recovery</li>
-          <li>In-person coaching for Bangalore-based clients, subject to availability</li>
+          <li>In-person coaching for Bengaluru-based clients, subject to availability</li>
           <li>Prepartum & postpartum recovery</li>
           <li>Corporate or community wellness programs</li>
           <li>Neurodivergent coaching, movement coaching for individuals of all ages</li>
@@ -407,7 +423,6 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413A11.815 11.815 0 0012.05 0zm0 21.785h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm5.422-7.403c-.298-.149-1.759-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
             Message on WhatsApp →
           </a>
-          <p class="note" style="margin-top:0.9em;">Phone: <a href="tel:+919844059292">+91 98440 59292</a></p>
         </div>
       </div>
     </div>
@@ -427,7 +442,7 @@
         </details>
         <details class="faq-item">
           <summary>Is coaching available online, or only in person?</summary>
-          <p>Most coaching happens online for individuals across the globe, alongside dedicated programs for corporates and communities. In-person coaching is also available on a limited basis for clients based in Bangalore, subject to availability — get in touch and mention your location to check what's possible.</p>
+          <p>Most coaching happens online for individuals across the globe, alongside dedicated programs for corporates and communities. In-person coaching is also available on a limited basis for clients based in Bengaluru, subject to availability — get in touch and mention your location to check what's possible.</p>
         </details>
         <details class="faq-item">
           <summary>What is the free postpartum recovery guide, and is it evidence-based?</summary>
@@ -451,7 +466,7 @@
         </details>
         <details class="faq-item">
           <summary>Are there reviews from past clients?</summary>
-          <p>Yes. Humankind Movement has a 4.9★ average from 29 Google reviews.</p>
+          <p>Yes. Humankind Movement has a 4.9★ average from 30 Google reviews.</p>
         </details>
         <details class="faq-item">
           <summary>Do you help with aches and pains like neck, shoulder, back, knee, or foot pain?</summary>
@@ -459,7 +474,7 @@
         </details>
         <details class="faq-item">
           <summary>How much does coaching cost?</summary>
-          <p>Online 1:1 coaching sessions typically range from ₹1,000 to ₹2,500 per session (roughly $10&ndash;$26 / £8&ndash;£20 / €9&ndash;€23), depending on session length and package. In-person sessions in Bengaluru are priced separately, up to around ₹3,000 for an assessment, and postpartum recovery is also available as a discounted prepaid package. The first conversation is always the ₹1,000 intro call, so you know the fit before committing to anything larger.</p>
+          <p>Online 1:1 coaching sessions typically range from ₹1,000 to ₹2,500 per session (roughly $10&ndash;$26 / £8&ndash;£20 / €9&ndash;€23), depending on session length and package. In-person sessions in Bengaluru are ₹3,000 per session, and postpartum recovery is also available as a discounted prepaid package. The first conversation is always the ₹1,000 intro call, so you know the fit before committing to anything larger.</p>
         </details>
         <details class="faq-item">
           <summary>Is there a paid introduction call, and how much does it cost?</summary>
@@ -467,7 +482,7 @@
         </details>
         <details class="faq-item">
           <summary>Do you work with clients outside India, and across different time zones?</summary>
-          <p>Yes, most coaching clients are outside India, across the US, UK, Europe, and Asia. Sessions are scheduled around what works for your time zone, not just IST, and coaching is entirely online for international clients, so location is not a barrier.</p>
+          <p>Yes. Coaching is entirely online for international clients, so location is not a barrier. We work with clients in the US, Canada, Ireland, France, Spain, the Netherlands, Belgium, the UAE (Dubai), Bahrain, Iraq, Bangladesh and India. Sessions are scheduled around what works for your time zone, not just IST.</p>
         </details>
         <details class="faq-item">
           <summary>How do clients outside India pay for sessions?</summary>

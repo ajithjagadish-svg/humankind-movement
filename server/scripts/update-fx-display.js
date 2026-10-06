@@ -76,7 +76,7 @@ function patterns(amounts) {
   return {
     intro: new RegExp(esc(low) + ' \\(about \\$(\\d+)\\)', 'g'),
     range: new RegExp(esc(low) + ' to ' + esc(high) + ' per session \\(roughly \\$(\\d+)(–|&ndash;)\\$(\\d+) / £(\\d+)\\2£(\\d+) / €(\\d+)\\2€(\\d+)\\)', 'g'),
-    note: new RegExp(esc(low) + ' is about \\$(\\d+) USD', 'g'),
+    note: new RegExp(esc(low) + ' is about \\$(\\d+)', 'g'),
     noteEs: new RegExp(esc(fmtInrEs(amounts.low)) + ' equivalen a unos (\\d+) USD', 'g'),
     noteFr: new RegExp(esc(fmtInrFr(amounts.low)) + ', soit environ (\\d+) USD', 'g'),
   };
@@ -85,7 +85,7 @@ function patterns(amounts) {
 function render(kind, m, d, amounts) {
   const low = fmtInr(amounts.low), high = fmtInr(amounts.high);
   if (kind === 'intro') return `${low} (about $${d.USD[0]})`;
-  if (kind === 'note') return `${low} is about $${d.USD[0]} USD`;
+  if (kind === 'note') return `${low} is about $${d.USD[0]}`;
   if (kind === 'noteEs') return `${fmtInrEs(amounts.low)} equivalen a unos ${d.USD[0]} USD`;
   if (kind === 'noteFr') return `${fmtInrFr(amounts.low)}, soit environ ${d.USD[0]} USD`;
   const dash = m[2];

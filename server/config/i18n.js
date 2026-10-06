@@ -43,7 +43,7 @@ const STRINGS = {
       readyToStart: 'Ready to start?',
       readyToStartSub: 'The thinking is here. The coaching is where it becomes practice.',
       bookIntroCall: 'Book Intro Call — ₹1,000',
-      bookIntroCallNote: '₹1,000 is about $10 USD',
+      bookIntroCallNote: '₹1,000 is about $10',
       getInTouch: 'Get in touch',
       alsoAvailableIn: 'Also available in',
       authorBio: 'Founder of Humankind Movement and human biomechanics coach, working with postpartum, neurodivergent, and general population clients.',

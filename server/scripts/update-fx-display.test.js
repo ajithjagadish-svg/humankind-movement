@@ -77,8 +77,8 @@ test('a real move updates every figure everywhere, resets the anchor, and a seco
   assert.match(idx, /₹1,000 \(about \$11\)/);
   assert.match(idx, /roughly \$11–\$28 \/ £8–£22 \/ €10–€25/);
   assert.match(idx, /roughly \$11&ndash;\$28 \/ £8&ndash;£22 \/ €10&ndash;€25/);
-  assert.match(idx, /₹1,000 is about \$11 USD/);
-  assert.match(read(root, 'server/config/i18n.js'), /₹1,000 is about \$11 USD/);
+  assert.match(idx, /₹1,000 is about \$11(?! USD)/);
+  assert.match(read(root, 'server/config/i18n.js'), /₹1,000 is about \$11'/);
   assert.match(read(root, 'es/index.html'), /₹1\.000 equivalen a unos 11 USD/);
   assert.match(read(root, 'fr/about.html'), /₹1 000, soit environ 11 USD/);
   assert.match(read(root, 'server/config/i18n.js'), /₹1\.000 equivalen a unos 11 USD/);
@@ -144,7 +144,7 @@ mustStop('a new unmanaged conversion appears somewhere', (root) => fs.writeFileS
 mustStop('the rupee price in the config and the page text disagree', (root) => edit(root, 'server/config/fx.json', (t) => t.replace('"high": 2500', '"high": 3000')), MOVED, /expected 2 "range"/);
 
 test('check-only catches page drift before any rate is looked at', () => {
-  const root = copyRepo(); edit(root, 'about.html', (t) => t.replace('₹1,000 is about $10 USD', '₹1,000 is roughly ten dollars'));
+  const root = copyRepo(); edit(root, 'about.html', (t) => t.replace('₹1,000 is about $10', '₹1,000 is roughly ten dollars'));
   const r = spawnSync(process.execPath, [SCRIPT, '--root', root, '--check-only'], { encoding: 'utf8' });
   assert.strictEqual(r.status, 2); assert.match(r.stderr, /expected 1 "note"/);
 });
@@ -156,7 +156,7 @@ test('check-only fails if an intro-call button loses its click tracking (the adm
 });
 
 // ---- live-site verifier, against a local stand-in for the website ----
-const BLOG = (usd) => `<html><body><p class="price-note">₹1,000 is about $${usd} USD</p><script type="application/ld+json">{"@type":"Article"}</script></body></html>`;
+const BLOG = (usd) => `<html><body><p class="price-note">₹1,000 is about $${usd}</p><script type="application/ld+json">{"@type":"Article"}</script></body></html>`;
 
 function serve(pages, overrides = {}) {
   const server = http.createServer((req, res) => {
