@@ -1,0 +1,23 @@
+{
+  "_readme": "Single source of truth for the dollar/pound/euro figures shown next to rupee prices. Maintained automatically by server/scripts/update-fx-display.js (GitHub Action, 1st and 16th of each month). Change amountsInr only if the rupee prices themselves change, and update the page text to match in the same commit. anchorInrPerUsd is the rate when the figures were last set; the job refuses to run if the live rate is more than 10% away from it.",
+  "amountsInr": {
+    "low": 1000,
+    "high": 2500
+  },
+  "displayed": {
+    "USD": [
+      10,
+      26
+    ],
+    "GBP": [
+      8,
+      20
+    ],
+    "EUR": [
+      9,
+      23
+    ]
+  },
+  "lastChange": "2026-10-04",
+  "anchorInrPerUsd": 96.3
+}
