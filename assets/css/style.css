@@ -811,3 +811,12 @@ footer.site a:hover { color: var(--accent); }
 .bg-dark .next-steps li::before { border-color: var(--accent-soft); color: var(--accent-soft); }
 @media (max-width: 560px) { .next-steps { gap: 10px; } .next-steps li { font-size: 0.85rem; } }
 .hero-who { margin: 0.4em 0 1em; font-size: 1.1rem; font-weight: 600; color: var(--accent); max-width: none; }
+
+/* Sticky intro-call bar, phones only; JS adds it on service pages and blog posts */
+.sticky-cta { display: none; }
+@media (max-width: 780px) {
+  .sticky-cta { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,0.96); border-top: 1px solid var(--line, #e6e1d8); box-shadow: 0 -4px 16px rgba(0,0,0,0.08); transform: translateY(110%); transition: transform 0.25s ease; }
+  .sticky-cta.is-visible { transform: translateY(0); }
+  .sticky-cta .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+  body:has(.sticky-cta) { padding-bottom: 76px; }
+}
