@@ -210,6 +210,12 @@ const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
         </div>
         <a class="btn btn-ghost" href="<%= __prefix %>/contact"><%= __t.getInTouch %></a>
       </div>
+      <% if (__lang === 'en') { %><p class="next-steps-label">How it starts</p>
+<ol class="next-steps" aria-label="What happens next">
+<li>Message us on WhatsApp</li>
+<li>We reply and set a time</li>
+<li>Short call about you</li>
+</ol><% } %>
     </div>
   </section>
 
