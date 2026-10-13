@@ -19,6 +19,8 @@ const NO_NORMALIZE = /^\/(admin|api|assets|healthz|blog\/subscribe|es\/blog\/sub
 // search engines were still being handed multiple URLs for one page.
 function canonicalUrlRedirects(req, res, next) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  // Retired page that Google may still list
+  if (req.path === '/fr/coaching.html' || req.path === '/fr/coaching') return res.redirect(301, '/fr/services/');
   const host = (req.hostname || '').toLowerCase();
   const qIndex = req.originalUrl.indexOf('?');
   const query = qIndex >= 0 ? req.originalUrl.slice(qIndex) : '';

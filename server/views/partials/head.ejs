@@ -22,7 +22,7 @@
     if (document.visibilityState === 'hidden') hkLoadGtag();
   });
   window.addEventListener('pagehide', hkLoadGtag);
-  window.addEventListener('load', function () { setTimeout(hkLoadGtag, 1000); });
+  hkLoadGtag();
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">

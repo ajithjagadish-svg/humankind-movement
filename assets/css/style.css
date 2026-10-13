@@ -810,3 +810,4 @@ footer.site a:hover { color: var(--accent); }
 .bg-dark .next-steps li { color: #e8e4dc; }
 .bg-dark .next-steps li::before { border-color: var(--accent-soft); color: var(--accent-soft); }
 @media (max-width: 560px) { .next-steps { gap: 10px; } .next-steps li { font-size: 0.85rem; } }
+.hero-who { margin: 0.4em 0 1em; font-size: 1.1rem; font-weight: 600; color: var(--accent); max-width: none; }
