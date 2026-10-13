@@ -800,3 +800,13 @@ footer.site a:hover { color: var(--accent); }
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Three-step "how it starts" row under the intro-call button */
+.next-steps-label { margin: 1.8em 0 0.8em; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); text-align: center; max-width: none; }
+.bg-dark .next-steps-label { color: var(--accent-soft); }
+.next-steps { counter-reset: step; list-style: none; margin: 0 auto; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 620px; text-align: center; }
+.next-steps li { counter-increment: step; font-size: 0.95rem; line-height: 1.35; font-weight: 600; color: var(--ink-soft); }
+.next-steps li::before { content: counter(step); display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin: 0 auto 0.6em; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); font-size: 0.85rem; font-weight: 700; }
+.bg-dark .next-steps li { color: #e8e4dc; }
+.bg-dark .next-steps li::before { border-color: var(--accent-soft); color: var(--accent-soft); }
+@media (max-width: 560px) { .next-steps { gap: 10px; } .next-steps li { font-size: 0.85rem; } }
