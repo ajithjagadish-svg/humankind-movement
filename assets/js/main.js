@@ -34,9 +34,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function audienceFor(path) {
+    if (path.indexOf("/services/postpartum-support") === 0 || path.indexOf("/postpartum-recovery-guide") === 0) return "postpartum";
+    if (path.indexOf("/services/neurodivergent-coaching") === 0) return "neurodivergent";
+    if (path.indexOf("/services/corporate-wellbeing") === 0) return "corporate";
+    if (path.indexOf("/services/one-to-one-coaching") === 0) return "one_to_one";
+    return "general";
+  }
+
   document.addEventListener("click", function (e) {
     var link = e.target.closest("a");
     if (!link) return;
+
+    if (link.href.indexOf("wa.me/") !== -1) {
+      trackEvent("generate_lead", { page_path: window.location.pathname, audience: link.dataset.audience || audienceFor(window.location.pathname), method: "whatsapp" });
+    }
 
     if (link.dataset.gaEvent) {
       trackEvent(link.dataset.gaEvent, { link_page: window.location.pathname });
