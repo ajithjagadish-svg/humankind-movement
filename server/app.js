@@ -8,6 +8,7 @@ const { createBlogRouter } = require('./routes/blog');
 const marketingRoutes = require('./routes/marketing');
 const formsRoutes = require('./routes/forms');
 const { t } = require('./config/i18n');
+const { shortLinks } = require('./config/short-links');
 
 // Paths where a redirect must never rewrite case or trailing slashes:
 // tokens in URLs are case-sensitive, and admin/API/assets aren't pages.
@@ -62,6 +63,7 @@ function createApp(mongoUri) {
   app.set('trust proxy', 1);
 
   app.use(securityHeaders);
+  app.use(shortLinks);
   app.use(canonicalUrlRedirects);
 
   app.use(express.urlencoded({ extended: false }));
