@@ -28,13 +28,19 @@
         <tbody>
           <% posts.forEach(function(post) { %>
             <tr>
-              <td><a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a></td>
+              <td>
+                <a href="/admin/posts/<%= post._id %>/edit"><%= post.title %></a>
+                <% if (post.locale && post.locale !== 'en') { %>
+                  <span class="badge locale"><%= post.locale.toUpperCase() %></span>
+                <% } %>
+              </td>
               <td><%= post.categoryLabel %></td>
               <td><span class="badge <%= post.status %>"><%= post.status %></span></td>
               <td><%= post.publishedAt ? post.publishedAt.toISOString().slice(0,10) : '—' %></td>
               <td>
                 <% if (post.status === 'published') { %>
-                  <a href="/blog/<%= post.slug %>" target="_blank">View</a>
+                  <%# Translations are only served under /es/blog or /fr/blog; /blog/<slug> is English-only and 404s for them. %>
+                  <a href="<%= post.locale && post.locale !== 'en' ? '/' + post.locale : '' %>/blog/<%= post.slug %>" target="_blank">View</a>
                 <% } %>
               </td>
             </tr>
