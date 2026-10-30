@@ -17,7 +17,7 @@
     "check-llm-brand": "node server/scripts/run-llm-brand-check.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": "26.x"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.5",
