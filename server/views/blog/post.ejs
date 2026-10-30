@@ -193,7 +193,13 @@ const __serviceLabel = (__t.serviceLinks || {})[__serviceKey];
     neurodivergent: { name: 'neurodivergent coaching', url: '/services/neurodivergent-coaching', topic: 'neurodivergent%20coaching', aud: 'neurodivergent' }
   };
   const __svc = __svcMap[post.category] || { name: 'one-to-one coaching', url: '/services/one-to-one-coaching', topic: 'one-to-one%20coaching', aud: 'general' };
-  const __waHref = 'https://wa.me/919844059292?text=Hi%2C%20I%27d%20like%20to%20book%20the%20INR%201%2C000%20intro%20call' + (__lang === 'en' ? '%20about%20' + __svc.topic : '') + '.';
+  // Same wording as the es/fr marketing pages, so the message matches the language the visitor was reading.
+  const __waText = {
+    en: 'Hi%2C%20I%27d%20like%20to%20book%20the%20INR%201%2C000%20intro%20call%20about%20' + __svc.topic + '.',
+    es: 'Hola%2C%20me%20gustar%C3%ADa%20reservar%20la%20llamada%20de%20introducci%C3%B3n%20de%20INR%201.000.',
+    fr: 'Bonjour%2C%20je%20souhaiterais%20r%C3%A9server%20l%27appel%20d%27introduction%20%C3%A0%20INR%201%20000.'
+  };
+  const __waHref = 'https://wa.me/919844059292?text=' + (__waText[__lang] || __waText.en);
 %>
   <section class="cta-band bg-tint">
     <div class="container">
