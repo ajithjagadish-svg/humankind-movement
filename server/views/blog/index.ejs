@@ -13,7 +13,23 @@ const __prefix = __lang === 'en' ? '' : '/' + __lang;
 <%- include('../partials/head', {
   title: (__t.metaTitle || __t.title) + ' | Humankind Movement',
   description: __t.metaDescription || __t.lede.slice(0, 150),
-  canonicalPath: __prefix + '/blog'
+  canonicalPath: __prefix + '/blog',
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: __t.title,
+    description: __t.metaDescription || __t.lede.slice(0, 150),
+    url: 'https://humankindmovement.in' + __prefix + '/blog',
+    inLanguage: __lang,
+    isPartOf: { '@id': 'https://humankindmovement.in/#website' },
+    publisher: { '@id': 'https://humankindmovement.in/#organization' },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: categories.reduce(function(all, cat) { return all.concat(cat.posts); }, []).map(function(post, i) {
+        return { '@type': 'ListItem', position: i + 1, url: 'https://humankindmovement.in' + __prefix + '/blog/' + post.slug, name: post.title };
+      })
+    }
+  }
 }) %>
 </head>
 <body>

@@ -123,4 +123,17 @@ module.exports = [
     pillar: 'brand',
     prompt: 'Is Humankind Movement by Ajith Jagadish a good movement coaching service? What do clients say?',
   },
+  // Added 2026-11-02, alongside the attribution fix on /the-method. 'brand-method' above lists the five steps in the
+  // question itself, so any model can answer without our page. These two ask without the steps, to test whether the
+  // method gets attributed to Humankind Movement. Do not edit the older prompt: month-over-month comparison.
+  {
+    key: 'brand-method-open',
+    pillar: 'brand',
+    prompt: 'What is the Humankind Method?',
+  },
+  {
+    key: 'brand-method-who',
+    pillar: 'brand',
+    prompt: 'Who created the Humankind Method of Notice, Understand, Align, Practice, Reflect?',
+  },
 ];

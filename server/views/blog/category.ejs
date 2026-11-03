@@ -16,9 +16,10 @@ const __others = typeof otherCategories !== 'undefined' ? otherCategories : [];
 <html lang="<%= __lang %>">
 <head>
 <%- include('../partials/head', {
-  title: category.label + ' | Humankind Movement Blog',
+  title: ((__lang === 'en' && category.metaTitle) || category.label) + ' | Humankind Movement' + (__lang === 'en' && category.metaTitle ? '' : ' Blog'),
   description: category.metaDescription || category.description,
   canonicalPath: __prefix + '/blog/topics/' + category.key,
+  hreflangs: __lang === 'en' ? [{ lang: 'en', path: '/blog/topics/' + category.key }] : undefined,
   jsonLd: [
     {
       '@context': 'https://schema.org',

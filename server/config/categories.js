@@ -1,6 +1,8 @@
 // `description` is the short blurb used on the /blog listing. `metaDescription`
 // (120-155 chars) and `intro` are used on the topic hub page. `service` is the
 // single most relevant service page for a reader who finishes a post in that topic.
+// `metaTitle` (optional, English hub only) replaces the short default hub <title>; it is
+// built from wording already in that hub's metaDescription.
 module.exports = [
   {
     key: 'philosophy',
@@ -15,6 +17,7 @@ module.exports = [
   },
   {
     key: 'movement',
+    metaTitle: 'How the Body Actually Moves',
     label: 'Movement',
     description: 'How the body actually moves, and what most advice about strength, mobility, and pain gets wrong.',
     metaDescription: 'How the body actually moves, and what most advice on strength, mobility and pain gets wrong. Practical essays from a coach who starts with how you move.',
@@ -26,6 +29,7 @@ module.exports = [
   },
   {
     key: 'sleep',
+    metaTitle: 'Sleep and Recovery Are Half of the Work',
     label: 'Sleep & Recovery',
     description: "Sleep and recovery aren't a reward for training hard. They're half of the work.",
     metaDescription: 'Sleep and recovery are half of the work, not a reward for training hard. Essays on what poor sleep is telling you and how to respond to it.',
@@ -59,6 +63,7 @@ module.exports = [
   },
   {
     key: 'postpartum',
+    metaTitle: 'Postpartum Recovery Has Its Own Timeline',
     label: 'Postpartum Recovery',
     description: "Recovery after pregnancy and birth isn't a six-week deadline or a bounce-back goal. It's a coordination process with its own timeline.",
     metaDescription: 'Postpartum recovery is a coordination process with its own timeline, not a six-week deadline. Essays on core, pelvic floor and returning to movement.',

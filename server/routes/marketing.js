@@ -46,7 +46,9 @@ const SERVICE_PAGES = [
 ];
 
 router.get('/', (req, res) => {
-  res.sendFile(path.join(REPO_ROOT, 'index.html'));
+  // lastModified:false - the deploy extracts files with a 1980 mtime, which sendFile
+  // would otherwise send as Last-Modified. ETag still handles conditional requests.
+  res.sendFile(path.join(REPO_ROOT, 'index.html'), { lastModified: false });
 });
 router.get('/index.html', (req, res) => {
   res.redirect(301, '/');
@@ -168,19 +170,19 @@ router.get('/llms.txt', (req, res) => {
 // automated signal here, so treat "did I touch a static page today" as a
 // prompt to also bump its line below).
 const SITEMAP_STATIC_PAGES = [
-  { loc: '/', lastmod: '2026-09-20', changefreq: 'weekly', priority: '1.0' },
-  { loc: '/philosophy', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/', lastmod: '2026-10-04', changefreq: 'weekly', priority: '1.0' },
+  { loc: '/philosophy', lastmod: '2026-10-04', changefreq: 'monthly', priority: '0.9' },
   { loc: '/about', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/the-method', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
-  { loc: '/who-we-serve', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/the-method', lastmod: '2026-10-04', changefreq: 'monthly', priority: '0.9' },
+  { loc: '/who-we-serve', lastmod: '2026-10-04', changefreq: 'monthly', priority: '0.9' },
   { loc: '/services', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.9' },
   { loc: '/services/one-to-one-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
   { loc: '/services/postpartum-support', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
   { loc: '/services/neurodivergent-coaching', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/services/workshops', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
+  { loc: '/services/workshops', lastmod: '2026-10-04', changefreq: 'monthly', priority: '0.85' },
   { loc: '/services/corporate-wellbeing', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
-  { loc: '/contact', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.8' },
-  { loc: '/postpartum-recovery-guide', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/contact', lastmod: '2026-10-04', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/postpartum-recovery-guide', lastmod: '2026-10-04', changefreq: 'monthly', priority: '0.8' },
   { loc: '/movement-coaching-bengaluru', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.85' },
   { loc: '/es/', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
   { loc: '/fr/', lastmod: '2026-09-20', changefreq: 'monthly', priority: '0.7' },
