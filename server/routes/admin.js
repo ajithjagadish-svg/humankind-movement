@@ -13,6 +13,7 @@ const ClientProfile = require('../models/ClientProfile');
 const Subscriber = require('../models/Subscriber');
 const CATEGORIES = require('../config/categories');
 const requireAuth = require('../middleware/requireAuth');
+const blogStandards = require('../lib/blogStandards');
 const { ga4Configured, fetchGA4Stats, fetchGA4ConversionSummary, fetchGA4TimeSeries } = require('../services/ga4');
 const { searchConsoleConfigured, fetchSearchConsoleStats } = require('../services/searchConsole');
 const { anthropicConfigured, generateCarouselSlides } = require('../services/carouselGen');
@@ -69,38 +70,81 @@ router.post('/logout', (req, res) => {
 
 router.get('/', requireAuth, (req, res) => res.redirect('/admin/dashboard'));
 
+// "Today" and "overdue" mean the day Ajith is actually in (IST), not UTC.
+function istDayStart(offsetDays = 0) {
+  const IST_MS = 5.5 * 3600 * 1000;
+  const midnight = Math.floor((Date.now() + IST_MS) / 86400000) * 86400000 - IST_MS;
+  return new Date(midnight + offsetDays * 86400000);
+}
+
 router.get('/dashboard', requireAuth, async (req, res) => {
-  const [draftCount, ideaCount, publishedCount, newContactCount, newIntakeCount] = await Promise.all([
+  const todayStart = istDayStart(0);
+  const tomorrowStart = istDayStart(1);
+  const horizon = istDayStart(3); // end of the day after tomorrow
+  const staleBefore = istDayStart(-7); // older than a week and still 'unposted' is almost always a tick nobody made, not a missed post
+  const analyticsReady = ga4Configured() || searchConsoleConfigured();
+
+  // One parallel batch: every query is independent, so the page costs one round trip, not several in a row.
+  const [
+    draftCount, ideaCount, publishedCount, newContactCount, newIntakeCount, newLeadCount, openCarouselCount,
+    queueItems, staleQueueCount, blogPipeline, underperforming, oldestContact, oldestIntake,
+  ] = await Promise.all([
     BlogPost.countDocuments({ status: 'draft' }),
     ContentIdea.countDocuments({ status: 'idea' }),
     BlogPost.countDocuments({ status: 'published' }),
     ContactSubmission.countDocuments({ status: 'new' }),
     IntakeSubmission.countDocuments({ status: 'new' }),
+    EngagementLead.countDocuments({ status: 'new' }),
+    Carousel.countDocuments({ status: 'draft' }),
+    // Publishing queue: a platform still not posted that was due in the last 7 days or is due in the next 3.
+    PublishQueueItem.find({ scheduledDate: { $gte: staleBefore, $lt: horizon }, 'platforms.status': 'queued' }).sort({ scheduledDate: 1 }).limit(40).lean(),
+    // Older than that: kept out of the overdue alarm (see staleBefore) and shown as one quiet 'tidy the queue' line.
+    PublishQueueItem.countDocuments({ scheduledDate: { $lt: staleBefore }, 'platforms.status': 'queued' }),
+    // Blog drafts that follow the blog standard, with where each one stands (ready, waiting for Ajith, or what to fix).
+    BlogPost.find({ status: 'draft', locale: 'en', $or: [{ standards: 'v1' }, { createdAt: { $gte: blogStandards.STANDARDS_START } }] })
+      .sort({ updatedAt: -1 }).limit(10).lean()
+      .then((drafts) => blogStandards.draftReadiness(drafts, BlogPost))
+      .then((rows) => { const order = { ready: 0, approval: 1, fix: 2 }; return rows.sort((x, y) => order[x.state] - order[y.state]); }),
+    // Posts with real impressions but a low click-through rate: the clearest "worth a rewrite" signal from search data.
+    analyticsReady
+      ? BlogPost.find({ status: 'published', 'analytics.searchImpressions': { $gt: 20 }, 'analytics.searchCtr': { $lt: 0.02 } })
+        .sort({ 'analytics.searchImpressions': -1 }).limit(5).lean()
+      : Promise.resolve([]),
+    // How long the longest-waiting new message has been sitting
+    ContactSubmission.findOne({ status: 'new' }).sort({ createdAt: 1 }).select('createdAt').lean(),
+    IntakeSubmission.findOne({ status: 'new' }).sort({ createdAt: 1 }).select('createdAt').lean(),
   ]);
 
-  const analyticsReady = ga4Configured() || searchConsoleConfigured();
-  let underperforming = [];
-  if (analyticsReady) {
-    // Posts with real impressions but a low click-through rate - the
-    // clearest "worth a rewrite" signal from actual search data.
-    underperforming = await BlogPost.find({
-      status: 'published',
-      'analytics.searchImpressions': { $gt: 20 },
-      'analytics.searchCtr': { $lt: 0.02 },
-    })
-      .sort({ 'analytics.searchImpressions': -1 })
-      .limit(5)
-      .lean();
-  }
+  const waiting = (doc) => { const d = doc ? Math.floor((Date.now() - new Date(doc.createdAt).getTime()) / 86400000) : 0; return d >= 2 ? ' (oldest waiting ' + d + ' days)' : ''; };
+
+  // Queue: which platforms are still unposted, and is it overdue, today or coming up
+  const queue = queueItems.map((item) => {
+    const queued = item.platforms.filter((p) => p.status === 'queued').map((p) => p.name);
+    const when = item.scheduledDate < todayStart ? 'overdue' : item.scheduledDate < tomorrowStart ? 'today' : 'soon';
+    return { _id: item._id, title: item.title, scheduledDate: item.scheduledDate, queued, when };
+  });
+  const overdue = queue.filter((q) => q.when === 'overdue');
+  const dueToday = queue.filter((q) => q.when === 'today');
+  const sum = (list) => list.reduce((n, q) => n + q.queued.length, 0);
+  const waitingForApproval = blogPipeline.filter((r) => r.state === 'approval').length;
+  const readyToPublish = blogPipeline.filter((r) => r.state === 'ready').length;
+
+  // The do-now list: only things that need action, most time-sensitive first.
+  const attention = [];
+  const add = (n, one, many, href, tone) => { if (n > 0) attention.push({ n, text: n === 1 ? one : many, href, tone: tone || '' }); };
+  add(newContactCount, 'new contact message' + waiting(oldestContact), 'new contact messages' + waiting(oldestContact), '/admin/submissions', 'lead');
+  add(newIntakeCount, 'new intake form' + waiting(oldestIntake), 'new intake forms' + waiting(oldestIntake), '/admin/submissions', 'lead');
+  add(sum(overdue), 'overdue post still not published on its platform', 'overdue posts still not published on their platforms (' + overdue.length + ' queue item' + (overdue.length === 1 ? '' : 's') + ')', '/admin/queue?status=queued', 'late');
+  add(sum(dueToday), 'post due today', 'posts due today across platforms', '/admin/queue?status=queued', 'today');
+  add(readyToPublish, 'blog post ready to publish', 'blog posts ready to publish', '/admin/posts', 'good');
+  add(waitingForApproval, 'blog draft waiting for your approval', 'blog drafts waiting for your approval', '/admin/posts', '');
+  add(newLeadCount, 'new engagement lead to comment on', 'new engagement leads to comment on', '/admin/engagement', '');
+  add(staleQueueCount, 'older queue item (over a week) still shows an unposted platform: mark it posted or remove it', 'older queue items (over a week) still show unposted platforms: mark them posted or remove them so the overdue list stays meaningful', '/admin/queue?status=queued', 'quiet');
 
   res.render('admin/dashboard', {
-    draftCount,
-    ideaCount,
-    publishedCount,
-    newContactCount,
-    newIntakeCount,
-    analyticsReady,
-    underperforming,
+    attention, queue, blogPipeline,
+    draftCount, ideaCount, publishedCount, openCarouselCount,
+    analyticsReady, underperforming,
   });
 });
 
@@ -108,22 +152,33 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 
 router.get('/posts', requireAuth, async (req, res) => {
   const posts = await BlogPost.find().sort({ updatedAt: -1 }).lean();
+  // Posts that follow the blog standard show whether they are ready to publish (checked in parallel).
+  const tracked = posts.filter((post) => post.status === 'draft' && blogStandards.isStandardsPost(post));
+  const readiness = await blogStandards.draftReadiness(tracked, BlogPost);
+  readiness.forEach((r) => { r.post.standardsNote = r.state === 'ready' ? 'ready to publish' : r.state === 'approval' ? 'waiting for your approval' : r.count + ' to fix'; });
   res.render('admin/posts-list', { posts });
 });
 
-router.get('/posts/new', requireAuth, (req, res) => {
-  res.render('admin/post-editor', { post: null, categories: CATEGORIES, error: null });
+router.get('/posts/new', requireAuth, async (req, res) => {
+  // New posts start from the blog template (server/lib/blogStandards.js): the structure the standard needs is already there.
+  const post = { bodyHtml: blogStandards.POST_TEMPLATE_HTML, notes: blogStandards.NOTES_TEMPLATE, standards: 'v1', review: {} };
+  res.render('admin/post-editor', { post, categories: CATEGORIES, error: null, standards: await blogStandards.standardsContext(post, BlogPost), reviewItems: blogStandards.REVIEW_ITEMS, saved: false });
 });
 
 router.post('/posts/new', requireAuth, async (req, res) => {
   try {
-    await createOrUpdatePost(req.body, null, req.body.contentIdeaId || null);
-    res.redirect('/admin/posts');
+    const saved = await createOrUpdatePost(req.body, null, req.body.contentIdeaId || null);
+    // Stay on the post so the standards checklist is the first thing seen after saving.
+    res.redirect(blogStandards.isStandardsPost(saved) ? `/admin/posts/${saved._id}/edit?saved=1` : '/admin/posts');
   } catch (err) {
+    const post = { ...req.body, standards: 'v1', review: reviewFromBody(req.body) };
     res.status(400).render('admin/post-editor', {
-      post: req.body,
+      post,
       categories: CATEGORIES,
       error: err.message,
+      standards: await blogStandards.standardsContext(post, BlogPost),
+      reviewItems: blogStandards.REVIEW_ITEMS,
+      saved: false,
     });
   }
 });
@@ -131,20 +186,31 @@ router.post('/posts/new', requireAuth, async (req, res) => {
 router.get('/posts/:id/edit', requireAuth, async (req, res, next) => {
   const post = await BlogPost.findById(req.params.id).lean();
   if (!post) return next();
-  res.render('admin/post-editor', { post, categories: CATEGORIES, error: req.query.carouselError || null });
+  res.render('admin/post-editor', {
+    post,
+    categories: CATEGORIES,
+    error: req.query.carouselError || null,
+    standards: await blogStandards.standardsContext(post, BlogPost),
+    reviewItems: blogStandards.REVIEW_ITEMS,
+    saved: req.query.saved === '1',
+  });
 });
 
 router.post('/posts/:id/edit', requireAuth, async (req, res, next) => {
   const existing = await BlogPost.findById(req.params.id);
   if (!existing) return next();
   try {
-    await createOrUpdatePost(req.body, existing);
-    res.redirect('/admin/posts');
+    const saved = await createOrUpdatePost(req.body, existing);
+    res.redirect(blogStandards.isStandardsPost(saved) ? `/admin/posts/${saved._id}/edit?saved=1` : '/admin/posts');
   } catch (err) {
+    const post = { ...req.body, _id: existing._id, slug: req.body.slug || existing.slug, createdAt: existing.createdAt, standards: existing.standards, locale: existing.locale, review: reviewFromBody(req.body) };
     res.status(400).render('admin/post-editor', {
-      post: { ...req.body, _id: existing._id },
+      post,
       categories: CATEGORIES,
       error: err.message,
+      standards: await blogStandards.standardsContext(post, BlogPost),
+      reviewItems: blogStandards.REVIEW_ITEMS,
+      saved: false,
     });
   }
 });
@@ -162,6 +228,13 @@ router.post('/posts/:id/delete', requireAuth, async (req, res) => {
 
   res.redirect('/admin/posts');
 });
+
+// Ticks from the editor's "Before it goes live" boxes (checkbox names: review_<key>)
+function reviewFromBody(body) {
+  const review = {};
+  for (const item of blogStandards.REVIEW_ITEMS) review[item.key] = !!body['review_' + item.key];
+  return review;
+}
 
 async function createOrUpdatePost(body, existing, contentIdeaId) {
   const category = CATEGORIES.find((c) => c.key === body.category);
@@ -186,6 +259,18 @@ async function createOrUpdatePost(body, existing, contentIdeaId) {
     status,
     notes: body.notes || '',
   };
+
+  // The blog standard (server/lib/blogStandards.js) applies to every post created from 2026-11-03. A draft can always be
+  // saved; going live is blocked until the lint is clean, the review boxes are ticked and a share image exists.
+  const followsStandard = existing ? blogStandards.isStandardsPost(existing) : true;
+  if (followsStandard) {
+    data.standards = 'v1';
+    data.review = reviewFromBody(body);
+    if (status === 'published') {
+      const problems = await blogStandards.publishProblems({ ...data, locale: existing ? existing.locale : 'en' }, BlogPost);
+      if (problems.length) throw new Error('Not ready to publish. Fix these first:\n- ' + problems.join('\n- '));
+    }
+  }
 
   if (status === 'published') {
     data.publishedAt = existing && existing.publishedAt ? existing.publishedAt : new Date();
@@ -226,6 +311,8 @@ async function createOrUpdatePost(body, existing, contentIdeaId) {
       console.error('notifySubscribers failed:', err.message);
     });
   }
+
+  return savedPost;
 }
 
 // --- Content ideas ---
