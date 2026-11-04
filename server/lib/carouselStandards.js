@@ -67,7 +67,7 @@ const SOFT_RULES = [
 ];
 
 function words(s) { return (String(s || '').match(/[A-Za-z0-9À-ɏ'’%$-]+/g) || []); }
-function sentences(s) { return String(s || '').split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean); }
+function sentences(s) { return String(s || '').split(/(?<=[.!?])\s+|\n+/).map((x) => x.trim()).filter(Boolean); }
 function syllables(w) {
   w = w.toLowerCase().replace(/[^a-z]/g, '');
   if (!w) return 0;
@@ -132,7 +132,8 @@ function lintCarousel(carousel) {
     const hit = JARGON.filter((j) => low.includes(' ' + j + ' ') || low.includes(' ' + j + 's ')).slice(0, 4);
     if (hit.length) add(warnings, no, 'Study or clinic words a stranger may not know: ' + hit.join(', ') + '. Say it in everyday words (or keep it to the small print).');
     HARD_RULES.forEach((r) => { if (r.re.test(s.all + ' ' + s.button + ' ' + s.note + ' ' + s.eyebrow)) add(errors, no, r.msg); });
-    SOFT_RULES.forEach((r) => { if (r.re.test(s.all)) add(warnings, no, r.msg); });
+    const claimText = s.all.replace(/\b(not|no|without|never)\s+(a\s+)?(proof|cure)\b/gi, '');
+    SOFT_RULES.forEach((r) => { if (r.re.test(r.msg.indexOf('strong claim') >= 0 ? claimText : s.all)) add(warnings, no, r.msg); });
   });
 
   // Reading level across the whole carousel
