@@ -23,6 +23,18 @@
   @media (max-width: 640px) {
     .slide-fields { min-width: 0; flex-basis: 100%; }
   }
+  .design-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .design-bar label { margin: 0; font-weight: 600; }
+  .design-bar select { width: auto; min-width: 240px; }
+  .design-hint { font-size: 0.82rem; color: var(--muted, #6b625c); flex: 1 1 260px; }
+  .warnings { margin-bottom: 14px; }
+  .warnings div { background: #fff4e0; border: 1px solid #e8b96a; color: #7a4d00; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; margin-bottom: 6px; }
+  .warnings div.chk-error { background: #fde4e1; border-color: #e19a91; color: #8a2417; }
+  .warnings div.chk-flow { background: #eef3ee; border-color: #b8cdb9; color: #2b5a33; }
+  .warnings div.chk-flow.weak { background: #fff4e0; border-color: #e8b96a; color: #7a4d00; }
+  .lib-frame { width: 540px; height: 675px; border: 0; transform: scale(0.5); transform-origin: top left; background: #fff; }
+  .lib-row .slide-fields .row-head-left { display: flex; gap: 10px; align-items: center; }
+  .lib-row select.layout-select { width: auto; font-size: 0.82rem; }
 </style>
 </head>
 <body>
@@ -35,14 +47,26 @@
 
     <% if (error) { %><div class="error"><%= error %></div><% } %>
 
+    <% var isLib = carousel.design && carousel.design !== 'classic'; %>
+    <div class="design-bar">
+      <label for="design-select">Design</label>
+      <select id="design-select">
+        <option value="classic" <%= !isLib ? 'selected' : '' %>>Classic (original template)</option>
+        <% Object.keys(designInfo.designs).forEach(function(id) { %><option value="<%= id %>" <%= carousel.design === id ? 'selected' : '' %>><%= designInfo.designs[id].label %></option><% }) %>
+      </select>
+      <span class="design-hint" id="design-hint"><%= isLib ? designInfo.designs[carousel.design].description : 'Switching design saves your text first and fits it into the new layouts. Check every slide afterwards.' %></span>
+    </div>
+    <div id="warnings" class="warnings"></div>
+
     <div class="top-actions">
       <form id="save-form" method="POST" action="/admin/carousels/<%= carousel._id %>/save">
         <input type="hidden" name="slidesJson" id="slidesJson">
+        <input type="hidden" name="design" id="design-input" value="<%= isLib ? carousel.design : 'classic' %>">
         <button type="submit" class="btn">Save changes</button>
       </form>
-      <form method="POST" action="/admin/carousels/<%= carousel._id %>/regenerate" onsubmit="return confirm('Regenerate will replace all current slide text with a fresh Claude response. Continue?');">
+      <% if (!isLib) { %><form method="POST" action="/admin/carousels/<%= carousel._id %>/regenerate" onsubmit="return confirm('Regenerate will replace all current slide text with a fresh Claude response. Continue?');">
         <button type="submit" class="btn btn-ghost">Regenerate all with Claude</button>
-      </form>
+      </form><% } %>
       <button type="button" class="btn btn-ghost" id="download-all-btn">Download all as PNG</button>
       <button type="button" class="btn btn-ghost" id="add-slide-btn">+ Add slide</button>
       <form method="POST" action="/admin/carousels/<%= carousel._id %>/delete" onsubmit="return confirm('Delete this carousel? This cannot be undone.');">
@@ -50,8 +74,9 @@
       </form>
     </div>
 
-    <div id="slides-container">
-      <% carousel.slides.forEach(function(slide, i) { %>
+    <% if (isLib) { %><div id="lib-container"></div><% } %>
+    <div id="slides-container" <%- isLib ? 'hidden' : '' %>>
+      <% if (!isLib) carousel.slides.forEach(function(slide, i) { %>
         <div class="slide-row" data-index="<%= i %>">
           <div class="slide-fields">
             <div class="slide-row-head">
@@ -81,10 +106,12 @@
             </select>
             <label>CTA button label (only shown if set)</label>
             <input type="text" class="f-ctabtn" value="<%= slide.ctaBtn %>">
+            <label>Small print (optional, shown at the bottom of the slide, e.g. a disclaimer or source)</label>
+            <textarea class="f-note"><%= slide.note || '' %></textarea>
             <label>Background style</label>
             <select class="f-bgstyle">
               <option value="none" <%= (slide.bgStyle || 'none') === 'none' ? 'selected' : '' %>>None (flat color)</option>
-              <option value="orb" <%= slide.bgStyle === 'orb' ? 'selected' : '' %>>Orb (soft gradient glow)</option>
+              <option value="orb" <%= slide.bgStyle === 'orb' ? 'selected' : '' %>>Orb (progressive glow, drifts across slides)</option>
               <option value="lines" <%= slide.bgStyle === 'lines' ? 'selected' : '' %>>Lines (clock/ring motif)</option>
             </select>
           </div>
@@ -98,6 +125,22 @@
     </div>
   </main>
 
+<script>
+// Carousel standard panel (checks run on the server: server/lib/carouselStandards.js). Shared by both editors.
+window.showCarouselChecks = function (j) {
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+  var html = '';
+  var f = j.flow;
+  if (f && f.total >= 2) {
+    var strip = f.perSlide.map(function (p) { return p.linked === null ? 'cover' : (p.linked ? 'joined' : 'STATEMENT'); }).join(' | ');
+    html += '<div class="chk-flow' + (f.ratio < 0.6 ? ' weak' : '') + '"><strong>Flow:</strong> ' + f.linked + ' of ' + f.total + ' slides join to the one before. ' + esc(strip) + '</div>';
+  }
+  html += (j.errors || []).map(function (w) { return '<div class="chk-error"><strong>Fix:</strong> ' + esc(w) + '</div>'; }).join('');
+  html += (j.warnings || []).map(function (w) { return '<div>' + esc(w) + '</div>'; }).join('');
+  document.getElementById('warnings').innerHTML = html;
+};
+</script>
+<% if (!isLib) { %>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 (function () {
@@ -146,6 +189,9 @@
     '.slide.dark .handle{color:rgba(245,235,225,0.6);}' +
     '.slide.cta .handle{color:#4a3226;}' +
     '.cta-btn{display:inline-block;align-self:flex-start;margin-top:4px;background:var(--ink);color:var(--paper);font-size:15px;font-weight:700;padding:12px 22px;border-radius:100px;}' +
+    '.note{position:relative;z-index:2;margin:14px 0 0;font-size:11.5px;line-height:1.45;font-weight:500;color:var(--muted);max-width:48ch;}' +
+    '.slide.dark .note{color:rgba(245,235,225,0.62);}' +
+    '.slide.cta .note{color:#4a3226;}' +
     '.chat-tag{position:relative;z-index:2;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 4px;}' +
     '.slide.dark .chat-tag{color:rgba(245,235,225,0.55);}' +
     '.chat-panel{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;}' +
@@ -161,7 +207,7 @@
     '.slide.dark .bubble.coach{background:var(--dark-accent);color:var(--dark);}' +
     '.slide.cta .bubble.client{background:rgba(26,26,26,0.08);}' +
     '.bg-orb{position:absolute;inset:0;z-index:1;overflow:hidden;}' +
-    '.bg-orb::before{content:"";position:absolute;width:520px;height:520px;right:-160px;bottom:-180px;border-radius:50%;background:radial-gradient(circle at 35% 35%, var(--accent) 0%, rgba(192,57,43,0.35) 40%, transparent 72%);opacity:0.55;filter:blur(2px);}' +
+    '.bg-orb::before{content:"";position:absolute;width:var(--orb-size,520px);height:var(--orb-size,520px);right:var(--orb-x,-160px);bottom:var(--orb-y,-180px);border-radius:50%;background:radial-gradient(circle at 35% 35%, var(--accent) 0%, rgba(192,57,43,0.35) 40%, transparent 72%);opacity:0.55;filter:blur(2px);}' +
     '.slide.dark .bg-orb::before{background:radial-gradient(circle at 35% 35%, var(--dark-accent) 0%, rgba(232,180,160,0.28) 40%, transparent 72%);opacity:0.45;}' +
     '.slide.cta .bg-orb::before{background:radial-gradient(circle at 35% 35%, var(--accent) 0%, rgba(192,57,43,0.22) 40%, transparent 72%);opacity:0.35;}' +
     '.bg-lines{position:absolute;inset:0;z-index:1;overflow:hidden;}' +
@@ -186,6 +232,21 @@
 
   function escapeHtml(str) {
     return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Design refresh (2026-09-28, per the "DESIGN REVIEW: Carousel Background
+  // Style Refresh" recurring event): the orb motif now progressively drifts
+  // up-and-left and grows across a carousel's own slide sequence, instead of
+  // sitting in a fixed spot on every slide ("seamless transition" trend).
+  // Computed from slide position, not stored per-slide, so it applies
+  // automatically to any carousel using bgStyle 'orb'. Falls back to the old
+  // fixed position via the CSS var() defaults if these are never set.
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function setOrbVars(el, idx, total) {
+    var t = total > 1 ? idx / (total - 1) : 0;
+    el.style.setProperty('--orb-x', lerp(-180, 20, t).toFixed(0) + 'px');
+    el.style.setProperty('--orb-y', lerp(-200, -420, t).toFixed(0) + 'px');
+    el.style.setProperty('--orb-size', lerp(500, 620, t).toFixed(0) + 'px');
   }
 
   function slideInnerHtml(data, counter, total) {
@@ -218,9 +279,10 @@
       bulletsHtml = '<ul class="points">' + data.bullets.map(function (b) { return '<li>' + escapeHtml(b) + '</li>'; }).join('') + '</ul>';
     }
     var ctaHtml = data.ctaBtn ? '<span class="cta-btn">' + escapeHtml(data.ctaBtn) + '</span>' : '';
+    var noteHtml = data.note ? '<p class="note">' + escapeHtml(data.note) + '</p>' : '';
     return bgHtml + rowTop +
       '<div class="body"><h1>' + escapeHtml(data.headline) + '</h1>' + subHtml + bulletsHtml + ctaHtml + '</div>' +
-      footer;
+      noteHtml + footer;
   }
 
   // Chat-bubble lines are entered as "C: message" / "A: message" / "T: time
@@ -255,6 +317,7 @@
       chatBubbles: parseChatBubbles(rowEl.querySelector('.f-chatbubbles').value),
       variant: rowEl.querySelector('.f-variant').value,
       ctaBtn: rowEl.querySelector('.f-ctabtn').value,
+      note: rowEl.querySelector('.f-note').value,
       bgStyle: rowEl.querySelector('.f-bgstyle').value,
     };
   }
@@ -269,6 +332,7 @@
     var idx = all.indexOf(rowEl);
     var previewEl = rowEl.querySelector('.slide-preview .slide');
     previewEl.className = 'slide' + (data.variant !== 'default' ? ' ' + data.variant : '');
+    if (data.bgStyle === 'orb') setOrbVars(previewEl, idx, all.length);
     previewEl.innerHTML = slideInnerHtml(data, idx + 1, all.length);
   }
 
@@ -294,6 +358,7 @@
     el.style.position = 'fixed';
     el.style.left = '-9999px';
     el.style.top = '0';
+    if (data.bgStyle === 'orb') setOrbVars(el, idx, all.length);
     el.innerHTML = slideInnerHtml(data, idx + 1, all.length);
     document.body.appendChild(el);
 
@@ -311,14 +376,22 @@
 
   var container = document.getElementById('slides-container');
 
+  var checkTimer = null;
+  function runChecks() {
+    fetch('/admin/carousels/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+      body: JSON.stringify({ carousel: { design: 'classic', slides: rows().map(collectSlideData) } }) })
+      .then(function (r) { return r.json(); }).then(function (j) { window.showCarouselChecks(j); });
+  }
+  function scheduleChecks() { clearTimeout(checkTimer); checkTimer = setTimeout(runChecks, 500); }
+
   container.addEventListener('input', function (e) {
     var rowEl = e.target.closest('.slide-row');
-    if (rowEl) renderPreview(rowEl);
+    if (rowEl) { renderPreview(rowEl); scheduleChecks(); }
   });
 
   container.addEventListener('change', function (e) {
     var rowEl = e.target.closest('.slide-row');
-    if (rowEl) renderPreview(rowEl);
+    if (rowEl) { renderPreview(rowEl); scheduleChecks(); }
   });
 
   container.addEventListener('click', function (e) {
@@ -350,7 +423,8 @@
       '<label>Chat bubbles (testimonial mockup - one per line, "C: message" / "A: message" / "T: time gap label"; overrides headline/sub/bullets on this slide when filled in)</label><textarea class="f-chatbubbles" placeholder="C: message from client&#10;A: your reply&#10;T: time gap label (optional)"></textarea>' +
       '<label>Variant</label><select class="f-variant"><option value="default">Default</option><option value="dark">Dark (opening hook)</option><option value="cta">CTA (closing)</option></select>' +
       '<label>CTA button label (only shown if set)</label><input type="text" class="f-ctabtn">' +
-      '<label>Background style</label><select class="f-bgstyle"><option value="none">None (flat color)</option><option value="orb">Orb (soft gradient glow)</option><option value="lines">Lines (clock/ring motif)</option></select>' +
+      '<label>Small print (optional, shown at the bottom of the slide, e.g. a disclaimer or source)</label><textarea class="f-note"></textarea>' +
+      '<label>Background style</label><select class="f-bgstyle"><option value="none">None (flat color)</option><option value="orb">Orb (progressive glow, drifts across slides)</option><option value="lines">Lines (clock/ring motif)</option></select>' +
       '</div>' +
       '<div class="slide-preview-wrap"><div class="slide-preview"><div class="slide" style="transform:scale(0.5); transform-origin:top left;"></div></div></div>';
     container.appendChild(rowEl);
@@ -376,6 +450,164 @@
   });
 
   renderAllPreviews();
+  runChecks();
+})();
+</script>
+<% } else { %>
+<script>
+(function () {
+  var DESIGN_ID = <%- JSON.stringify(carousel.design) %>;
+  var INFO = <%- JSON.stringify(designInfo).replace(/</g, '\\u003c') %>;
+  var DESIGN = INFO.designs[DESIGN_ID];
+  var slides = <%- JSON.stringify((carousel.slides || []).map(function (s) { return { layout: s.layout || DESIGN.coverLayout, data: s.data || {} }; })).replace(/</g, '\\u003c') %>;
+  var container = document.getElementById('lib-container');
+  var timers = {};
+  var warnTimer = null;
+
+  function el(tag, attrs, html) { var e = document.createElement(tag); Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); }); if (html) e.innerHTML = html; return e; }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+  function fieldInput(field, value, idx) {
+    var wrap = el('div', { 'class': 'lib-field' });
+    wrap.appendChild(el('label', {}, esc(field.label)));
+    var input;
+    var v = Array.isArray(value) ? value.join('\n') : (value == null ? '' : value);
+    if (field.type === 'textarea' || field.type === 'lines') {
+      input = el('textarea'); input.value = v;
+    } else if (field.type === 'photo') {
+      input = el('select');
+      input.appendChild(el('option', { value: '' }, '(none)'));
+      INFO.photos.forEach(function (p) { var o = el('option', { value: p }, esc(p)); if (p === v) o.selected = true; input.appendChild(o); });
+    } else if (field.type === 'select') {
+      input = el('select');
+      (field.options || []).forEach(function (o) { var op = el('option', { value: o[0] }, esc(o[1])); if (o[0] === v) op.selected = true; input.appendChild(op); });
+    } else {
+      input = el('input', { type: field.type === 'number' ? 'number' : 'text' }); input.value = v;
+    }
+    input.addEventListener('input', function () { onField(idx, field, input.value); });
+    input.addEventListener('change', function () { onField(idx, field, input.value); });
+    wrap.appendChild(input);
+    return wrap;
+  }
+
+  function onField(idx, field, raw) {
+    var val = raw;
+    if (field.type === 'lines') val = raw.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    slides[idx].data[field.key] = val;
+    schedulePreview(idx);
+  }
+
+  function carouselPayload() { return { design: DESIGN_ID, slides: slides }; }
+
+  function schedulePreview(idx) {
+    // Nervous-system slides share one wide canvas, so every slide changes with any edit.
+    var targets = DESIGN_ID === 'nervous' ? slides.map(function (_, i) { return i; }) : [idx];
+    targets.forEach(function (i) {
+      clearTimeout(timers[i]);
+      timers[i] = setTimeout(function () { renderPreview(i); }, 350);
+    });
+    clearTimeout(warnTimer);
+    warnTimer = setTimeout(refreshWarnings, 500);
+  }
+
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' });
+  }
+
+  function renderPreview(idx) {
+    var row = container.children[idx];
+    if (!row) return;
+    post('/admin/carousels/preview', { carousel: carouselPayload(), index: idx })
+      .then(function (r) { return r.text(); })
+      .then(function (html) { row.querySelector('iframe').srcdoc = html; });
+  }
+
+  function refreshWarnings() {
+    post('/admin/carousels/validate', { carousel: carouselPayload() })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { window.showCarouselChecks(j); });
+  }
+
+  function downloadPng(idx, btn) {
+    var label = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Rendering...'; }
+    return post('/admin/carousels/render-png', { carousel: carouselPayload(), index: idx })
+      .then(function (r) { if (!r.ok) return r.text().then(function (t) { throw new Error(t); }); return r.blob(); })
+      .then(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'slide-' + String(idx + 1).padStart(2, '0') + '.png';
+        document.body.appendChild(a); a.click(); a.remove();
+      })
+      .catch(function (e) { alert(e.message); })
+      .finally(function () { if (btn) { btn.disabled = false; btn.textContent = label; } });
+  }
+
+  function buildRow(idx) {
+    var s = slides[idx];
+    var layout = DESIGN.layouts[s.layout] ? s.layout : DESIGN.coverLayout;
+    s.layout = layout;
+    var row = el('div', { 'class': 'slide-row lib-row' });
+    var fields = el('div', { 'class': 'slide-fields' });
+    var head = el('div', { 'class': 'slide-row-head' });
+    var left = el('div', { 'class': 'row-head-left' }, '<strong>Slide ' + (idx + 1) + '</strong>');
+    var sel = el('select', { 'class': 'layout-select' });
+    Object.keys(DESIGN.layouts).forEach(function (k) { var o = el('option', { value: k }, esc(DESIGN.layouts[k].label)); if (k === layout) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener('change', function () { s.layout = sel.value; rebuild(); });
+    left.appendChild(sel);
+    var actions = el('div', { 'class': 'slide-row-actions' });
+    var dl = el('button', { type: 'button', 'class': 'btn btn-ghost' }, 'Download PNG');
+    dl.addEventListener('click', function () { downloadPng(idx, dl); });
+    var rm = el('button', { type: 'button', 'class': 'btn btn-danger' }, 'Remove');
+    rm.addEventListener('click', function () { if (slides.length > 1 && confirm('Remove slide ' + (idx + 1) + '?')) { slides.splice(idx, 1); rebuild(); } });
+    actions.appendChild(dl); actions.appendChild(rm);
+    head.appendChild(left); head.appendChild(actions);
+    fields.appendChild(head);
+    DESIGN.layouts[layout].fields.forEach(function (f) { fields.appendChild(fieldInput(f, s.data[f.key], idx)); });
+    var wrap = el('div', { 'class': 'slide-preview-wrap' });
+    var box = el('div', { 'class': 'slide-preview' });
+    box.appendChild(el('iframe', { 'class': 'lib-frame', scrolling: 'no', title: 'Slide ' + (idx + 1) + ' preview' }));
+    wrap.appendChild(box);
+    row.appendChild(fields); row.appendChild(wrap);
+    return row;
+  }
+
+  function rebuild() {
+    container.innerHTML = '';
+    slides.forEach(function (_, i) { container.appendChild(buildRow(i)); });
+    slides.forEach(function (_, i) { renderPreview(i); });
+    refreshWarnings();
+  }
+
+  document.getElementById('add-slide-btn').addEventListener('click', function () {
+    slides.splice(Math.max(0, slides.length - 1), 0, { layout: 'text', data: {} });
+    rebuild();
+  });
+
+  document.getElementById('download-all-btn').addEventListener('click', function () {
+    var i = 0;
+    (function next() { if (i >= slides.length) return; downloadPng(i).then(function () { i++; setTimeout(next, 350); }); })();
+  });
+
+  document.getElementById('save-form').addEventListener('submit', function () {
+    document.getElementById('slidesJson').value = JSON.stringify(slides);
+  });
+
+  rebuild();
+})();
+</script>
+<% } %>
+<script>
+// Design switching: save the current text first (so nothing is lost), the server converts it to the new design.
+(function () {
+  var sel = document.getElementById('design-select');
+  var current = sel.value;
+  sel.addEventListener('change', function () {
+    if (!confirm('Switch design to "' + sel.options[sel.selectedIndex].text + '"? Your text is saved and fitted into the new layouts. Check every slide afterwards.')) { sel.value = current; return; }
+    document.getElementById('design-input').value = sel.value;
+    var form = document.getElementById('save-form');
+    form.requestSubmit ? form.requestSubmit() : form.submit();
+  });
 })();
 </script>
 </body>

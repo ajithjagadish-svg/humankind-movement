@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# private carousel photos (people), never commit
+/server/assets/carousel-photos/

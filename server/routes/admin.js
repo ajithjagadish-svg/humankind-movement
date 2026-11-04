@@ -1,4 +1,9 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const carouselDesigns = require('../lib/carouselDesigns');
+const carouselBase = require('../lib/carouselDesigns/base');
+const carouselStandards = require('../lib/carouselStandards');
 const AdminUser = require('../models/AdminUser');
 const BlogPost = require('../models/BlogPost');
 const ContentIdea = require('../models/ContentIdea');
@@ -795,6 +800,7 @@ function redirectToSource(res, sourceType, sourceId, errorMessage) {
 
 router.get('/carousels', requireAuth, async (req, res) => {
   const carousels = await Carousel.find().sort({ updatedAt: -1 }).lean();
+  carousels.forEach((c) => { c.check = carouselStandards.summary(c); });
   res.render('admin/carousels-list', { carousels });
 });
 
@@ -814,7 +820,7 @@ router.post('/carousels/generate', requireAuth, async (req, res) => {
 router.get('/carousels/:id/edit', requireAuth, async (req, res, next) => {
   const carousel = await Carousel.findById(req.params.id).lean();
   if (!carousel) return next();
-  res.render('admin/carousel-editor', { carousel, error: req.query.error || null });
+  res.render('admin/carousel-editor', { carousel, error: req.query.error || null, designInfo: carouselDesigns.describeDesigns() });
 });
 
 router.post('/carousels/:id/regenerate', requireAuth, async (req, res, next) => {
@@ -831,11 +837,83 @@ router.post('/carousels/:id/regenerate', requireAuth, async (req, res, next) => 
   res.redirect(`/admin/carousels/${carousel._id}/edit`);
 });
 
+// Category designs: private photos/fonts, live preview HTML, and PNG export (needs a local Chrome, so it
+// works on a laptop; on the server it answers with a friendly error and the CLI renderer is used instead).
+router.get('/carousel-photos/:name', requireAuth, (req, res, next) => {
+  const f = carouselBase.photoFileName(path.basename(req.params.name).replace(/\.[^.]+$/, ''));
+  if (!f) return next();
+  res.sendFile(path.join(carouselBase.PHOTO_DIR, f));
+});
+
+router.get('/carousel-fonts/:name', requireAuth, (req, res, next) => {
+  const f = path.join(carouselBase.FONT_DIR, path.basename(req.params.name));
+  if (!fs.existsSync(f)) return next();
+  res.sendFile(f);
+});
+
+router.get('/carousel-designs.json', requireAuth, (req, res) => {
+  res.json(carouselDesigns.describeDesigns());
+});
+
+router.post('/carousels/preview', requireAuth, (req, res) => {
+  try {
+    const { carousel, index } = req.body;
+    if (!carouselDesigns.isLibraryDesign(carousel && carousel.design)) return res.status(400).send('Not a category design.');
+    res.type('html').send(carouselDesigns.renderSlidePage(carousel, Number(index) || 0, 'preview'));
+  } catch (err) {
+    res.status(400).send('Preview error: ' + err.message);
+  }
+});
+
+// Carousel standard (server/lib/carouselStandards.js): errors break a hard rule, warnings are things a
+// reader will probably stumble on, flow says which slides join to the one before them.
+// The older design-specific checks still run; the ones the standard now covers are dropped to avoid doubles.
+function carouselChecks(carousel) {
+  const std = carouselStandards.lintCarousel(carousel);
+  let legacy = [];
+  try { legacy = carouselDesigns.validateCarousel(carousel); } catch (e) { /* classic slides have no design validator */ }
+  legacy = legacy.filter((w) => !/^More than 6 slides|^An em dash|is crowded \(/.test(w));
+  return { errors: std.errors, warnings: std.warnings.concat(legacy), flow: std.flow, stats: std.stats };
+}
+router.post('/carousels/validate', requireAuth, (req, res) => {
+  const r = carouselChecks(req.body.carousel || {});
+  res.json({ errors: r.errors, warnings: r.warnings, flow: r.flow, stats: r.stats });
+});
+
+router.post('/carousels/render-png', requireAuth, async (req, res) => {
+  try {
+    const { carousel, index } = req.body;
+    if (!carouselDesigns.isLibraryDesign(carousel && carousel.design)) return res.status(400).send('Not a category design.');
+    let puppeteer;
+    try { puppeteer = require('puppeteer-core'); } catch (e) { return res.status(501).send('PNG export needs puppeteer-core, which is not installed here. Use: node server/scripts/render-one-carousel.js'); }
+    const chrome = ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', process.env.CHROME_PATH].filter(Boolean).find((p) => fs.existsSync(p));
+    if (!chrome) return res.status(501).send('PNG export needs Chrome, which is not available on this server. Run it from your laptop: node server/scripts/render-one-carousel.js');
+    const html = carouselDesigns.renderSlidePage(carousel, Number(index) || 0, 'file');
+    const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', args: ['--allow-file-access-from-files'] });
+    try {
+      const pg = await browser.newPage();
+      await pg.setViewport({ width: 540, height: 675, deviceScaleFactor: 2 });
+      await pg.setContent(html, { waitUntil: 'networkidle0' });
+      await pg.evaluate(() => document.fonts.ready);
+      const el = await pg.$('.s');
+      const png = await el.screenshot({ type: 'png' });
+      res.type('png').send(png);
+    } finally { await browser.close(); }
+  } catch (err) {
+    res.status(500).send('Could not render: ' + err.message);
+  }
+});
+
 router.post('/carousels/:id/save', requireAuth, async (req, res, next) => {
   const carousel = await Carousel.findById(req.params.id);
   if (!carousel) return next();
   try {
-    carousel.slides = JSON.parse(req.body.slidesJson);
+    let slides = JSON.parse(req.body.slidesJson);
+    const design = req.body.design || carousel.design || 'classic';
+    if (design !== 'classic' && !carouselDesigns.isLibraryDesign(design)) throw new Error('Unknown design.');
+    if (design !== (carousel.design || 'classic')) slides = carouselDesigns.convertSlides(slides, carousel.design || 'classic', design);
+    carousel.design = design;
+    carousel.slides = slides;
     await carousel.save();
   } catch (err) {
     return res.redirect(`/admin/carousels/${carousel._id}/edit?error=${encodeURIComponent('Could not save changes.')}`);
