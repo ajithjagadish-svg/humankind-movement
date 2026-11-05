@@ -4,6 +4,7 @@
 //
 //   node server/scripts/render-og-images.js            # only posts missing a card
 //   node server/scripts/render-og-images.js --force    # re-render everything
+//   node server/scripts/render-og-images.js --slug=<slug>  # one post of ANY status (a draft's card can be made before publishing)
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
@@ -14,6 +15,7 @@ const BlogPost = require('../models/BlogPost');
 const OUT_DIR = path.join(__dirname, '..', '..', 'assets', 'img', 'og');
 const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const FORCE = process.argv.includes('--force');
+const SLUG_ARG = (process.argv.find((x) => x.startsWith('--slug=')) || '').slice(7);
 
 const MARK_SVG = '<svg class="mark" viewBox="328 294 152 153" xmlns="http://www.w3.org/2000/svg"><rect x="398.699219" y="294.300781" width="11.699219" height="59.414063" fill="#1a1a1a"/><rect x="398.699219" y="387" width="11.699219" height="59.414063" fill="#1a1a1a"/><rect x="328.5" y="364.5" width="59.414063" height="11.699219" fill="#c0392b"/><rect x="420.300781" y="364.5" width="59.414063" height="11.699219" fill="#c0392b"/></svg>';
 
@@ -43,10 +45,11 @@ function card(post) {
 
 (async () => {
   await connectDB();
-  const posts = await BlogPost.find({ status: 'published' }).select('slug title categoryLabel').lean();
+  const posts = await BlogPost.find(SLUG_ARG ? { slug: SLUG_ARG } : { status: 'published' }).select('slug title categoryLabel').lean();
+  if (SLUG_ARG && !posts.length) throw new Error('no post with slug ' + SLUG_ARG);
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  const todo = posts.filter((p) => FORCE || !fs.existsSync(path.join(OUT_DIR, p.slug + '.jpg')));
-  console.log(`${posts.length} published, rendering ${todo.length}`);
+  const todo = posts.filter((p) => FORCE || SLUG_ARG || !fs.existsSync(path.join(OUT_DIR, p.slug + '.jpg')));
+  console.log(`${posts.length} ${SLUG_ARG ? 'selected' : 'published'}, rendering ${todo.length}`);
 
   const browser = await puppeteer.launch({ executablePath: CHROME_PATH, headless: 'new' });
   const page = await browser.newPage();

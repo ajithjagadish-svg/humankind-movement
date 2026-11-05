@@ -35,7 +35,7 @@
                 <% } %>
               </td>
               <td><%= post.categoryLabel %></td>
-              <td><span class="badge <%= post.status %>"><%= post.status %></span></td>
+              <td><span class="badge <%= post.status %>"><%= post.status %></span><% if (post.standardsNote) { %><div style="font-size:0.75rem; color:#6b6862; margin-top:4px;">checklist: <%= post.standardsNote %></div><% } %></td>
               <td><%= post.publishedAt ? post.publishedAt.toISOString().slice(0,10) : '—' %></td>
               <td>
                 <% if (post.status === 'published') { %>
