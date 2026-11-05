@@ -9,6 +9,10 @@
 <style>
   .carousel-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
   .carousel-meta { font-size: 0.82rem; color: #6b6862; margin: 0.3em 0 0.8em; }
+  .chk { display: inline-block; font-size: 0.74rem; font-weight: 600; padding: 2px 9px; border-radius: 99px; margin-left: 8px; }
+  .chk-ok { background: #e3f3e6; color: #1f6b34; }
+  .chk-review { background: #fff4e0; color: #7a4d00; }
+  .chk-fix { background: #fde4e1; color: #9b2a1c; }
 </style>
 </head>
 <body>
@@ -26,9 +30,9 @@
       <div class="carousel-card">
         <div class="row" style="margin-bottom:0;">
           <h3 style="margin:0;"><%= c.title %></h3>
-          <span class="badge <%= c.status === 'posted' ? 'published' : 'draft' %>"><%= c.status %></span>
+          <span><span class="badge <%= c.status === 'posted' ? 'published' : 'draft' %>"><%= c.status %></span><span class="chk chk-<%= c.check.level %>" title="Carousel standard: flow, plain words, one idea per slide, voice, honest limits"><%= c.check.text %></span></span>
         </div>
-        <p class="carousel-meta"><%= c.slides.length %> slides &middot; from <%= c.sourceType === 'blogPost' ? 'blog post' : 'content idea' %> &middot; updated <%= new Date(c.updatedAt).toLocaleDateString() %></p>
+        <p class="carousel-meta"><%= c.slides.length %> slides &middot; <%= c.design && c.design !== 'classic' ? c.design + ' design' : 'classic design' %> &middot; from <%= c.sourceType === 'blogPost' ? 'blog post' : 'content idea' %> &middot; updated <%= new Date(c.updatedAt).toLocaleDateString() %></p>
         <a class="btn" href="/admin/carousels/<%= c._id %>/edit">Open</a>
       </div>
     <% }) %>
