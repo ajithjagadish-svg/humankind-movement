@@ -33,6 +33,13 @@ ok('only English posts from 2026-11-03 follow the standard', () => {
   assert.strictEqual(S.isStandardsPost({ locale: 'en', standards: 'v1', createdAt: '2026-01-01' }), true);
   assert.strictEqual(S.isStandardsPost({ locale: 'en' }), true); // a post not saved yet counts as new
 });
+ok('a post may not talk about how we accessed the source (paywall, only the summary)', () => {
+  const bad = (s) => S.lintPost({ title: 'x', meta: 'y', bodyHtml: '<p>' + s + '</p>' }).errors.filter((e) => /accessed the source/.test(e)).length;
+  assert.strictEqual(bad("The full paper sits behind a paywall, so we could read only the summary. We can't tell you how strong the evidence was for each type."), 1);
+  assert.strictEqual(bad('We read the published summary, not the full paper, so we cannot tell you every detail.'), 1);
+  assert.strictEqual(bad('The trial was small, with 63 adults, and had no placebo group.'), 0);
+  assert.strictEqual(bad('Some types may rest on only a few trials.'), 0);
+});
 if (raw) {
   const title = (raw.match(/<!-- (.*?) -->/) || [])[1];
   const meta = (raw.match(/<!-- meta: (.*?) -->/) || [])[1];

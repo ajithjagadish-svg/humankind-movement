@@ -12,3 +12,5 @@ The rules are in code, in one file: `server/lib/blogStandards.js`. The admin edi
 8. **After publishing:** `node server/scripts/after-publish.js <slug>` (indexing watchlist, live check), then the carousel, social captions (all channels, UTM links, teaser) and translations.
 
 Checks to run after any change to this: `node server/scripts/test-blog-standards.js`, `node server/scripts/test-admin-blog-standards.js`, and `node server/scripts/admin-smoke-test.js` (all 13 admin tabs, throwaway database).
+
+- **No behind-the-scenes talk in the post (2026-11-17):** how we accessed a source (paywall, only the summary or abstract) is never reader content; it goes in notes. Enforced by lintPost.

@@ -78,6 +78,12 @@ function lintPost(fields, opts = {}) {
   const fp = unquoted.match(/\b(?:I|I'm|I've|I'd|I'll|my|My|me|Me|mine)\b/g);
   if (fp) errors.push(`first-person singular found (${[...new Set(fp)].join(', ')}); use "we" (Ajith's rule, 2026-09-14)`);
 
+  // Behind-the-scenes talk is never reader content (Ajith, 2026-11-17: "how is this relevant?"). How WE got the source (paywall, only the
+  // abstract or summary, could not open the paper) belongs in the notes field. The reader only needs what the research can and cannot tell THEM
+  // (small sample, no comparison group, one setting).
+  const processTalk = main.match(/[^.?!]*(?:paywall|behind a login|(?:read|had|got|saw) (?:only )?(?:the )?(?:published |short )?(?:summary|abstract)|(?:summary|abstract) only|only (?:the )?(?:summary|abstract)|(?:full|whole) (?:paper|text|article)[^.?!]{0,80}(?:not |behind|unavailable|n't|cannot|can't)|(?:we|I) (?:could ?n[o']?t|could not|were not able to|weren't able to|did not|didn't) (?:access|open|read|get)[^.?!]{0,40}(?:paper|study|article|text|source)|could (?:only )?read only)[^.?!]*[.?!]?/i);
+  if (processTalk) errors.push(`talks about how we accessed the source, which is irrelevant to the reader (delete it, and put it in the notes): "${processTalk[0].trim().slice(0, 90)}"`);
+
   // Weakness framing about a body is never allowed; plain "weak" (e.g. "weak evidence") is only a warning.
   if (/\bweak(?:er|ness|ened)?\b[^.]{0,30}\b(?:core|back|pelvic|floor|glutes?|hips?|abs|abdominal|muscles?|body)\b/i.test(main)
       || /\b(?:core|back|pelvic floor|glutes?|hips?|abs|muscles?)\b[^.]{0,20}\b(?:is|are|was|were)\s+weak/i.test(main)) {
