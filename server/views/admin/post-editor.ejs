@@ -15,7 +15,29 @@
       <a href="/admin/posts">← Back to posts</a>
     </div>
     <div class="card">
-      <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <% if (error) { %><div class="error" style="white-space:pre-line;"><%= error %></div><% } %>
+      <% var std = locals.standards || { applies: false }; %>
+      <% if (locals.saved) { %><div class="success">Saved. The checklist below shows what is left before this can go live.</div><% } %>
+      <% if (std.applies) { %>
+        <div style="border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:1.4em; background:#fbfaf7;">
+          <strong style="font-size:0.95rem;">Blog standard checklist</strong>
+          <span class="badge <%= std.ready ? 'published' : 'draft' %>" style="margin-left:8px;"><%= std.ready ? 'ready to publish' : std.problems.length + ' to fix before publishing' %></span>
+          <p style="margin:8px 0 4px; font-size:0.85rem; color:#6b6862;">Every post created from 3 Nov 2026 follows this: template, lint, review ticks and a share image. You can always save a draft; publishing is blocked until nothing is left. <%= std.words ? std.words + ' words including the footnote.' : '' %></p>
+          <% if (std.problems.length) { %>
+            <ul style="margin:8px 0 0 18px; padding:0; font-size:0.88rem; color:#b3261e;">
+              <% std.problems.forEach(function(p) { %><li><%= p %></li><% }) %>
+            </ul>
+          <% } %>
+          <% if (std.warnings && std.warnings.length) { %>
+            <ul style="margin:8px 0 0 18px; padding:0; font-size:0.85rem; color:#8a6100;">
+              <% std.warnings.forEach(function(w) { %><li>Look at: <%= w %></li><% }) %>
+            </ul>
+          <% } %>
+          <p style="margin:8px 0 0; font-size:0.82rem; color:#6b6862;">Share image: <%= std.shareImage ? 'found' : 'not found yet (render it locally with node server/scripts/render-og-images.js --slug=<slug>, then commit and deploy)' %>.</p>
+        </div>
+      <% } else if (post && post._id) { %>
+        <p style="font-size:0.82rem; color:#6b6862; margin:0 0 1.2em;">This post predates the blog standard (3 Nov 2026), so the checklist is not enforced on it.</p>
+      <% } %>
       <form method="POST" action="<%= post && post._id ? '/admin/posts/' + post._id + '/edit' : '/admin/posts/new' %>">
         <% if (post && post.contentIdeaId) { %><input type="hidden" name="contentIdeaId" value="<%= post.contentIdeaId %>"><% } %>
         <label for="title">Title</label>
@@ -55,6 +77,18 @@
 
         <label for="notes">Internal notes (not shown publicly)</label>
         <textarea id="notes" name="notes" style="min-height:80px; font-family:inherit;"><%= post ? post.notes || '' : '' %></textarea>
+
+        <% if (std.applies) { %>
+          <fieldset style="border:1px solid var(--line); border-radius:12px; padding:12px 16px; margin:1.2em 0;">
+            <legend style="font-size:0.85rem; font-weight:600; padding:0 6px;">Before it goes live (all four must be ticked)</legend>
+            <% (locals.reviewItems || []).forEach(function(item) { %>
+              <label style="display:flex; gap:10px; align-items:flex-start; margin:8px 0; font-weight:400; font-size:0.9rem;">
+                <input type="checkbox" name="review_<%= item.key %>" value="1" style="width:auto; margin-top:3px;" <%= std.review && std.review[item.key] ? 'checked' : '' %>>
+                <span><%= item.label %></span>
+              </label>
+            <% }) %>
+          </fieldset>
+        <% } %>
 
         <div class="actions">
           <button type="submit" class="btn"><%= post && post._id ? 'Save changes' : 'Create post' %></button>

@@ -8,10 +8,23 @@
 <%- include('../partials/admin-styles') %>
 <style>
   .digest-list { list-style: none; padding: 0; margin: 0; }
-  .digest-list li { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .digest-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
   .digest-list li:last-child { border-bottom: none; }
   .digest-count { font-weight: 700; }
   .setup-note { background: #fff8e6; border: 1px solid #f0dca0; border-radius: 8px; padding: 12px 16px; font-size: 0.88rem; margin-top: 1em; }
+  .section-title { font-size: 0.95rem; margin: 0 0 4px; }
+  .sub { font-size: 0.82rem; color: #6b6862; margin: 0 0 10px; }
+  .chip { display: inline-block; padding: 1px 9px; margin: 2px 4px 2px 0; border-radius: 100px; font-size: 0.74rem; font-weight: 600; background: #f1efe9; color: #6b6862; }
+  .chip.late { background: #fdecea; color: #b3261e; }
+  .chip.today { background: #fff4d6; color: #8a6100; }
+  .chip.good { background: #e6f4ea; color: #1e7b34; }
+  .tone-lead .digest-count, .tone-late .digest-count { color: #b3261e; }
+  .tone-today .digest-count { color: #8a6100; }
+  .tone-good .digest-count { color: #1e7b34; }
+  .tone-quiet { color: #6b6862; font-size: 0.88rem; }
+  .tone-quiet .digest-count { color: #6b6862; }
+  .q-title { font-size: 0.9rem; }
+  .stat-line { font-size: 0.85rem; color: #6b6862; margin-top: 1.4em; }
 </style>
 </head>
 <body>
@@ -20,28 +33,58 @@
     <h1 style="font-size:1.2rem; margin:0 0 1em;">What needs your attention</h1>
 
     <div class="card">
-      <ul class="digest-list">
-        <li>
-          <span><span class="digest-count"><%= draftCount %></span> draft post<%= draftCount === 1 ? '' : 's' %> not yet published</span>
-          <a href="/admin/posts">View posts →</a>
-        </li>
-        <li>
-          <span><span class="digest-count"><%= ideaCount %></span> content idea<%= ideaCount === 1 ? '' : 's' %> ready to write</span>
-          <a href="/admin/content-ideas">View ideas →</a>
-        </li>
-        <li>
-          <span><span class="digest-count"><%= publishedCount %></span> post<%= publishedCount === 1 ? '' : 's' %> published</span>
-          <a href="/admin/posts">View posts →</a>
-        </li>
-        <li>
-          <span><span class="digest-count"><%= newContactCount %></span> new contact message<%= newContactCount === 1 ? '' : 's' %></span>
-          <a href="/admin/submissions">View submissions →</a>
-        </li>
-        <li>
-          <span><span class="digest-count"><%= newIntakeCount %></span> new intake form<%= newIntakeCount === 1 ? '' : 's' %></span>
-          <a href="/admin/submissions">View submissions →</a>
-        </li>
-      </ul>
+      <% if (attention.length === 0) { %>
+        <strong>Nothing needs you right now.</strong>
+        <p class="sub" style="margin-top:6px;">No new messages, nothing overdue in the publishing queue, and no blog post waiting on you.</p>
+      <% } else { %>
+        <ul class="digest-list">
+          <% attention.forEach(function(a) { %>
+            <li class="tone-<%= a.tone %>">
+              <span><span class="digest-count"><%= a.n %></span> <%= a.text %></span>
+              <a href="<%= a.href %>">Open →</a>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+
+    <% if (queue.length) { %>
+      <div class="card" style="margin-top:20px;">
+        <h2 class="section-title">Publishing queue: overdue and the next 3 days</h2>
+        <p class="sub">Only platforms still not posted are shown. Mark each one posted in the queue once it is live.</p>
+        <ul class="digest-list">
+          <% queue.slice(0, 8).forEach(function(q) { %>
+            <li>
+              <span>
+                <span class="chip <%= q.when === 'overdue' ? 'late' : q.when === 'today' ? 'today' : '' %>"><%= q.when === 'overdue' ? 'overdue' : q.when === 'today' ? 'today' : 'soon' %> · <%= new Date(q.scheduledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' }) %></span>
+                <a class="q-title" href="/admin/queue/<%= q._id %>"><%= q.title %></a><br>
+                <% q.queued.forEach(function(name) { %><span class="chip"><%= name %></span><% }) %>
+              </span>
+            </li>
+          <% }) %>
+        </ul>
+        <% if (queue.length > 8) { %><p class="sub" style="margin-top:8px;">+ <%= queue.length - 8 %> more. <a href="/admin/queue?status=queued">See the whole queue →</a></p><% } %>
+      </div>
+    <% } %>
+
+    <div class="card" style="margin-top:20px;">
+      <h2 class="section-title">Blog pipeline</h2>
+      <% if (blogPipeline.length === 0) { %>
+        <p class="sub" style="margin-bottom:0;">No draft is in progress under the blog standard. Start one from <a href="/admin/posts/new">New post</a> (it opens on the template).</p>
+      <% } else { %>
+        <p class="sub">Every draft made from 3 Nov 2026 has to clear the blog standard before it can go live.</p>
+        <ul class="digest-list">
+          <% blogPipeline.forEach(function(r) { %>
+            <li>
+              <span>
+                <a href="/admin/posts/<%= r.post._id %>/edit"><%= r.post.title %></a><br>
+                <span class="chip <%= r.state === 'ready' ? 'good' : r.state === 'approval' ? 'today' : 'late' %>"><%= r.state === 'ready' ? 'ready to publish' : r.state === 'approval' ? 'waiting for your approval' : r.count + ' to fix' %></span>
+                <span style="font-size:0.8rem; color:#6b6862;">Next: <%= r.next %></span>
+              </span>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
     </div>
 
     <div class="card" style="margin-top:20px;">
@@ -64,6 +107,13 @@
         </ul>
       <% } %>
     </div>
+
+    <p class="stat-line">
+      <%= publishedCount %> post<%= publishedCount === 1 ? '' : 's' %> published ·
+      <a href="/admin/posts"><%= draftCount %> draft<%= draftCount === 1 ? '' : 's' %></a> ·
+      <a href="/admin/content-ideas"><%= ideaCount %> content idea<%= ideaCount === 1 ? '' : 's' %> ready to write</a> ·
+      <a href="/admin/carousels"><%= openCarouselCount %> carousel<%= openCarouselCount === 1 ? '' : 's' %> not yet posted</a>
+    </p>
   </main>
 </body>
 </html>

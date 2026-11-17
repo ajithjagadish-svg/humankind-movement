@@ -42,6 +42,15 @@ const BlogPostSchema = new mongoose.Schema(
       updatedAt: { type: Date },
     },
     notes: { type: String, default: '' },
+    // Blog standard (server/lib/blogStandards.js). 'v1' = follows the standard: template, lint, review ticks and a
+    // share image are required before publishing. Empty = predates it (before 2026-11-03), left alone.
+    standards: { type: String, default: '' },
+    review: {
+      sources: { type: Boolean, default: false },  // Claude read the primary source in full
+      grok: { type: Boolean, default: false },     // Grok reviewed the final text
+      chatgpt: { type: Boolean, default: false },  // ChatGPT reviewed the final text
+      approved: { type: Boolean, default: false }, // Ajith read the wording and said yes
+    },
   },
   { timestamps: true }
 );
