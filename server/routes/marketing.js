@@ -30,7 +30,7 @@ const REPO_ROOT = path.join(__dirname, '..', '..');
 // services/*.html, and '/experiences' (plus the es/fr equivalents) is
 // handled explicitly below as a redirect to the new /services hub, not a
 // served file.
-const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact', 'intake', 'postpartum-recovery-guide', 'movement-coaching-bengaluru'];
+const CORE_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact', 'intake', 'postpartum-recovery-guide', 'movement-coaching-bengaluru', 'hello'];
 const TRANSLATED_PAGES = ['about', 'philosophy', 'the-method', 'who-we-serve', 'contact'];
 const LANGS = ['es', 'fr'];
 
