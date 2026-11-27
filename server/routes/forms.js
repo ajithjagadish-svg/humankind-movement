@@ -94,6 +94,53 @@ router.post('/intake', async (req, res) => {
   res.json({ ok: true });
 });
 
+// Short sign-up behind the QR code at stalls and events (hello.html). Stored as a
+// contact submission so it shows in the admin's existing list.
+const EVENT_INTERESTS = [
+  'Breathing and movement assessment',
+  'One-to-one coaching for aches and pains',
+  'Postpartum movement coaching',
+  'Movement coaching for neurodivergent people',
+  'Corporate or community workshop',
+  'Not sure yet',
+];
+
+router.post('/event-enquiry', async (req, res) => {
+  const body = req.body || {};
+
+  if (body._gotcha) return res.json({ ok: true });
+
+  const text = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+  const name = text(body.name, 80);
+  const phone = text(body.phone, 20);
+  const digits = phone.replace(/\D/g, '');
+  const interests = [].concat(body.interests || []).filter((i) => EVENT_INTERESTS.includes(i));
+
+  if (!name || digits.length < 10 || digits.length > 15) {
+    return res.status(400).json({ error: 'Please add your name and a WhatsApp number with at least 10 digits.' });
+  }
+  if (!interests.length) {
+    return res.status(400).json({ error: 'Please pick at least one thing you are interested in.' });
+  }
+  if (body.consent !== 'yes') {
+    return res.status(400).json({ error: 'Please tick the box so we may contact you.' });
+  }
+
+  const topic = `Stall sign-up: ${interests.join(', ')}`;
+  const message = [
+    `Interested in: ${interests.join(', ')}`,
+    `Best time: ${text(body.bestTime, 20) || 'Any time'}`,
+    `Note: ${text(body.note, 500) || 'None'}`,
+    'Consent to contact on WhatsApp or phone: yes',
+  ].join('\n');
+
+  await ContactSubmission.create({ name, email: 'Not given', phone, topic, location: 'QR sign-up page (/hello)', message });
+
+  forwardToFormspree({ name, phone, message, _subject: 'New stall sign-up from Humankind Movement' });
+
+  res.json({ ok: true });
+});
+
 router.post('/ebook-signup', async (req, res) => {
   const { name, email, mobileNumber, resource, _gotcha } = req.body;
 

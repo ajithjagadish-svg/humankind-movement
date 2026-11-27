@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Say Hello | Humankind Movement</title>
+<meta name="description" content="Leave your name and WhatsApp number and tell us what you are interested in. We will message you.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .hello { max-width: 34rem; margin: 0 auto; padding: 24px 20px 48px; }
+  .hello-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .hello-brand img { width: 56px; height: 56px; }
+  .hello h1 { font-size: 1.9rem; line-height: 1.15; margin: 0 0 8px; }
+  .hello .lead { margin: 0 0 24px; }
+  .hello .contact-form label, .hello .contact-form legend { font-size: 1rem; }
+  .hello fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+  .hello legend { font-weight: 600; color: var(--ink-soft); padding: 0; margin-bottom: 10px; }
+  .hello .contact-form label.choice { display: flex; align-items: flex-start; gap: 12px; font-weight: 400; line-height: 1.4; border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .hello .contact-form label.choice input { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; }
+  .hello .contact-form input, .hello .contact-form select, .hello .contact-form textarea { font-size: 1rem; }
+  .hello .contact-form button[type="submit"] { width: 100%; justify-content: center; text-align: center; }
+  .hello .small { font-size: 0.875rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="hello">
+  <a class="hello-brand" href="/">
+    <img src="assets/img/icon-mark.png" alt="Humankind Movement" width="56" height="56">
+    <span class="brand-word">HUMANKIND<small>MOVEMENT</small></span>
+  </a>
+  <p lang="kn">ನಮಸ್ಕಾರ!</p>
+  <h1>Leave your number. We will message you.</h1>
+  <p class="lead">Tell us what you are interested in. It takes less than a minute.</p>
+
+  <form class="contact-form" action="/api/event-enquiry" method="POST" data-ajax-form data-ga-event="event_enquiry_submit">
+    <div class="field">
+      <label for="ev-name">Your name <span class="req">*</span></label>
+      <input type="text" id="ev-name" name="name" autocomplete="name" maxlength="80" required>
+    </div>
+    <div class="field">
+      <label for="ev-phone">WhatsApp number <span class="req">*</span></label>
+      <input type="tel" id="ev-phone" name="phone" autocomplete="tel" inputmode="tel" maxlength="20" required>
+    </div>
+    <fieldset>
+      <legend>What are you interested in? <span class="req">*</span></legend>
+      <label class="choice"><input type="checkbox" name="interests" value="Breathing and movement assessment"> Breathing and movement assessment</label>
+      <label class="choice"><input type="checkbox" name="interests" value="One-to-one coaching for aches and pains"> One-to-one coaching for aches and pains</label>
+      <label class="choice"><input type="checkbox" name="interests" value="Postpartum movement coaching"> Postpartum movement coaching</label>
+      <label class="choice"><input type="checkbox" name="interests" value="Movement coaching for neurodivergent people"> Movement coaching for neurodivergent people</label>
+      <label class="choice"><input type="checkbox" name="interests" value="Corporate or community workshop"> Corporate or community workshop</label>
+      <label class="choice"><input type="checkbox" name="interests" value="Not sure yet"> Not sure yet, help me choose</label>
+    </fieldset>
+    <div class="field">
+      <label for="ev-time">Best time to message you <span class="opt">(optional)</span></label>
+      <select id="ev-time" name="bestTime">
+        <option value="">Any time</option>
+        <option>Morning</option>
+        <option>Afternoon</option>
+        <option>Evening</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ev-note">Anything else? <span class="opt">(optional)</span></label>
+      <p class="small">Please do not share medical details here. We can talk about them in person.</p>
+      <textarea id="ev-note" name="note" maxlength="500" style="min-height:80px"></textarea>
+    </div>
+    <fieldset>
+      <label class="choice"><input type="checkbox" name="consent" value="yes" required> I am 18 or older, and Humankind Movement may contact me on WhatsApp or phone about this. For a child, a parent or guardian fills this in.</label>
+    </fieldset>
+    <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit" class="btn">Send</button>
+    <p class="form-status err" role="alert"></p>
+    <p class="form-status ok" role="status">Thank you. We have your details and will message you.</p>
+    <p class="small" style="margin-top:16px">We use these details only to get back to you. Our website and email services store them for us. We do not sell them. To have them removed, <a href="https://wa.me/919844059292?text=Please%20delete%20my%20details" rel="noopener">message us on WhatsApp</a>.</p>
+  </form>
+</main>
+<script src="assets/js/form-submit.js"></script>
+</body>
+</html>
